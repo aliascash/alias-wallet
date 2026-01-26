@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2012 Bitcoin Developers
@@ -17,7 +18,7 @@ using namespace std;
 using namespace json_spirit;
 
 Array
-createArgs(int nRequired, const char* address1=NULL, const char* address2=NULL)
+createArgs(int nRequired, const char* address1=nullptr, const char* address2=nullptr)
 {
     Array result;
     result.push_back(nRequired);

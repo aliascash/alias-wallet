@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -5,7 +6,6 @@
 
 #include <vector>
 #include <boost/test/unit_test.hpp>
-#include <boost/foreach.hpp>
 
 #include "script.h"
 #include "key.h"

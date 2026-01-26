@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -133,8 +134,8 @@ public:
         vSeeds.push_back(CDNSSeedData("node3.spectreproject.io", "node3.spectreproject.io"));
         vSeeds.push_back(CDNSSeedData("node4.spectreproject.io", "node4.spectreproject.io"));
       }
-    virtual const CBlock& GenesisBlock() const { return genesis; }
-    virtual const std::vector<CAddress>& FixedSeeds() const {
+    const CBlock& GenesisBlock() const override { return genesis; }
+    const std::vector<CAddress>& FixedSeeds() const override {
         return vFixedSeeds;
     }
 protected:
@@ -201,7 +202,7 @@ public:
         supplyIncreaseAddress = "SSGCEMb6xESgmuGXkx7yozGDxhVSXzBP3a";
     }
 
-    virtual Network NetworkID() const { return CChainParams::MAIN; }
+    Network NetworkID() const override { return CChainParams::MAIN; }
 };
 static CMainParams mainParams;
 
@@ -267,7 +268,7 @@ public:
         devContributionAddress = "tSJoPZoXumJyDmGKYo9Y7SZkJvymESFYkD";
         supplyIncreaseAddress = devContributionAddress;
     }
-    virtual Network NetworkID() const { return CChainParams::TESTNET; }
+    Network NetworkID() const override { return CChainParams::TESTNET; }
 };
 static CTestNetParams testNetParams;
 
@@ -301,8 +302,8 @@ public:
         vSeeds.clear();  // Regtest mode doesn't have any DNS seeds.
     }
 
-    virtual bool RequireRPCPassword() const { return false; }
-    virtual Network NetworkID() const { return CChainParams::REGTEST; }
+    bool RequireRPCPassword() const override { return false; }
+    Network NetworkID() const override { return CChainParams::REGTEST; }
 };
 static CRegTestParams regTestParams;
 

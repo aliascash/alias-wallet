@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -21,16 +22,15 @@
 static const int64_t nClientStartupTime = GetTime();
 
 ClientModel::ClientModel(OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), optionsModel(optionsModel), pollTimer(0)
+    QObject(parent),
+    optionsModel(optionsModel)
 {
     peerTableModel = new PeerTableModel(this);
 
-    // Some quantities (such as number of blocks) change so fast that we don't want to be notified for each change.
-    // Periodically fetch data from core with a timer.
     pollTimer = new QTimer(this);
     pollTimer->setInterval(MODEL_UPDATE_DELAY);
     pollTimer->start();
-    connect(pollTimer, SIGNAL(timeout()), this, SLOT(updateTimer()));
+    connect(pollTimer, &QTimer::timeout, this, &ClientModel::updateTimer);
 
     subscribeToCoreSignals();
 }
@@ -43,14 +43,14 @@ ClientModel::~ClientModel()
 int ClientModel::getNumConnections(unsigned int flags) const
 {
     LOCK(cs_vNodes);
-    if (flags == CONNECTIONS_ALL) // Shortcut if we want total
+    if (flags == CONNECTIONS_ALL)
         return vNodes.size();
 
     int nNum = 0;
-    BOOST_FOREACH(CNode* pnode, vNodes)
-    if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
-        nNum++;
-
+    for (CNode* pnode : vNodes) {
+        if (flags & (pnode->fInbound ? CONNECTIONS_IN : CONNECTIONS_OUT))
+            nNum++;
+    }
     return nNum;
 }
 
@@ -74,44 +74,41 @@ QDateTime ClientModel::getLastBlockDate() const
     return QDateTime::fromTime_t(coreInfo.lastBlockTime);
 }
 
-void ClientModel::updateFromCore(const CoreInfoModel &coreInfo) {
+void ClientModel::updateFromCore(const CoreInfoModel &coreInfo)
+{
     this->coreInfo = coreInfo;
 }
 
-void ClientModel::updateTimer() {
+void ClientModel::updateTimer()
+{
     if (coreInfo.numBlocks != lastPublishedCoreInfo.numBlocks
         || coreInfo.numBlocksOfPeers != lastPublishedCoreInfo.numBlocksOfPeers
         || nNodeState == NS_GET_FILTERED_BLOCKS)
     {
         lastPublishedCoreInfo = coreInfo;
-        emit numBlocksChanged(coreInfo.numBlocks, coreInfo.numBlocksOfPeers);
+        Q_EMIT numBlocksChanged(coreInfo.numBlocks, coreInfo.numBlocksOfPeers);
     }
 
-    emit bytesChanged(getTotalBytesRecv(), getTotalBytesSent());
+    Q_EMIT bytesChanged(getTotalBytesRecv(), getTotalBytesSent());
 }
 
 void ClientModel::updateNumConnections(int numConnections)
 {
-    emit numConnectionsChanged(numConnections);
+    Q_EMIT numConnectionsChanged(numConnections);
 }
 
 void ClientModel::updateAlert(const QString &hash, int status)
 {
-    // Show error message notification for new alert
-    if (status == CT_NEW)
-    {
+    if (status == CT_NEW) {
         uint256 hash_256;
         hash_256.SetHex(hash.toStdString());
         CAlert alert = CAlert::getAlertByHash(hash_256);
-        if (!alert.IsNull())
-        {
-            emit error(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), false);
-        };
-    };
+        if (!alert.IsNull()) {
+            Q_EMIT error(tr("Network Alert"), QString::fromStdString(alert.strStatusBar), false);
+        }
+    }
 
-    // Emit a numBlocksChanged when the status message changes,
-    // so that the view recomputes and updates the status bar.
-    emit numBlocksChanged(getNumBlocks(), getNumBlocksOfPeers());
+    Q_EMIT numBlocksChanged(getNumBlocks(), getNumBlocksOfPeers());
 }
 
 bool ClientModel::isTestNet() const
@@ -133,6 +130,7 @@ int ClientModel::getNumBlocksOfPeers() const
 {
     return coreInfo.numBlocksOfPeers;
 }
+
 bool ClientModel::isImporting() const
 {
     return fImporting;
@@ -173,16 +171,20 @@ QString ClientModel::formatClientStartupTime() const
     return QDateTime::fromTime_t(nClientStartupTime).toString();
 }
 
-// Handlers for core signals
 static void NotifyBlocksChanged(ClientModel *clientmodel, const BlockChangedEvent &blockChangedEvent)
 {
-   CoreInfoModel coreInfoModel = {blockChangedEvent.numBlocks, blockChangedEvent.numBlocksOfPeers, blockChangedEvent.isInitialBlockDownload, blockChangedEvent.lastBlockTime};
-   QMetaObject::invokeMethod(clientmodel, "updateFromCore", Qt::QueuedConnection, Q_ARG(CoreInfoModel, coreInfoModel));
+    CoreInfoModel coreInfoModel = {
+        blockChangedEvent.numBlocks,
+        blockChangedEvent.numBlocksOfPeers,
+        blockChangedEvent.isInitialBlockDownload,
+        blockChangedEvent.lastBlockTime
+    };
+    QMetaObject::invokeMethod(clientmodel, "updateFromCore", Qt::QueuedConnection,
+                              Q_ARG(CoreInfoModel, coreInfoModel));
 }
 
 static void NotifyNumConnectionsChanged(ClientModel *clientmodel, int newNumConnections)
 {
-    // Too noisy: LogPrintf("NotifyNumConnectionsChanged %i\n", newNumConnections);
     QMetaObject::invokeMethod(clientmodel, "updateNumConnections", Qt::QueuedConnection,
                               Q_ARG(int, newNumConnections));
 }
@@ -197,7 +199,6 @@ static void NotifyAlertChanged(ClientModel *clientmodel, const uint256 &hash, Ch
 
 void ClientModel::subscribeToCoreSignals()
 {
-    // Connect signals to client
     uiInterface.NotifyBlocksChanged.connect(boost::bind(NotifyBlocksChanged, this, boost::placeholders::_1));
     uiInterface.NotifyNumConnectionsChanged.connect(boost::bind(NotifyNumConnectionsChanged, this, boost::placeholders::_1));
     uiInterface.NotifyAlertChanged.connect(boost::bind(NotifyAlertChanged, this, boost::placeholders::_1, boost::placeholders::_2));
@@ -205,7 +206,6 @@ void ClientModel::subscribeToCoreSignals()
 
 void ClientModel::unsubscribeFromCoreSignals()
 {
-    // Disconnect signals from client
     uiInterface.NotifyBlocksChanged.disconnect(boost::bind(NotifyBlocksChanged, this, boost::placeholders::_1));
     uiInterface.NotifyNumConnectionsChanged.disconnect(boost::bind(NotifyNumConnectionsChanged, this, boost::placeholders::_1));
     uiInterface.NotifyAlertChanged.disconnect(boost::bind(NotifyAlertChanged, this, boost::placeholders::_1, boost::placeholders::_2));

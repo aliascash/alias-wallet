@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -39,7 +40,7 @@ private:
     bool fDetachDB;
     bool fDbEnvInit;
     bool fMockDb;
-    boost::filesystem::path pathEnv;
+    fs::path pathEnv;
     std::string strPath;
 
     void EnvShutdown();
@@ -73,7 +74,7 @@ public:
     typedef std::pair<std::vector<unsigned char>, std::vector<unsigned char> > KeyValPair;
     bool Salvage(std::string strFile, bool fAggressive, std::vector<KeyValPair>& vResult);
 
-    bool Open(boost::filesystem::path pathEnv_);
+    bool Open(fs::path pathEnv_);
     void Close();
     void Flush(bool fShutdown);
 
@@ -86,10 +87,10 @@ public:
 
     DbTxn *TxnBegin(int flags=DB_TXN_WRITE_NOSYNC)
     {
-        DbTxn* ptxn = NULL;
-        int ret = dbenv.txn_begin(NULL, &ptxn, flags);
+        DbTxn* ptxn = nullptr;
+        int ret = dbenv.txn_begin(nullptr, &ptxn, flags);
         if (!ptxn || ret != 0)
-            return NULL;
+            return nullptr;
         return ptxn;
     }
 };
@@ -134,7 +135,7 @@ protected:
         datValue.set_flags(DB_DBT_MALLOC);
         int ret = pdb->get(activeTxn, &datKey, &datValue, nFlags);
         memset(datKey.get_data(), 0, datKey.get_size());
-        if (datValue.get_data() == NULL)
+        if (datValue.get_data() == nullptr)
             return false;
 
         // Unserialize value
@@ -228,11 +229,11 @@ protected:
     Dbc* GetCursor()
     {
         if (!pdb)
-            return NULL;
-        Dbc* pcursor = NULL;
-        int ret = pdb->cursor(NULL, &pcursor, 0);
+            return nullptr;
+        Dbc* pcursor = nullptr;
+        int ret = pdb->cursor(nullptr, &pcursor, 0);
         if (ret != 0)
-            return NULL;
+            return nullptr;
         return pcursor;
     }
 
@@ -259,7 +260,7 @@ public:
         int ret = pcursor->get(&datKey, &datValue, fFlags);
         if (ret != 0)
             return ret;
-        else if (datKey.get_data() == NULL || datValue.get_data() == NULL)
+        else if (datKey.get_data() == nullptr || datValue.get_data() == nullptr)
             return 99999;
 
         // Convert to streams
@@ -294,7 +295,7 @@ public:
         if (!pdb || !activeTxn)
             return false;
         int ret = activeTxn->commit(0);
-        activeTxn = NULL;
+        activeTxn = nullptr;
         return (ret == 0);
     }
 
@@ -303,7 +304,7 @@ public:
         if (!pdb || !activeTxn)
             return false;
         int ret = activeTxn->abort();
-        activeTxn = NULL;
+        activeTxn = nullptr;
         return (ret == 0);
     }
 
@@ -318,7 +319,7 @@ public:
         return Write(std::string("version"), nVersion);
     }
 
-    bool static Rewrite(const std::string& strFile, const char* pszSkip = NULL);
+    bool static Rewrite(const std::string& strFile, const char* pszSkip = nullptr);
 };
 
 
@@ -326,7 +327,7 @@ public:
 class CAddrDB
 {
 private:
-    boost::filesystem::path pathAddr;
+    fs::path pathAddr;
 public:
     CAddrDB();
     bool Write(const CAddrMan& addr);

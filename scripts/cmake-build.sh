@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -228,13 +230,13 @@ checkOpenSSLArchive() {
     if [[ -e "${OPENSSL_ARCHIVE_LOCATION}/openssl-${OPENSSL_BUILD_VERSION}.tar.gz" ]]; then
         info " -> Using OpenSSL archive ${OPENSSL_ARCHIVE_LOCATION}/openssl-${OPENSSL_BUILD_VERSION}.tar.gz"
     else
-        OPENSSL_ARCHIVE_URL=https://mirror.viaduck.org/openssl/openssl-${OPENSSL_BUILD_VERSION}.tar.gz
+        OPENSSL_ARCHIVE_URL="https://mirror.viaduck.org/openssl/openssl-${OPENSSL_BUILD_VERSION}.tar.gz"
         info " -> Downloading OpenSSL archive ${OPENSSL_ARCHIVE_URL}"
-        if [[ ! -e ${OPENSSL_ARCHIVE_LOCATION} ]]; then
-            mkdir -p ${OPENSSL_ARCHIVE_LOCATION}
+        if [[ ! -e "${OPENSSL_ARCHIVE_LOCATION}" ]]; then
+            mkdir -p "${OPENSSL_ARCHIVE_LOCATION}"
         fi
-        cd ${OPENSSL_ARCHIVE_LOCATION}
-        wget ${OPENSSL_ARCHIVE_URL}
+        cd "${OPENSSL_ARCHIVE_LOCATION}"
+        wget "${OPENSSL_ARCHIVE_URL}"
         cd - >/dev/null
     fi
 }
@@ -242,8 +244,9 @@ checkOpenSSLArchive() {
 # For OpenSSL we're using a fork of https://github.com/viaduck/openssl-cmake
 # with some slight modifications for Alias
 checkOpenSSLClone() {
-    local currentDir=$(pwd)
-    cd ${ownLocation}/../external
+    local currentDir
+    currentDir=$(pwd)
+    cd "${ownLocation}/../external"
     if [[ -d openssl-cmake ]]; then
         info " -> Updating openssl-cmake clone"
         cd openssl-cmake
@@ -256,8 +259,8 @@ checkOpenSSLClone() {
 }
 
 checkOpenSSLBuild() {
-    mkdir -p ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl
-    cd ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl || die 1 "Unable to cd into ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl"
+    mkdir -p "${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl"
+    cd "${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl" || die 1 "Unable to cd into ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/openssl"
 
     info " -> Generating build configuration"
     read -r -d '' cmd <<EOM
@@ -299,7 +302,7 @@ EOM
 checkOpenSSL() {
     info ""
     info "OpenSSL:"
-    if [[ -f ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/usr/local/lib/libssl.a ]]; then
+    if [[ -f "${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/usr/local/lib/libssl.a" ]]; then
         info " -> Found ${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/usr/local/lib/libssl.a, skip build"
     else
         checkOpenSSLArchive
@@ -899,7 +902,7 @@ else
 fi
 # Determine arch
 LIB_ARCH_SUFFIX=x64
-if [ "$(uname -m)" = "aarch64" ] ; then
+if [[ "$(uname -m)" == "aarch64" ]]; then
     LIB_ARCH_SUFFIX=a64
 fi
 

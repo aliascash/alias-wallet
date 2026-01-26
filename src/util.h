@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -27,8 +28,7 @@
 
 #ifndef Q_MOC_RUN
 #include <boost/thread.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
+#include "util/fs.h"
 #include <boost/date_time/gregorian/gregorian_types.hpp>
 #include <boost/date_time/posix_time/posix_time_types.hpp>
 #endif
@@ -167,11 +167,11 @@ bool ParseMoney(const char* pszIn, int64_t& nRet);
 std::vector<unsigned char> ParseHex(const char* psz);
 std::vector<unsigned char> ParseHex(const std::string& str);
 bool IsHex(const std::string& str);
-std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = NULL);
+std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid = nullptr);
 std::string DecodeBase64(const std::string& str);
 std::string EncodeBase64(const unsigned char* pch, size_t len);
 std::string EncodeBase64(const std::string& str);
-std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = NULL);
+std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid = nullptr);
 std::string DecodeBase32(const std::string& str);
 std::string EncodeBase32(const unsigned char* pch, size_t len);
 std::string EncodeBase32(const std::string& str);
@@ -179,18 +179,18 @@ void ParseParameters(int argc, const char*const argv[]);
 bool WildcardMatch(const char* psz, const char* mask);
 bool WildcardMatch(const std::string& str, const std::string& mask);
 void FileCommit(FILE *fileout);
-bool RenameOver(boost::filesystem::path src, boost::filesystem::path dest);
-boost::filesystem::path GetDefaultDataDir();
-boost::filesystem::path GetTempPath();
-const boost::filesystem::path &GetDataDir(bool fNetSpecific = true);
-boost::filesystem::path GetConfigFile();
-boost::filesystem::path GetPidFile();
+bool RenameOver(fs::path src, fs::path dest);
+fs::path GetDefaultDataDir();
+fs::path GetTempPath();
+const fs::path& GetDataDir(bool fNetSpecific = true);
+fs::path GetConfigFile();
+fs::path GetPidFile();
 #ifndef WIN32
-void CreatePidFile(const boost::filesystem::path &path, pid_t pid);
+void CreatePidFile(const fs::path& path, pid_t pid);
 #endif
 void ReadConfigFile(std::map<std::string, std::string>& mapSettingsRet, std::map<std::string, std::vector<std::string> >& mapMultiSettingsRet);
 #ifdef WIN32
-boost::filesystem::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
+fs::path GetSpecialFolderPath(int nFolder, bool fCreate = true);
 #endif
 
 const char *GetNodeModeName(int modeInd);
@@ -244,7 +244,7 @@ inline int64_t atoi64(const char* psz)
 #ifdef _MSC_VER
     return _atoi64(psz);
 #else
-    return strtoll(psz, NULL, 10);
+    return strtoll(psz, nullptr, 10);
 #endif
 }
 
@@ -253,7 +253,7 @@ inline int64_t atoi64(const std::string& str)
 #ifdef _MSC_VER
     return _atoi64(str.c_str());
 #else
-    return strtoll(str.c_str(), NULL, 10);
+    return strtoll(str.c_str(), nullptr, 10);
 #endif
 }
 
@@ -319,7 +319,7 @@ inline int64_t GetPerformanceCounter()
     QueryPerformanceCounter((LARGE_INTEGER*)&nCounter);
 #else
     timeval t;
-    gettimeofday(&t, NULL);
+    gettimeofday(&t, nullptr);
     nCounter = (int64_t) t.tv_sec * 1000000 + t.tv_usec;
 #endif
     return nCounter;
@@ -592,7 +592,7 @@ template <typename Callable> void LoopForever(const char* name,  Callable func, 
     } catch (std::exception& e) {
         PrintException(&e, name);
     } catch (...) {
-        PrintException(NULL, name);
+        PrintException(nullptr, name);
     }
 }
 
@@ -613,7 +613,7 @@ template <typename Callable> void TraceThread(const char* name,  Callable func)
     } catch (std::exception& e) {
         PrintException(&e, name);
     } catch (...) {
-        PrintException(NULL, name);
+        PrintException(nullptr, name);
     };
 };
 
@@ -633,7 +633,7 @@ template <typename Callable, typename T> void TraceThread(const char* name, Call
     } catch (std::exception& e) {
         PrintException(&e, name);
     } catch (...) {
-        PrintException(NULL, name);
+        PrintException(nullptr, name);
     };
 };
 

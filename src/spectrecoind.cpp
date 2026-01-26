@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -43,7 +44,7 @@ void ThreadCli()
         tv.tv_sec = 0;
         tv.tv_usec = 200000;
 
-        if (select(1, &rfds, NULL, NULL, &tv) < 1) // read blocks thread from interrupt
+        if (select(1, &rfds, nullptr, nullptr, &tv) < 1) // read blocks thread from interrupt
             continue;
 
         if ((n = read(STDIN_FILENO, buffer, sizeof(buffer))) < 1)
@@ -96,7 +97,7 @@ void ThreadCli()
 
             ReplaceStrInPlace(strReply, "\\n", "\n"); // format help msg
 
-            if (write(STDOUT_FILENO, strReply.data(), strReply.length()) != (uint32_t) strReply.length())
+            if (write(STDOUT_FILENO, strReply.data(), strReply.length()) != static_cast<uint32_t>(strReply.length()))
                 throw std::runtime_error("write failed.");
 
             printf("\n> ");
@@ -158,7 +159,7 @@ bool AppInit(int argc, char* argv[])
         //
         // If Qt is used, parameters/bitcoin.conf are parsed in qt/bitcoin.cpp's main()
         ParseParameters(argc, argv);
-        if (!boost::filesystem::is_directory(GetDataDir(false)))
+        if (!fs::is_directory(GetDataDir(false)))
         {
             fprintf(stderr, "Error: Specified directory does not exist\n");
             Shutdown();
@@ -235,7 +236,7 @@ bool AppInit(int argc, char* argv[])
         PrintException(&e, "AppInit()");
     } catch (...)
     {
-        PrintException(NULL, "AppInit()");
+        PrintException(nullptr, "AppInit()");
     };
 
     if (!fRet)

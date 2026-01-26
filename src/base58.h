@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -91,7 +92,7 @@ inline bool DecodeBase58(const char* psz, std::vector<unsigned char>& vchRet)
     for (const char* p = psz; *p; p++)
     {
         const char* p1 = strchr(pszBase58, *p);
-        if (p1 == NULL)
+        if (p1 == nullptr)
         {
             while (isspace(*p))
                 p++;
@@ -287,11 +288,11 @@ private:
     CBitcoinAddress *addr;
 public:
     CBitcoinAddressVisitor(CBitcoinAddress *addrIn) : addr(addrIn) { }
-    bool operator()(const CKeyID &id) const;
-    bool operator()(const CScriptID &id) const;
-    bool operator()(const CStealthAddress &sxAddr) const;
-    bool operator()(const CExtKeyPair &ek) const;
-    bool operator()(const CNoDestination &no) const;
+    bool operator()(const CKeyID &id) const override;
+    bool operator()(const CScriptID &id) const override;
+    bool operator()(const CStealthAddress &sxAddr) const override;
+    bool operator()(const CExtKeyPair &ek) const override;
+    bool operator()(const CNoDestination &no) const override;
 };
 
 class CBitcoinAddress : public CBase58Data
@@ -372,9 +373,7 @@ public:
             || vchVersion == Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY);
     }
 
-    CBitcoinAddress()
-    {
-    }
+    CBitcoinAddress() = default;
 
     CBitcoinAddress(const CTxDestination &dest)
     {
@@ -494,9 +493,7 @@ public:
         SetKey(vchSecret);
     }
 
-    CBitcoinSecret()
-    {
-    }
+    CBitcoinSecret() = default;
 };
 
 
@@ -543,7 +540,7 @@ public:
         return 0;
     }
 
-    CBitcoinExtKeyBase() {}
+    CBitcoinExtKeyBase() = default;
 };
 
 typedef CBitcoinExtKeyBase<CExtKey, 74, CChainParams::EXT_SECRET_KEY> CBitcoinExtKey;
@@ -553,7 +550,7 @@ typedef CBitcoinExtKeyBase<CExtPubKey, 74, CChainParams::EXT_PUBLIC_KEY> CBitcoi
 class CExtKey58 : public CBase58Data
 {
 public:
-    CExtKey58() {};
+    CExtKey58() = default;
 
     CExtKey58(const CExtKeyPair &key, CChainParams::Base58Type type)
     {

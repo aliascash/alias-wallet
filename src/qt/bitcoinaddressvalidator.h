@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -7,25 +8,18 @@
 #ifndef BITCOINADDRESSVALIDATOR_H
 #define BITCOINADDRESSVALIDATOR_H
 
-#include <QRegExpValidator>
+#include <QValidator>
 
-/** Base48 entry widget validator.
-   Corrects near-miss characters and refuses characters that are no part of base48.
- */
 class BitcoinAddressValidator : public QValidator
 {
     Q_OBJECT
+
 public:
-    explicit BitcoinAddressValidator(QObject *parent = 0);
+    explicit BitcoinAddressValidator(QObject *parent = nullptr);
 
-    State validate(QString &input, int &pos) const;
+    State validate(QString &input, int &pos) const override;
 
-    //static const int MaxAddressLength = 35;
-    static const int MaxAddressLength = 128; // accept stealth addresses
-signals:
-
-public slots:
-
+    static const int MaxAddressLength = 128;
 };
 
 #endif // BITCOINADDRESSVALIDATOR_H

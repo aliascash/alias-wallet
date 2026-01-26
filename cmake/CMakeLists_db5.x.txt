@@ -1,33 +1,53 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
+#
+# CMakeLists_db5.x.txt
+# =====================
+# Modern CMake configuration for building Berkeley DB 5.x from source.
+#
+# This file creates a target-based library build using modern CMake practices:
+#   - Uses CMAKE_CURRENT_SOURCE_DIR for source-relative paths
+#   - Uses CMAKE_CURRENT_BINARY_DIR for build-relative paths
+#   - Uses target-based commands (target_include_directories, target_sources)
+#   - Creates the db5x target for linking
+#
+# Usage: Include this file in your CMakeLists.txt to build Berkeley DB 5.x
 
 ##############################################################################
 ##### Some helper stuff to build BerkeleyDB 5.0.32 ###########################
 
 # Create dummy file since we want an empty shared library before linking
-set(DUMMY_SOURCE ${CMAKE_BINARY_DIR}/dummy.c)
-file(WRITE ${DUMMY_SOURCE} "")
+# Use CMAKE_CURRENT_BINARY_DIR for build directory-specific paths
+set(DUMMY_SOURCE "${CMAKE_CURRENT_BINARY_DIR}/dummy.c")
+file(WRITE "${DUMMY_SOURCE}" "")
 
 
 
 ##############################################################################
 ##### Setup library build ####################################################
 
+# Create the library target using modern CMake practices
 add_library(db5x ${DUMMY_SOURCE})
 
+# Set up include directories using generator expressions for proper scoping
 target_include_directories(db5x
         SYSTEM PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/build_android>
         )
+
+# Note: Compile options commented out - can be enabled if needed
+# Using target_compile_options would be more modern than setting CMAKE_C_FLAGS globally
 #target_compile_options(db5x PRIVATE
 #        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
 #        -Wno-error=error-implicit-function-declaration>
 #        $<$<CXX_COMPILER_ID:MSVC>:
 #        -W4>
 #        )
-if (Android)
+if(Android)
+    # TODO: Consider using target_compile_options instead of global CMAKE_C_FLAGS
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-error=error-implicit-function-declaration")
 endif()
 

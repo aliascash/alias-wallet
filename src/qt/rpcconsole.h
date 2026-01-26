@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -105,9 +106,15 @@ private:
 
     enum ColumnWidths
     {
+        NETNODEID_COLUMN_WIDTH = 50,
+        AGE_COLUMN_WIDTH = 50,
         ADDRESS_COLUMN_WIDTH = 200,
-        SUBVERSION_COLUMN_WIDTH = 100,
-        PING_COLUMN_WIDTH = 80
+        DIRECTION_COLUMN_WIDTH = 70,
+        NETWORK_COLUMN_WIDTH = 60,
+        PING_COLUMN_WIDTH = 60,
+        SENT_COLUMN_WIDTH = 70,
+        RECEIVED_COLUMN_WIDTH = 70,
+        SUBVERSION_COLUMN_WIDTH = 100
     };
 
     Ui::RPCConsole *ui;

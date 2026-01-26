@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -8,6 +9,9 @@
 
 #include <QWizard>
 
+#include <vector>
+#include <string>
+
 QT_BEGIN_NAMESPACE
 class QCheckBox;
 class QComboBox;
@@ -15,6 +19,7 @@ class QLabel;
 class QLineEdit;
 class QRadioButton;
 class QProgressBar;
+class QPushButton;
 QT_END_NAMESPACE
 
 class SetupWalletWizard : public QWizard
@@ -28,9 +33,9 @@ public:
            Page_RecoverFromMnemonic,
            Page_EncryptWallet};
 
-    SetupWalletWizard(QWidget *parent = 0);
+    SetupWalletWizard(QWidget *parent = nullptr);
 
-private slots:
+private Q_SLOTS:
     void showHelp();
 };
 
@@ -39,15 +44,14 @@ class IntroPage : public QWizardPage
     Q_OBJECT
 
 public:
-    IntroPage(QWidget *parent = 0);
-
+    IntroPage(QWidget *parent = nullptr);
     int nextId() const override;
 
 private:
-    QLabel *topLabel;
-    QRadioButton *newMnemonicRadioButton;
-    QRadioButton *recoverFromMnemonicRadioButton;
-    QRadioButton *importWalletRadioButton;
+    QLabel *topLabel{nullptr};
+    QRadioButton *newMnemonicRadioButton{nullptr};
+    QRadioButton *recoverFromMnemonicRadioButton{nullptr};
+    QRadioButton *importWalletRadioButton{nullptr};
 };
 
 class ImportWalletDatPage : public QWizardPage
@@ -55,19 +59,18 @@ class ImportWalletDatPage : public QWizardPage
     Q_OBJECT
 
 public:
-    ImportWalletDatPage(QWidget *parent = 0);
-
+    ImportWalletDatPage(QWidget *parent = nullptr);
     int nextId() const override;
     bool isComplete() const override;
     bool validatePage() override;
 
-private slots:
+private Q_SLOTS:
     void setOpenFileName();
 
 private:
     QString fileName;
-    QLabel *openFileNameLabel;
-    QPushButton *openFileNameButton;
+    QLabel *openFileNameLabel{nullptr};
+    QPushButton *openFileNameButton{nullptr};
 };
 
 class NewMnemonicSettingsPage : public QWizardPage
@@ -75,8 +78,7 @@ class NewMnemonicSettingsPage : public QWizardPage
     Q_OBJECT
 
 public:
-    NewMnemonicSettingsPage(QWidget *parent = 0);
-
+    NewMnemonicSettingsPage(QWidget *parent = nullptr);
     int nextId() const override;
     bool validatePage() override;
     bool isComplete() const override;
@@ -86,13 +88,13 @@ public:
     std::string sKey;
 
 private:
-    QLabel *noteLabel;
-    QLabel *languageLabel;
-    QLabel *passwordLabel;
-    QLabel *passwordVerifyLabel;
-    QComboBox *languageComboBox;
-    QLineEdit *passwordEdit;
-    QLineEdit *passwordVerifyEdit;
+    QLabel *noteLabel{nullptr};
+    QLabel *languageLabel{nullptr};
+    QLabel *passwordLabel{nullptr};
+    QLabel *passwordVerifyLabel{nullptr};
+    QComboBox *languageComboBox{nullptr};
+    QLineEdit *passwordEdit{nullptr};
+    QLineEdit *passwordVerifyEdit{nullptr};
 };
 
 class NewMnemonicResultPage : public QWizardPage
@@ -100,8 +102,7 @@ class NewMnemonicResultPage : public QWizardPage
     Q_OBJECT
 
 public:
-    NewMnemonicResultPage(QWidget *parent = 0);
-
+    NewMnemonicResultPage(QWidget *parent = nullptr);
     void initializePage() override;
     int nextId() const override;
 
@@ -109,8 +110,8 @@ public:
     QStringList mnemonicList;
 
 private:
-    QLabel *mnemonicLabel;
-    QLabel *noticeLabel;
+    QLabel *mnemonicLabel{nullptr};
+    QLabel *noticeLabel{nullptr};
     std::vector<QLabel*> vMnemonicResultLabel;
 };
 
@@ -119,17 +120,16 @@ class NewMnemonicVerificationPage : public QWizardPage
     Q_OBJECT
 
 public:
-    NewMnemonicVerificationPage(QWidget *parent = 0);
-
+    NewMnemonicVerificationPage(QWidget *parent = nullptr);
     int nextId() const override;
     bool isComplete() const override;
     bool eventFilter(QObject *obj, QEvent *event) override;
     void initializePage() override;
 
 private:
-    QLabel *mnemonicLabel;
-    QLabel *passwordLabel;
-    QLineEdit *passwordEdit;
+    QLabel *mnemonicLabel{nullptr};
+    QLabel *passwordLabel{nullptr};
+    QLineEdit *passwordEdit{nullptr};
     std::vector<QLineEdit*> vMnemonicEdit;
 };
 
@@ -138,8 +138,7 @@ class RecoverFromMnemonicPage : public QWizardPage
     Q_OBJECT
 
 public:
-    RecoverFromMnemonicPage(QWidget *parent = 0);
-
+    RecoverFromMnemonicPage(QWidget *parent = nullptr);
     int nextId() const override;
     bool validatePage() override;
     bool isComplete() const override;
@@ -148,11 +147,11 @@ public:
     std::string sKey;
 
 private:
-    QLabel *mnemonicLabel;
-    QLabel *passwordLabel;
-    QLabel *passwordVerifyLabel;
-    QLineEdit *passwordEdit;
-    QLineEdit *passwordVerifyEdit;
+    QLabel *mnemonicLabel{nullptr};
+    QLabel *passwordLabel{nullptr};
+    QLabel *passwordVerifyLabel{nullptr};
+    QLineEdit *passwordEdit{nullptr};
+    QLineEdit *passwordVerifyEdit{nullptr};
     std::vector<QLineEdit*> vMnemonicEdit;
 };
 
@@ -161,24 +160,22 @@ class EncryptWalletPage : public QWizardPage
     Q_OBJECT
 
 public:
-    EncryptWalletPage(QWidget *parent = 0);
-
+    EncryptWalletPage(QWidget *parent = nullptr);
     int nextId() const override;
     void initializePage() override;
     bool isComplete() const override;
     bool validatePage() override;
 
 private:
-   int encryptWallet(const QString strWalletFile, const QString sBip44Key, const QString password);
+    int encryptWallet(const QString strWalletFile, const QString sBip44Key, const QString password);
 
-   QLabel *progressLabel;
-   QProgressBar *progressBar;
-
-   QLabel *topLabel;
-   QLabel *passwordLabel;
-   QLineEdit *passwordEdit;
-   QLabel *passwordVerifyLabel;
-   QLineEdit *passwordVerifyEdit;
+    QLabel *progressLabel{nullptr};
+    QProgressBar *progressBar{nullptr};
+    QLabel *topLabel{nullptr};
+    QLabel *passwordLabel{nullptr};
+    QLineEdit *passwordEdit{nullptr};
+    QLabel *passwordVerifyLabel{nullptr};
+    QLineEdit *passwordVerifyEdit{nullptr};
 };
 
 #endif // SETUPWALLETWIZARD_H

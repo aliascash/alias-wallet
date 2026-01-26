@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2013 NovaCoin Developers
@@ -67,25 +68,26 @@ public:
     int64_t nFee;
 
     COrphan(CTransaction* ptxIn)
+        : ptx(ptxIn)
+        , dPriority(0)
+        , dFeePerKb(0)
+        , nFee(0)
     {
-        ptx = ptxIn;
-        dPriority = dFeePerKb = 0;
-        nFee = 0;
     }
 
     COrphan(double dPriority_, double dFeePerKb_, int64_t nFee_, CTransaction* ptxIn)
+        : ptx(ptxIn)
+        , dPriority(dPriority_)
+        , dFeePerKb(dFeePerKb_)
+        , nFee(nFee_)
     {
-        dPriority = dPriority_;
-        dFeePerKb = dFeePerKb_;
-        nFee = nFee_;
-        ptx = ptxIn;
     }
 
     void print() const
     {
         LogPrintf("COrphan(hash=%s, dPriority=%.1f, dFeePerKb=%.1f)\n",
             ptx->GetHash().ToString().substr(0,10).c_str(), dPriority, dFeePerKb);
-        BOOST_FOREACH(uint256 hash, setDependsOn)
+        for (const uint256& hash : setDependsOn)
             LogPrintf("   setDependsOn %s\n", hash.ToString().substr(0,10).c_str());
     }
 };
@@ -126,7 +128,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
     // Create new block
     unique_ptr<CBlock> pblock(new CBlock());
     if (!pblock.get())
-        return NULL;
+        return nullptr;
 
     CBlockIndex* pindexPrev = pindexBest;
 
@@ -175,18 +177,17 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
         // This vector will be sorted into a priority queue:
         vector<TxPriority> vecPriority;
         vecPriority.reserve(mempool.mapTx.size());
-        for (map<uint256, CTransaction>::iterator mi = mempool.mapTx.begin(); mi != mempool.mapTx.end(); ++mi)
+        for (auto& pair : mempool.mapTx)
         {
-            CTransaction& tx = (*mi).second;
+            CTransaction& tx = pair.second;
             if (tx.IsCoinBase() || tx.IsCoinStake() || !tx.IsFinal())
                 continue;
 
-            COrphan* porphan = NULL;
+            COrphan* porphan = nullptr;
             double dPriority = 0;
             int64_t nTotalIn = 0;
             bool fMissingInputs = false;
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
-            {
+            for (const CTxIn& txin : tx.vin) {
                 if (tx.nVersion == ANON_TXN_VERSION
                     && txin.IsAnonInput()) // anon inputs are verified later in CheckAnonInputs()
                     continue;
@@ -264,7 +265,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
                 porphan->dFeePerKb = dFeePerKb;
             } else
             {
-                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, nFee, &(*mi).second));
+                vecPriority.push_back(TxPriority(dPriority, dFeePerKb, nFee, &pair.second));
             };
         };
 
@@ -387,7 +388,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake, int64_t* pFees)
             uint256 hash = tx.GetHash();
             if (mapDependers.count(hash))
             {
-                BOOST_FOREACH(COrphan* porphan, mapDependers[hash])
+                for (COrphan* porphan : mapDependers[hash])
                 {
                     if (!porphan->setDependsOn.empty())
                     {
@@ -527,7 +528,7 @@ bool CheckWork(CBlock* pblock, CWallet& wallet, CReserveKey& reservekey)
         }
 
         // Process this block the same as if we had received it from another node
-        if (!ProcessBlock(NULL, pblock, hashBlock))
+        if (!ProcessBlock(nullptr, pblock, hashBlock))
             return error("CheckWork() : ProcessBlock, block not accepted");
     }
 
@@ -570,7 +571,7 @@ bool CheckStake(CBlock* pblock, CWallet& wallet)
         }
 
         // Process this block the same as if we had received it from another node
-        if (ProcessBlock(NULL, pblock, hashBlock)) {
+        if (ProcessBlock(nullptr, pblock, hashBlock)) {
             // Successful stake
         }
         else {

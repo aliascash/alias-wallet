@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -27,7 +28,7 @@ public:
     CECKey() {
         //PKEY will crash if NDEBUG is enabled. Make sure the calls to "asserts" are turned on"
         pkey = EC_KEY_new_by_curve_name(NID_secp256k1);
-        assert(pkey != NULL);
+        assert(pkey != nullptr);
     }
 
     ~CECKey() {

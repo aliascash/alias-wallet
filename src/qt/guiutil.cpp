@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -10,6 +11,7 @@
 #include "bitcoinunits.h"
 #include "util.h"
 #include "init.h"
+#include "netbase.h"
 
 #include <QString>
 #include <QDateTime>
@@ -33,8 +35,7 @@
 #include <QImage>
 
 #ifndef Q_MOC_RUN
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include "util/fs.h"
 #endif
 
 #ifdef WIN32
@@ -138,6 +139,42 @@ QString formatPingTime(double dPingTime)
 QString formatTimeOffset(int64_t nTimeOffset)
 {
   return QString(QObject::tr("%1 s")).arg(QString::number((int)nTimeOffset, 10));
+}
+
+QString formatBytes(uint64_t bytes)
+{
+    if (bytes < 1000)
+        return QObject::tr("%1 B").arg(bytes);
+    if (bytes < 1000000)
+        return QObject::tr("%1 kB").arg(bytes / 1000);
+    if (bytes < 1000000000)
+        return QObject::tr("%1 MB").arg(bytes / 1000000);
+    return QObject::tr("%1 GB").arg(bytes / 1000000000);
+}
+
+QString FormatPeerAge(int64_t nTimeConnected)
+{
+    int64_t now = GetTime();
+    int64_t age = now - nTimeConnected;
+    if (age >= 86400)
+        return QObject::tr("%1 d").arg(age / 86400);
+    if (age >= 3600)
+        return QObject::tr("%1 h").arg(age / 3600);
+    if (age >= 60)
+        return QObject::tr("%1 m").arg(age / 60);
+    return QObject::tr("%1 s").arg(age);
+}
+
+QString NetworkToQString(int netType)
+{
+    switch (netType) {
+    case NET_UNROUTABLE: return QObject::tr("Unroutable");
+    case NET_IPV4: return QObject::tr("IPv4");
+    case NET_IPV6: return QObject::tr("IPv6");
+    case NET_TOR: return QObject::tr("Onion");
+    case NET_I2P: return QObject::tr("I2P");
+    default: return QObject::tr("Unknown");
+    }
 }
 
 QFont bitcoinAddressFont()
@@ -365,10 +402,10 @@ bool isObscured(QWidget *w)
 
 void openDebugLogfile()
 {
-    boost::filesystem::path pathDebug = GetDataDir() / "debug.log";
+    fs::path pathDebug = GetDataDir() / "debug.log";
 
     /* Open debug.log with the associated application */
-    if (boost::filesystem::exists(pathDebug))
+    if (fs::exists(pathDebug))
         QDesktopServices::openUrl(QUrl::fromLocalFile(QString::fromStdString(pathDebug.string())));
 }
 
@@ -397,7 +434,7 @@ bool ToolTipToRichTextFilter::eventFilter(QObject *obj, QEvent *evt)
 }
 
 #ifdef WIN32
-boost::filesystem::path static StartupShortcutPath()
+fs::path static StartupShortcutPath()
 {
     return GetSpecialFolderPath(CSIDL_STARTUP) / "Alias.lnk";
 }
@@ -405,20 +442,20 @@ boost::filesystem::path static StartupShortcutPath()
 bool GetStartOnSystemStartup()
 {
     // check for Bitcoin.lnk
-    return boost::filesystem::exists(StartupShortcutPath());
+    return fs::exists(StartupShortcutPath());
 }
 
 bool SetStartOnSystemStartup(bool fAutoStart)
 {
     // If the shortcut exists already, remove it for updating
-    boost::filesystem::remove(StartupShortcutPath());
+    fs::remove(StartupShortcutPath());
 
     if (fAutoStart)
     {
-        CoInitialize(NULL);
+        CoInitialize(nullptr);
 
         // Get a pointer to the IShellLink interface.
-        IShellLink* psl = NULL;
+        IShellLink* psl = nullptr;
         HRESULT hres = CoCreateInstance(CLSID_ShellLink, NULL,
                                 CLSCTX_INPROC_SERVER, IID_IShellLink,
                                 reinterpret_cast<void**>(&psl));
@@ -440,7 +477,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 
             // Query IShellLink for the IPersistFile interface for
             // saving the shortcut in persistent storage.
-            IPersistFile* ppf = NULL;
+            IPersistFile* ppf = nullptr;
             hres = psl->QueryInterface(IID_IPersistFile,
                                        reinterpret_cast<void**>(&ppf));
             if (SUCCEEDED(hres))
@@ -468,10 +505,8 @@ bool SetStartOnSystemStartup(bool fAutoStart)
 // Follow the Desktop Application Autostart Spec:
 //  http://standards.freedesktop.org/autostart-spec/autostart-spec-latest.html
 
-boost::filesystem::path static GetAutostartDir()
+fs::path static GetAutostartDir()
 {
-    namespace fs = boost::filesystem;
-
     char* pszConfigHome = getenv("XDG_CONFIG_HOME");
     if (pszConfigHome) return fs::path(pszConfigHome) / "autostart";
     char* pszHome = getenv("HOME");
@@ -479,14 +514,14 @@ boost::filesystem::path static GetAutostartDir()
     return fs::path();
 }
 
-boost::filesystem::path static GetAutostartFilePath()
+fs::path static GetAutostartFilePath()
 {
     return GetAutostartDir() / "alias.desktop";
 }
 
 bool GetStartOnSystemStartup()
 {
-    boost::filesystem::ifstream optionFile(GetAutostartFilePath());
+    fs::ifstream optionFile(GetAutostartFilePath());
     if (!optionFile.good())
         return false;
     // Scan through file for "Hidden=true":
@@ -506,7 +541,7 @@ bool GetStartOnSystemStartup()
 bool SetStartOnSystemStartup(bool fAutoStart)
 {
     if (!fAutoStart)
-        boost::filesystem::remove(GetAutostartFilePath());
+        fs::remove(GetAutostartFilePath());
     else
     {
         char pszExePath[MAX_PATH+1];
@@ -514,9 +549,9 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         if (readlink("/proc/self/exe", pszExePath, sizeof(pszExePath)-1) == -1)
             return false;
 
-        boost::filesystem::create_directories(GetAutostartDir());
+        fs::create_directories(GetAutostartDir());
 
-        boost::filesystem::ofstream optionFile(GetAutostartFilePath(), std::ios_base::out|std::ios_base::trunc);
+        fs::ofstream optionFile(GetAutostartFilePath(), std::ios_base::out|std::ios_base::trunc);
         if (!optionFile.good())
             return false;
         // Write a bitcoin.desktop file to the autostart directory:

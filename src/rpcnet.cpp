@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -11,7 +12,6 @@
 #include "db.h"
 #include "walletdb.h"
 
-#include <boost/foreach.hpp>
 #include "json/json_spirit_value.h"
 
 using namespace json_spirit;
@@ -39,7 +39,7 @@ Value ping(const Array& params, bool fHelp)
 
     // Request that each node send a ping during next message processing pass
     LOCK(cs_vNodes);
-    BOOST_FOREACH(CNode* pNode, vNodes) {
+    for (CNode* pNode : vNodes) {
         pNode->fPingQueued = true;
     }
 
@@ -52,7 +52,7 @@ static void CopyNodeStats(std::vector<CNodeStats>& vstats)
 
     LOCK(cs_vNodes);
     vstats.reserve(vNodes.size());
-    BOOST_FOREACH(CNode* pnode, vNodes) {
+    for (CNode* pnode : vNodes) {
         CNodeStats stats;
         pnode->copyStats(stats);
         vstats.push_back(stats);
@@ -71,7 +71,7 @@ Value getpeerinfo(const Array& params, bool fHelp)
 
     Array ret;
 
-    BOOST_FOREACH(const CNodeStats& stats, vstats) {
+    for (const CNodeStats& stats : vstats) {
         Object obj;
 
         obj.push_back(Pair("addr", stats.addrName));
@@ -152,42 +152,42 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
 
     bool fDns = params[0].get_bool();
 
-    list<string> laddedNodes(0);
+    list<string> laddedNodes;
     if (params.size() == 1)
     {
         LOCK(cs_vAddedNodes);
-        BOOST_FOREACH(string& strAddNode, vAddedNodes)
+        for (const std::string& strAddNode : vAddedNodes)
             laddedNodes.push_back(strAddNode);
     }
     else
     {
         string strNode = params[1].get_str();
         LOCK(cs_vAddedNodes);
-        BOOST_FOREACH(string& strAddNode, vAddedNodes)
+        for (const std::string& strAddNode : vAddedNodes)
             if (strAddNode == strNode)
             {
                 laddedNodes.push_back(strAddNode);
                 break;
             }
-        if (laddedNodes.size() == 0)
+        if (laddedNodes.empty())
             throw JSONRPCError(RPC_CLIENT_NODE_NOT_ADDED, "Error: Node has not been added.");
     }
 
     if (!fDns)
     {
         Object ret;
-        BOOST_FOREACH(string& strAddNode, laddedNodes)
+        for (std::string& strAddNode : laddedNodes)
             ret.push_back(Pair("addednode", strAddNode));
         return ret;
     }
 
     Array ret;
 
-    list<pair<string, vector<CService> > > laddedAddreses(0);
-    BOOST_FOREACH(string& strAddNode, laddedNodes)
+    list<pair<string, vector<CService> > > laddedAddreses;
+    for (const std::string& strAddNode : laddedNodes)
     {
-        vector<CService> vservNode(0);
-        if(Lookup(strAddNode.c_str(), vservNode, Params().GetDefaultPort(), fNameLookup, 0))
+        vector<CService> vservNode;
+        if(Lookup(strAddNode.c_str(), vservNode, ChainParamsMigration::GetDefaultPort(), fNameLookup, 0))
             laddedAddreses.push_back(make_pair(strAddNode, vservNode));
         else
         {
@@ -200,26 +200,25 @@ Value getaddednodeinfo(const Array& params, bool fHelp)
     }
 
     LOCK(cs_vNodes);
-    for (list<pair<string, vector<CService> > >::iterator it = laddedAddreses.begin(); it != laddedAddreses.end(); it++)
+    for (const auto& item : laddedAddreses)
     {
         Object obj;
-        obj.push_back(Pair("addednode", it->first));
+        obj.push_back(Pair("addednode", item.first));
 
         Array addresses;
         bool fConnected = false;
-        BOOST_FOREACH(CService& addrNode, it->second)
-        {
+        for (const CService& addrNode : item.second) {
             bool fFound = false;
             Object node;
             node.push_back(Pair("address", addrNode.ToString()));
-            BOOST_FOREACH(CNode* pnode, vNodes)
-                if (pnode->addr == addrNode)
-                {
+            for (CNode* pnode : vNodes) {
+                if (pnode->addr == addrNode) {
                     fFound = true;
                     fConnected = true;
                     node.push_back(Pair("connected", pnode->fInbound ? "inbound" : "outbound"));
                     break;
                 }
+            }
             if (!fFound)
                 node.push_back(Pair("connected", "false"));
             addresses.push_back(node);
@@ -281,7 +280,7 @@ Value sendalert(const Array& params, bool fHelp)
     // Relay alert
     {
         LOCK(cs_vNodes);
-        BOOST_FOREACH(CNode* pnode, vNodes)
+        for (CNode* pnode : vNodes)
             alert.RelayTo(pnode);
     }
 
@@ -382,7 +381,7 @@ Value getnetworkinfo(const Array& params, bool fHelp)
     //obj.push_back(Pair("relayfee",      ValueFromAmount(::minRelayTxFee.GetFeePerK())));
     Array localAddresses;
     {
-        BOOST_FOREACH(const PAIRTYPE(CNetAddr, LocalServiceInfo) &item, mapLocalHost)
+        for (const auto& item : mapLocalHost)
         {
             Object rec;
             rec.push_back(Pair("address", item.first.ToString()));

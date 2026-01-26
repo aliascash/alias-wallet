@@ -33,6 +33,7 @@ updated will not be able to create transactions on the Alias V3 network.
 
 ### Licensing
 
+- SPDX-FileCopyrightText: © 2025 ALIAS Developers
 - SPDX-FileCopyrightText: © 2020 Alias Developers
 - SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 - SPDX-FileCopyrightText: © 2014 ShadowCoin Developers

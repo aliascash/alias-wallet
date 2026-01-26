@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -14,6 +15,7 @@
 #include "txdb.h"
 #include "interface.h"
 #include "base58.h"
+#include "chainparams_migration.h"
 
 void toHTML(CWallet *wallet, CWalletTx &wtx, QString& strHTML, const bool& debit, const CTxDestination& destination, const std::vector<CTxDestination>& destSubs, const int64_t& amount, const Currency& currency, const std::string& narration, bool& narrationHandled);
 void toHTML(CWallet *wallet, CWalletTx &wtx, QString& strHTML, const Currency& sCurrency, const CTxDestination& destination, const std::vector<CTxDestination>& destSubs, const int64_t& amount, const Currency& currency, const std::string& narration, bool& narrationHandled);
@@ -107,7 +109,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         if (nCredit == 0)
         {
             int64_t nUnmatured = 0;
-            BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+            for (const CTxOut& txout : wtx.vout)
                 nUnmatured += txout.IsAnonOutput() ? wallet->GetSpectreCredit(txout) : wallet->GetCredit(txout);
             strHTML += "<b>" + tr("Credit") + ":</b> ";
             if (wtx.IsInMainChain())
@@ -165,7 +167,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
             {
                 // only add contributions/donations
                 std::string strAddress = CBitcoinAddress(destination.address).ToString();
-                if (strAddress != Params().GetDevContributionAddress() && strAddress != Params().GetSupplyIncreaseAddress())
+                if (strAddress != ChainParamsMigration::GetDevContributionAddress() && strAddress != ChainParamsMigration::GetSupplyIncreaseAddress())
                     continue;
             }
             ::toHTML(wallet, wtx, strHTML, true, destination.address, destination.vAddressElements, destination.amount, destination.currency, destination.narration, narrationHandled);
@@ -201,10 +203,10 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
     if (fDebug)
     {
         strHTML += "<hr>" + tr("Debug information") + "<br><br>";
-        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
+        for (const CTxIn& txin : wtx.vin)
             if(wallet->IsMine(txin))
                 strHTML += "<b>" + tr("Debit") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::ALIAS, -wallet->GetDebit(txin)) + "<br>";
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        for (const CTxOut& txout : wtx.vout)
             if(wallet->IsMine(txout))
                 strHTML += "<b>" + tr("Credit") + ":</b> " + BitcoinUnits::formatWithUnit(BitcoinUnits::ALIAS, wallet->GetCredit(txout)) + "<br>";
 
@@ -216,7 +218,7 @@ QString TransactionDesc::toHTML(CWallet *wallet, CWalletTx &wtx)
         strHTML += "<br><b>" + tr("Inputs") + ":</b>";
         strHTML += "<ul>";
 
-        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
+        for (const CTxIn& txin : wtx.vin)
         {
             COutPoint prevout = txin.prevout;
 

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -157,12 +158,12 @@ class COwnedAnonOutput
 // stored in walletdb, key is keyimage
 // TODO: store nValue?
 public:
-    COwnedAnonOutput() {}
-
-    COwnedAnonOutput(COutPoint outpoint_, bool fSpent_)
+    COwnedAnonOutput() : nValue(0), fSpent(false)
     {
-        outpoint = outpoint_;
-        fSpent   = fSpent_;
+    }
+
+    COwnedAnonOutput(COutPoint outpoint_, bool fSpent_) : outpoint(outpoint_), nValue(0), fSpent(fSpent_)
+    {
     }
 
     ec_point vchImage;
@@ -203,7 +204,7 @@ public:
 
         DbTxn* ptxnid = activeTxn; // call TxnBegin first
 
-        Dbc* pcursor = NULL;
+        Dbc* pcursor = nullptr;
         int ret = pdb->cursor(ptxnid, &pcursor, 0);
         if (ret != 0)
             return NULL;

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -73,12 +74,8 @@ enum WordListLanguages
 class CStoredExtKey
 {
 public:
-    CStoredExtKey()
+    CStoredExtKey() : fLocked(0), nFlags(0), nGenerated(0), nHGenerated(0)
     {
-        fLocked = 0;
-        nFlags = 0;
-        nGenerated = 0;
-        nHGenerated = 0;
     }
 
     std::string GetIDString58() const;
@@ -247,17 +244,13 @@ class CEKAStealthKey
 public:
     CEKAStealthKey() {};
     CEKAStealthKey(uint32_t nScanParent_, uint32_t nScanKey_, CKey scanSecret_, uint32_t nSpendParent_, uint32_t nSpendKey_, CKey spendSecret_)
+        : nFlags(0), nScanParent(nScanParent_), nScanKey(nScanKey_), skScan(scanSecret_), akSpend(nSpendParent_, nSpendKey_)
     {
         // - spend secret is not stored
-        nFlags = 0;
-        nScanParent = nScanParent_;
-        nScanKey = nScanKey_;
-        skScan = scanSecret_;
         CPubKey pk = skScan.GetPubKey();
         pkScan.resize(pk.size());
         memcpy(&pkScan[0], pk.begin(), pk.size());
 
-        akSpend = CEKAKey(nSpendParent_, nSpendKey_);
         pk = spendSecret_.GetPubKey();
         pkSpend.resize(pk.size());
         memcpy(&pkSpend[0], pk.begin(), pk.size());
@@ -353,15 +346,8 @@ typedef std::map<CKeyID, CEKAStealthKey> AccStealthKeyMap;
 class CExtKeyAccount
 { // stored by idAccount
 public:
-    CExtKeyAccount()
+    CExtKeyAccount() : nActiveExternal(0), nActiveInternal(0), nActiveStealth(0), nHeightCheckedUncrypted(0), nFlags(0), nPack(0), nPackStealth(0)
     {
-        nActiveExternal = 0;
-        nActiveInternal = 0;
-        nActiveStealth = 0;
-        nHeightCheckedUncrypted = 0;
-        nFlags = 0;
-        nPack = 0;
-        nPackStealth = 0;
     };
 
     int FreeChains()
@@ -371,7 +357,7 @@ public:
         for (it = vExtKeys.begin(); it != vExtKeys.end(); ++it)
         {
             delete *it;
-            *it = NULL;
+            *it = nullptr;
         };
         return 0;
     };
@@ -402,7 +388,7 @@ public:
     CStoredExtKey *GetChain(uint32_t nChain) const
     {
         if (nChain >= vExtKeys.size())
-            return NULL;
+            return nullptr;
         return vExtKeys[nChain];
     };
 
@@ -424,7 +410,7 @@ public:
     CStoredExtKey *ChainAccount()
     {
         if (vExtKeys.size() < 1)
-            return NULL;
+            return nullptr;
         return vExtKeys[0];
     };
 

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -23,14 +24,14 @@ class TrafficGraphWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit TrafficGraphWidget(QWidget *parent = 0);
+    explicit TrafficGraphWidget(QWidget *parent = nullptr);
     void setClientModel(ClientModel *model);
     int getGraphRangeMins() const;
 
 protected:
-    void paintEvent(QPaintEvent *);
+    void paintEvent(QPaintEvent *) override;
 
-public slots:
+public Q_SLOTS:
     void updateRates();
     void setGraphRangeMins(int mins);
     void clear();
@@ -38,14 +39,14 @@ public slots:
 private:
     void paintPath(QPainterPath &path, QQueue<float> &samples);
 
-    QTimer *timer;
-    float fMax;
-    int nMins;
+    QTimer *timer{nullptr};
+    float fMax{0.0f};
+    int nMins{0};
     QQueue<float> vSamplesIn;
     QQueue<float> vSamplesOut;
-    quint64 nLastBytesIn;
-    quint64 nLastBytesOut;
-    ClientModel *clientModel;
+    quint64 nLastBytesIn{0};
+    quint64 nLastBytesOut{0};
+    ClientModel *clientModel{nullptr};
 };
 
 #endif // TRAFFICGRAPHWIDGET_H

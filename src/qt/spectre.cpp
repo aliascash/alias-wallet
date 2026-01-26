@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -39,7 +40,6 @@
 #include <signal.h>
 #endif
 
-namespace fs = boost::filesystem;
 
 // Need a global reference for the notifications to find the GUI
 static SpectreGUI *guiref;
@@ -113,7 +113,7 @@ static std::string Translate(const char* psz)
 static void handleRunawayException(std::exception *e)
 {
     PrintExceptionContinue(e, "Runaway exception");
-    QMessageBox::critical(0, "Runaway exception", SpectreGUI::tr("A fatal error occurred. Alias can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
+    QMessageBox::critical(nullptr, "Runaway exception", SpectreGUI::tr("A fatal error occurred. Alias can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
     exit(1);
 }
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
     fTestNet = GetBoolArg("-testnet", false);
     if (!SelectParamsFromCommandLine())
     {
-        QMessageBox::critical(0, "Alias", QString("Error: Invalid combination of -testnet and -regtest."));
+        QMessageBox::critical(nullptr, "Alias", QString("Error: Invalid combination of -testnet and -regtest."));
         return 1;
     }
 
@@ -179,11 +179,11 @@ int main(int argc, char *argv[])
     #endif
 
     // ... then alias.conf:
-    if (!boost::filesystem::is_directory(GetDataDir(false)))
+    if (!fs::is_directory(GetDataDir(false)))
     {
         // This message can not be translated, as translation is not initialized yet
         // (which not yet possible because lang=XX can be overridden in bitcoin.conf in the data directory)
-        QMessageBox::critical(0, "Alias",
+        QMessageBox::critical(nullptr, "Alias",
                               QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         return 1;
     }
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 
         // Periodically check if shutdown was requested to properly quit the Qt application
         #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
-            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("Alias Core did't yet exit safely..."), (HWND)window.winId());
+            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("Alias Core did't yet exit safely..."), static_cast<HWND>(window.winId()));
         #endif
         QTimer* pollShutdownTimer = new QTimer(guiref);
         QObject::connect(pollShutdownTimer, SIGNAL(timeout()), guiref, SLOT(detectShutdown()));
@@ -366,9 +366,9 @@ int main(int argc, char *argv[])
                     QMetaObject::invokeMethod(QCoreApplication::instance(), "quit", Qt::QueuedConnection);
 
                 window.hide();
-                window.setClientModel(0);
-                window.setWalletModel(0);
-                guiref = 0;
+                window.setClientModel(nullptr);
+                window.setWalletModel(nullptr);
+                guiref = nullptr;
             }
             // Shutdown the core and its threads, but don't exit Qt here
             LogPrintf("Alias shutdown.\n\n");
@@ -388,7 +388,7 @@ int main(int argc, char *argv[])
     } catch (std::exception& e) {
         handleRunawayException(&e);
     } catch (...) {
-        handleRunawayException(NULL);
+        handleRunawayException(nullptr);
     }
     return 0;
 }

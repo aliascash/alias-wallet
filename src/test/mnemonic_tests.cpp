@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -31,7 +32,6 @@ using namespace json_spirit;
 
 Object read_json_object(const std::string &filename)
 {
-    namespace fs = boost::filesystem;
     fs::path testFile = fs::current_path() / "test" / "data" / filename;
 
 #ifdef TEST_DATA_DIR
@@ -159,7 +159,7 @@ void RunMnemonicTests()
 
         const Array &array = pair.value_.get_array();
 
-        BOOST_FOREACH(const Value &v, array)
+        for (const Value& v : array)
         {
             if (v.type() != array_type)
             {

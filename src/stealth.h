@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -34,9 +35,8 @@ const uint256 MIN_SECRET(16000); // increase? min valid key is 1
 class CStealthAddress
 {
 public:
-    CStealthAddress()
+    CStealthAddress() : options(0)
     {
-        options = 0;
     };
 
     uint8_t options;

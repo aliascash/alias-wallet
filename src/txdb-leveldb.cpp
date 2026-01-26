@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -8,8 +9,7 @@
 #include <map>
 
 #include <boost/version.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
+#include "util/fs.h"
 
 #include <leveldb/env.h>
 #include <leveldb/cache.h>
@@ -22,7 +22,6 @@
 #include "main.h"
 
 using namespace std;
-namespace fs = boost::filesystem;
 
 leveldb::DB *txdb; // global pointer for LevelDB object instance
 
@@ -53,10 +52,9 @@ static void init_blockindex(leveldb::Options& options, bool fRemoveOld = false)
 // CDB subclasses are created and destroyed VERY OFTEN. That's why
 // we shouldn't treat this as a free operations.
 CTxDB::CTxDB(const char* pszMode)
+    : pdb(nullptr), activeBatch(nullptr), fReadOnly(!strchr(pszMode, '+') && !strchr(pszMode, 'w')), nVersion(0)
 {
     assert(pszMode);
-    activeBatch = NULL;
-    fReadOnly = (!strchr(pszMode, '+') && !strchr(pszMode, 'w'));
 
     if (txdb) {
         pdb = txdb;
@@ -73,23 +71,23 @@ CTxDB::CTxDB(const char* pszMode)
 void CTxDB::Close()
 {
     delete txdb;
-    txdb = pdb = NULL;
+    txdb = pdb = nullptr;
 
     if (activeBatch)
     {
         delete activeBatch;
-        activeBatch = NULL;
+        activeBatch = nullptr;
     }
 
     if (openOptions.block_cache)
     {
         delete openOptions.block_cache;
-        openOptions.block_cache = NULL;
+        openOptions.block_cache = nullptr;
     }
 
     if (openOptions.filter_policy)
     {
-        openOptions.filter_policy = NULL;
+        openOptions.filter_policy = nullptr;
     }
 
 }
@@ -106,7 +104,7 @@ bool CTxDB::TxnCommit()
     assert(activeBatch);
     leveldb::Status status = pdb->Write(GetWriteOptions(), activeBatch);
     delete activeBatch;
-    activeBatch = NULL;
+    activeBatch = nullptr;
     if (!status.ok()) {
         LogPrintf("LevelDB batch commit failure: %s\n", status.ToString());
         return false;
@@ -123,7 +121,7 @@ public:
 
     CBatchScanner() : foundEntry(false) {}
 
-    virtual void Put(const leveldb::Slice& key, const leveldb::Slice& value) {
+    void Put(const leveldb::Slice& key, const leveldb::Slice& value) override {
         if (key.ToString() == needle) {
             foundEntry = true;
             *deleted = false;
@@ -131,7 +129,7 @@ public:
         }
     }
 
-    virtual void Delete(const leveldb::Slice& key) {
+    void Delete(const leveldb::Slice& key) override {
         if (key.ToString() == needle) {
             foundEntry = true;
             *deleted = true;
@@ -188,21 +186,21 @@ int CTxDB::RecreateDB()
     LogPrintf("Recreating TXDB.\n");
 
     delete txdb;
-    txdb = pdb = NULL;
+    txdb = pdb = nullptr;
 
     if (activeBatch)
     {
         delete activeBatch;
-        activeBatch = NULL;
+        activeBatch = nullptr;
     }
 
     if (openOptions.block_cache) {
         delete openOptions.block_cache;
-        openOptions.block_cache = NULL;
+        openOptions.block_cache = nullptr;
     }
 
     if (openOptions.filter_policy) {
-        openOptions.filter_policy = NULL;
+        openOptions.filter_policy = nullptr;
     }
 
     openOptions = GetOpenOptions();
@@ -422,7 +420,7 @@ bool CTxDB::WriteBestInvalidTrust(CBigNum bnBestInvalidTrust)
 static CBlockIndex *InsertBlockIndex(uint256 hash)
 {
     if (hash == 0)
-        return NULL;
+        return nullptr;
 
     // Return existing
     map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
@@ -509,7 +507,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
         pindexNew->nNonce            = diskindex.nNonce;
 
         // Watch for genesis block
-        if (pindexGenesisBlock == NULL && blockHash == Params().HashGenesisBlock())
+        if (pindexGenesisBlock == nullptr && blockHash == Params().HashGenesisBlock())
             pindexGenesisBlock = pindexNew;
 
         if (!pindexNew->CheckIndex()) {
@@ -534,7 +532,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
     // Load hashBestChain pointer to end of best chain
     if (!ReadHashBestChain(hashBestChain))
     {
-        if (pindexGenesisBlock == NULL)
+        if (pindexGenesisBlock == nullptr)
             return true;
         return error("CTxDB::LoadBlockIndex() : hashBestChain not loaded");
     }
@@ -548,7 +546,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
     // Calculate nChainTrust
     vector<pair<int, CBlockIndex*> > vSortedByHeight;
     vSortedByHeight.reserve(mapBlockIndex.size());
-    BOOST_FOREACH(const PAIRTYPE(uint256, CBlockIndex*)& item, mapBlockIndex)
+    for (const auto& item : mapBlockIndex)
     {
         CBlockIndex* pindex = item.second;
         vSortedByHeight.push_back(make_pair(pindex->nHeight, pindex));
@@ -556,7 +554,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
     sort(vSortedByHeight.begin(), vSortedByHeight.end());
 
     count = 0;
-    BOOST_FOREACH(const PAIRTYPE(int, CBlockIndex*)& item, vSortedByHeight)
+    for (const auto& item : vSortedByHeight)
     {
         if (funcProgress && count != 0 && count % 100000 == 0) funcProgress(1, count);
         count++;
@@ -601,7 +599,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
     if (nCheckDepth > nBestHeight)
         nCheckDepth = nBestHeight;
     LogPrintf("Verifying last %i blocks at level %i\n", nCheckDepth, nCheckLevel);
-    CBlockIndex* pindexFork = NULL;
+    CBlockIndex* pindexFork = nullptr;
     map<pair<unsigned int, unsigned int>, CBlockIndex*> mapBlockPos;
 
     if (funcProgress) funcProgress(2, nCheckDepth);
@@ -626,8 +624,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
         {
             pair<unsigned int, unsigned int> pos = make_pair(pindex->nFile, pindex->nBlockPos);
             mapBlockPos[pos] = pindex;
-            BOOST_FOREACH(const CTransaction &tx, block.vtx)
-            {
+            for (const CTransaction& tx : block.vtx) {
                 uint256 hashTx = tx.GetHash();
                 CTxIndex txindex;
                 if (ReadTxIndex(hashTx, txindex))
@@ -653,7 +650,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
                     unsigned int nOutput = 0;
                     if (nCheckLevel>3)
                     {
-                        BOOST_FOREACH(const CDiskTxPos &txpos, txindex.vSpent)
+                        for (const CDiskTxPos& txpos : txindex.vSpent)
                         {
                             if (!txpos.IsNull())
                             {
@@ -680,9 +677,10 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
                                     else
                                     {
                                         bool fFound = false;
-                                        BOOST_FOREACH(const CTxIn &txin, txSpend.vin)
+                                        for (const CTxIn& txin : txSpend.vin) {
                                             if (txin.prevout.hash == hashTx && txin.prevout.n == nOutput)
                                                 fFound = true;
+                                        }
                                         if (!fFound)
                                         {
                                             LogPrintf("LoadBlockIndex(): *** spending transaction of %s:%i does not spend it\n", hashTx.ToString(), nOutput);
@@ -698,7 +696,7 @@ bool CTxDB::LoadBlockIndex(std::function<bool (const CBlockIndex* const)> funcVa
                 // check level 5: check whether all prevouts are marked spent
                 if (nCheckLevel>4)
                 {
-                     BOOST_FOREACH(const CTxIn &txin, tx.vin)
+                     for (const CTxIn& txin : tx.vin)
                      {
                           CTxIndex txindex;
                           if (ReadTxIndex(txin.prevout.hash, txindex))
@@ -746,7 +744,7 @@ bool CTxDB::LoadBlockThinIndex()
 
     CDiskBlockThinIndex diskindex;
     map<uint256, CBlockThinIndex*>::iterator mi;
-    CBlockThinIndex* pIndexLast = NULL;
+    CBlockThinIndex* pIndexLast = nullptr;
 
     while (hashNext != 0)
     {
@@ -787,7 +785,7 @@ bool CTxDB::LoadBlockThinIndex()
 
 
         // -- genesis block will always be first
-        if (pindexGenesisBlockThin == NULL)
+        if (pindexGenesisBlockThin == nullptr)
         {
             pindexGenesisBlockThin = pindexNew;
             pindexRear = pindexGenesisBlockThin;
@@ -807,7 +805,7 @@ bool CTxDB::LoadBlockThinIndex()
             const uint256* pRemHash = pindexRear->phashBlock;
 
             pindexRear = pindexRear->pnext;
-            pindexRear->pprev = NULL;
+            pindexRear->pprev = nullptr;
 
             std::map<uint256, CBlockThinIndex*>::iterator mi = mapBlockThinIndex.find(*pRemHash);
 
@@ -825,7 +823,7 @@ bool CTxDB::LoadBlockThinIndex()
     // -- load hashBestChain pointer to end of best chain
     if (!ReadHashBestHeaderChain(hashBestChain))
     {
-        if (pindexGenesisBlockThin == NULL)
+        if (pindexGenesisBlockThin == nullptr)
             return true;
         return error("CTxDB::LoadBlockThinIndex() : hashBestChain not loaded");
     };

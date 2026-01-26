@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -6,12 +7,12 @@
 
 #include "optionsmodel.h"
 #include "bitcoinunits.h"
-#include <QSettings>
-
+#include "guiutil.h"
 #include "init.h"
 #include "walletdb.h"
-#include "guiutil.h"
 #include "ringsig.h"
+
+#include <QSettings>
 
 OptionsModel::OptionsModel(QObject *parent) :
     QAbstractListModel(parent)
@@ -29,8 +30,6 @@ void OptionsModel::Init()
         settings.setValue("nSettingsVersion", 1);
     }
 
-    // These are Qt-only settings:
-    //nDisplayUnit = settings.value("nDisplayUnit", BitcoinUnits::ALIAS).toInt();
     nDisplayUnit = BitcoinUnits::ALIAS;
     bDisplayAddresses = settings.value("bDisplayAddresses", false).toBool();
     fMinimizeToTray = settings.value("fMinimizeToTray", false).toBool();
@@ -46,14 +45,11 @@ void OptionsModel::Init()
     nMinRingSize = settings.value("nMinRingSize", MIN_RING_SIZE).toInt();
     nMaxRingSize = settings.value("nMaxRingSize", MIN_RING_SIZE).toInt();
 
-    // These are shared with core Bitcoin; we want
-    // command-line options to override the GUI settings:
     if (settings.contains("detachDB"))
         SoftSetBoolArg("-detachdb", settings.value("detachDB").toBool());
     if (!language.isEmpty())
         SoftSetArg("-lang", language.toStdString());
-    if (settings.contains("fStaking"))
-    {
+    if (settings.contains("fStaking")) {
         SoftSetBoolArg("-staking", settings.value("fStaking").toBool());
         fIsStakingEnabled = settings.value("fStaking").toBool();
     }
@@ -71,16 +67,15 @@ void OptionsModel::Init()
 
 int OptionsModel::rowCount(const QModelIndex & parent) const
 {
+    Q_UNUSED(parent);
     return OptionIDRowCount;
 }
 
 QVariant OptionsModel::data(const QModelIndex & index, int role) const
 {
-    if(role == Qt::EditRole)
-    {
+    if (role == Qt::EditRole) {
         QSettings settings;
-        switch(index.row())
-        {
+        switch (index.row()) {
         case StartAtStartup:
             return GUIUtil::GetStartOnSystemStartup();
         case MinimizeToTray:
@@ -88,9 +83,9 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case MinimizeOnClose:
             return fMinimizeOnClose;
         case Fee:
-            return (qint64) nTransactionFee;
+            return static_cast<qint64>(nTransactionFee);
         case ReserveBalance:
-            return (qint64) nReserveBalance;
+            return static_cast<qint64>(nReserveBalance);
         case DisplayUnit:
             return nDisplayUnit;
         case DisplayAddresses:
@@ -112,32 +107,29 @@ QVariant OptionsModel::data(const QModelIndex & index, int role) const
         case Staking:
             return settings.value("fStaking", GetBoolArg("-staking", true)).toBool();
         case StakingDonation:
-            if (nStakingDonation < 0) {
+            if (nStakingDonation < 0)
                 nStakingDonation = 0;
-            }
             return nStakingDonation;
         case MinStakeInterval:
             return nMinStakeInterval;
-          case ThinMode:
-            return settings.value("fThinMode",      GetBoolArg("-thinmode",      false)).toBool();
+        case ThinMode:
+            return settings.value("fThinMode", GetBoolArg("-thinmode", false)).toBool();
         case ThinFullIndex:
             return settings.value("fThinFullIndex", GetBoolArg("-thinfullindex", false)).toBool();
         case ThinIndexWindow:
-            return settings.value("ThinIndexWindow", (qint64) GetArg("-thinindexwindow", 4096)).toInt();
+            return settings.value("ThinIndexWindow", static_cast<qint64>(GetArg("-thinindexwindow", 4096))).toInt();
         case Notifications:
             return notifications;
         case VisibleTransactions:
             return visibleTransactions;
         }
     }
-
     return QVariant();
 }
 
 QString OptionsModel::optionIDName(int row)
 {
-    switch(row)
-    {
+    switch (row) {
     case Fee: return "Fee";
     case ReserveBalance: return "ReserveBalance";
     case StartAtStartup: return "StartAtStartup";
@@ -160,28 +152,25 @@ QString OptionsModel::optionIDName(int row)
     case RowsPerPage: return "RowsPerPage";
     case Notifications: return "Notifications";
     case VisibleTransactions: return "VisibleTransactions";
+    default: return "";
     }
-
-    return "";
 }
 
 int OptionsModel::optionNameID(QString name)
 {
-    for(int i=0;i<OptionIDRowCount;i++)
-        if(optionIDName(i) == name)
+    for (int i = 0; i < OptionIDRowCount; i++) {
+        if (optionIDName(i) == name)
             return i;
-
+    }
     return -1;
 }
 
 bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, int role)
 {
-    bool successful = true; /* set to false on parse error */
-    if(role == Qt::EditRole)
-    {
+    bool successful = true;
+    if (role == Qt::EditRole) {
         QSettings settings;
-        switch(index.row())
-        {
+        switch (index.row()) {
         case StartAtStartup:
             successful = GUIUtil::SetStartOnSystemStartup(value.toBool());
             break;
@@ -195,54 +184,45 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
         case Fee:
             nTransactionFee = value.toLongLong() < nMinTxFee ? nMinTxFee : value.toLongLong();
-            settings.setValue("nTransactionFee", (qint64) nTransactionFee);
-            emit transactionFeeChanged(nTransactionFee);
+            settings.setValue("nTransactionFee", static_cast<qint64>(nTransactionFee));
+            Q_EMIT transactionFeeChanged(nTransactionFee);
             break;
         case ReserveBalance:
             nReserveBalance = value.toLongLong();
-            settings.setValue("nReserveBalance", (qint64) nReserveBalance);
-            emit reserveBalanceChanged(nReserveBalance);
+            settings.setValue("nReserveBalance", static_cast<qint64>(nReserveBalance));
+            Q_EMIT reserveBalanceChanged(nReserveBalance);
             break;
         case DisplayUnit:
-            //nDisplayUnit = value.toInt();
-            //settings.setValue("nDisplayUnit", nDisplayUnit);
-            emit displayUnitChanged(nDisplayUnit);
+            Q_EMIT displayUnitChanged(nDisplayUnit);
             break;
         case DisplayAddresses:
             bDisplayAddresses = value.toBool();
             settings.setValue("bDisplayAddresses", bDisplayAddresses);
-            emit displayUnitChanged(settings.value("nDisplayUnit", BitcoinUnits::ALIAS).toInt());
+            Q_EMIT displayUnitChanged(settings.value("nDisplayUnit", BitcoinUnits::ALIAS).toInt());
             break;
         case DetachDatabases: {
             bool fDetachDB = value.toBool();
             bitdb.SetDetach(fDetachDB);
             settings.setValue("detachDB", fDetachDB);
-            }
             break;
+        }
         case Language:
             settings.setValue("language", value);
-
-            // As long as the real strings of the choosen language are used to filter transactions and notifications,
-            // this workaround is neccessary. Otherwise the transaction list will be empty after a language change and
-            // wallet restart.
             visibleTransactions.clear();
             visibleTransactions.append("*");
             settings.setValue("visibleTransactions", visibleTransactions);
             bActivateAllTransactiontypesAfterLanguageSwitch = true;
-
             notifications.clear();
             notifications.append("*");
             settings.setValue("notifications", notifications);
             bActivateAllNotificationsAfterLanguageSwitch = true;
-
             break;
-        case RowsPerPage: {
+        case RowsPerPage:
             nRowsPerPage = value.toInt();
             settings.setValue("nRowsPerPage", nRowsPerPage);
-            emit rowsPerPageChanged(nRowsPerPage);
-            }
+            Q_EMIT rowsPerPageChanged(nRowsPerPage);
             break;
-        case Notifications: {
+        case Notifications:
             if (bActivateAllNotificationsAfterLanguageSwitch) {
                 notifications.clear();
                 notifications.append("*");
@@ -251,9 +231,8 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 notifications = value.toStringList();
             }
             settings.setValue("notifications", notifications);
-            }
             break;
-        case VisibleTransactions: {
+        case VisibleTransactions:
             if (bActivateAllTransactiontypesAfterLanguageSwitch) {
                 visibleTransactions.clear();
                 visibleTransactions.append("*");
@@ -262,28 +241,23 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
                 visibleTransactions = value.toStringList();
             }
             settings.setValue("visibleTransactions", visibleTransactions);
-            emit visibleTransactionsChanged(visibleTransactions);
-            }
+            Q_EMIT visibleTransactionsChanged(visibleTransactions);
             break;
-        case AutoRingSize: {
+        case AutoRingSize:
             fAutoRingSize = value.toBool();
             settings.setValue("fAutoRingSize", fAutoRingSize);
-            }
             break;
-        case AutoRedeemSpectre: {
+        case AutoRedeemSpectre:
             fAutoRedeemSpectre = value.toBool();
             settings.setValue("fAutoRedeemSpectre", fAutoRedeemSpectre);
-            }
             break;
-        case MinRingSize: {
+        case MinRingSize:
             nMinRingSize = value.toInt();
             settings.setValue("nMinRingSize", nMinRingSize);
-            }
             break;
-        case MaxRingSize: {
+        case MaxRingSize:
             nMaxRingSize = value.toInt();
             settings.setValue("nMaxRingSize", nMaxRingSize);
-            }
             break;
         case Staking:
             settings.setValue("fStaking", value.toBool());
@@ -292,9 +266,8 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
         case StakingDonation:
             nStakingDonation = value.toInt();
-            if (nStakingDonation < 0) {
+            if (nStakingDonation < 0)
                 nStakingDonation = 0;
-            }
             settings.setValue("nStakingDonation", nStakingDonation);
             break;
         case MinStakeInterval:
@@ -314,8 +287,7 @@ bool OptionsModel::setData(const QModelIndex & index, const QVariant & value, in
             break;
         }
     }
-    emit dataChanged(index, index);
-
+    Q_EMIT dataChanged(index, index);
     return successful;
 }
 
@@ -357,8 +329,8 @@ bool OptionsModel::getAutoRedeemSpectre() { return fAutoRedeemSpectre; }
 int OptionsModel::getMinRingSize() { return nMinRingSize; }
 int OptionsModel::getMaxRingSize() { return nMaxRingSize; }
 
-void OptionsModel::emitDisplayUnitChanged(int unit) { emit displayUnitChanged(unit); }
-void OptionsModel::emitTransactionFeeChanged(qint64 fee) { emit transactionFeeChanged(fee); }
-void OptionsModel::emitReserveBalanceChanged(qint64 bal) { emit reserveBalanceChanged(bal); }
-void OptionsModel::emitRowsPerPageChanged(int rows) { emit rowsPerPageChanged(rows); }
-void OptionsModel::emitVisibleTransactionsChanged(QStringList txns) { emit visibleTransactionsChanged(txns); }
+void OptionsModel::emitDisplayUnitChanged(int unit) { Q_EMIT displayUnitChanged(unit); }
+void OptionsModel::emitTransactionFeeChanged(qint64 fee) { Q_EMIT transactionFeeChanged(fee); }
+void OptionsModel::emitReserveBalanceChanged(qint64 bal) { Q_EMIT reserveBalanceChanged(bal); }
+void OptionsModel::emitRowsPerPageChanged(int rows) { Q_EMIT rowsPerPageChanged(rows); }
+void OptionsModel::emitVisibleTransactionsChanged(QStringList txns) { Q_EMIT visibleTransactionsChanged(txns); }

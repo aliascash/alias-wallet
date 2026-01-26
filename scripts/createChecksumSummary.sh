@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -12,15 +14,15 @@
 #
 # ===========================================================================
 
-releaseDescription=$1
-workspace=$2
-jobURL=$3
-accessToken=$4
+releaseDescription="${1}"
+workspace="${2}"
+jobURL="${3}"
+accessToken="${4}"
 
-if test -e "${releaseDescription}" ; then
-    cp "${releaseDescription}" "${workspace}"/releaseNotesToDeploy.txt
+if [[ -e "${releaseDescription}" ]]; then
+    cp "${releaseDescription}" "${workspace}/releaseNotesToDeploy.txt"
 else
-    echo "### ${releaseDescription}" > "${workspace}"/releaseNotesToDeploy.txt
+    echo "### ${releaseDescription}" > "${workspace}/releaseNotesToDeploy.txt"
 fi
 for currentChecksumfile in \
     Checksum-Alias-Android-APK.txt \
@@ -42,12 +44,12 @@ for currentChecksumfile in \
     Checksum-Alias-Win64-Qt5.12.txt \
     Checksum-Alias-Win64-Qt5.12-OBFS4.txt \
     Checksum-Alias-Win64-Qt5.9.6.txt \
-    Checksum-Alias-Win64-Qt5.9.6-OBFS4.txt ; do
-    curl -X POST -L --user "${accessToken}" "${jobURL}"/artifact/${currentChecksumfile} --output ${currentChecksumfile} || true
-    if [[ -e "${currentChecksumfile}" ]] && [[ $(wc -l < "${currentChecksumfile}") -eq 1 ]] ; then
-        archiveFilename=$(cut -d ' ' -f1 ${currentChecksumfile})
-        checksum=$(cut -d ' ' -f2 ${currentChecksumfile})
-        echo "**${archiveFilename}:** \`${checksum}\`" >> "${workspace}"/releaseNotesToDeploy.txt
-        echo '' >> "${workspace}"/releaseNotesToDeploy.txt
+    Checksum-Alias-Win64-Qt5.9.6-OBFS4.txt; do
+    curl -X POST -L --user "${accessToken}" "${jobURL}/artifact/${currentChecksumfile}" --output "${currentChecksumfile}" || true
+    if [[ -e "${currentChecksumfile}" ]] && [[ $(wc -l < "${currentChecksumfile}") -eq 1 ]]; then
+        archiveFilename=$(cut -d ' ' -f1 "${currentChecksumfile}")
+        checksum=$(cut -d ' ' -f2 "${currentChecksumfile}")
+        echo "**${archiveFilename}:** \`${checksum}\`" >> "${workspace}/releaseNotesToDeploy.txt"
+        echo '' >> "${workspace}/releaseNotesToDeploy.txt"
     fi
 done

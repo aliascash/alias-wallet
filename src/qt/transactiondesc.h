@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -9,21 +10,21 @@
 
 #include <QString>
 #include <QObject>
+
 #include <string>
 
 class CWallet;
 class CWalletTx;
 
-/** Provide a human-readable extended HTML description of a transaction.
- */
 class TransactionDesc: public QObject
 {
     Q_OBJECT
+
 public:
     static QString toHTML(CWallet *wallet, CWalletTx &wtx);
+
 private:
     TransactionDesc() {}
-
     static QString FormatTxStatus(const CWalletTx& wtx);
 };
 
