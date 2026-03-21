@@ -130,3 +130,6 @@ Checksum-Aliaswallet-*
 # Mac
 *.dmg
 .qmake.stash
+
+external/VC_redist.x64.exe
+external/tor-browser-windows-x86_64-portable-15.0.1.exe
