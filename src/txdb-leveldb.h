@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers.
@@ -66,14 +67,14 @@ public:
     void Close();
 
 private:
-    leveldb::DB *pdb;  // Points to the global instance.
+    leveldb::DB *pdb = nullptr;  // Points to the global instance.
 
     // A batch stores up writes and deletes for atomic application. When this
-    // field is non-NULL, writes/deletes go there instead of directly to disk.
-    leveldb::WriteBatch *activeBatch;
+    // field is non-nullptr, writes/deletes go there instead of directly to disk.
+    leveldb::WriteBatch *activeBatch = nullptr;
     leveldb::Options openOptions;
-    bool fReadOnly;
-    int nVersion;
+    bool fReadOnly = false;
+    int nVersion = 0;
 
 protected:
     // Returns true and sets (value,false) if activeBatch contains the given key
@@ -205,7 +206,7 @@ public:
     bool TxnAbort()
     {
         delete activeBatch;
-        activeBatch = NULL;
+        activeBatch = nullptr;
         return true;
     }
 

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -16,10 +17,9 @@ QT_END_NAMESPACE
 namespace Ui {
     class EditAddressDialog;
 }
+
 class AddressTableModel;
 
-/** Dialog for editing an address and associated information.
- */
 class EditAddressDialog : public QDialog
 {
     Q_OBJECT
@@ -32,7 +32,7 @@ public:
         EditSendingAddress
     };
 
-    explicit EditAddressDialog(Mode mode, QWidget *parent = 0);
+    explicit EditAddressDialog(Mode mode, QWidget *parent = nullptr);
     ~EditAddressDialog();
 
     void setModel(AddressTableModel *model);
@@ -41,17 +41,16 @@ public:
     QString getAddress() const;
     void setAddress(const QString &address);
 
-public slots:
-    void accept();
+public Q_SLOTS:
+    void accept() override;
 
 private:
     bool saveCurrentRow();
 
     Ui::EditAddressDialog *ui;
-    QDataWidgetMapper *mapper;
+    QDataWidgetMapper *mapper{nullptr};
     Mode mode;
-    AddressTableModel *model;
-
+    AddressTableModel *model{nullptr};
     QString address;
 };
 

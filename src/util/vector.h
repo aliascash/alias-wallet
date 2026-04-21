@@ -1,0 +1,68 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
+// SPDX-FileCopyrightText: © 2020 Alias Developers
+// Copyright (c) 2019-2022 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
+
+#ifndef BITCOIN_UTIL_VECTOR_H
+#define BITCOIN_UTIL_VECTOR_H
+
+#include <functional>
+#include <initializer_list>
+#include <optional>
+#include <type_traits>
+#include <utility>
+#include <vector>
+
+/** Construct a vector with the specified elements. */
+template<typename... Args>
+inline std::vector<typename std::common_type<Args...>::type> Vector(Args&&... args)
+{
+    std::vector<typename std::common_type<Args...>::type> ret;
+    ret.reserve(sizeof...(args));
+    (void)std::initializer_list<int>{(ret.emplace_back(std::forward<Args>(args)), 0)...};
+    return ret;
+}
+
+/** Concatenate two vectors, moving elements. */
+template<typename V>
+inline V Cat(V v1, V&& v2)
+{
+    v1.reserve(v1.size() + v2.size());
+    for (auto& arg : v2) {
+        v1.push_back(std::move(arg));
+    }
+    return v1;
+}
+
+/** Concatenate two vectors. */
+template<typename V>
+inline V Cat(V v1, const V& v2)
+{
+    v1.reserve(v1.size() + v2.size());
+    for (const auto& arg : v2) {
+        v1.push_back(arg);
+    }
+    return v1;
+}
+
+/** Clear a vector (or std::deque) and release its allocated memory. */
+template<typename V>
+inline void ClearShrink(V& v) noexcept
+{
+    V{}.swap(v);
+}
+
+template<typename V, typename L>
+inline std::optional<V> FindFirst(const std::vector<V>& vec, const L fnc)
+{
+    for (const auto& el : vec) {
+        if (fnc(el)) {
+            return el;
+        }
+    }
+    return std::nullopt;
+}
+
+#endif // BITCOIN_UTIL_VECTOR_H
+

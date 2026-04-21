@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -54,8 +55,8 @@ protected:
     ScriptMap mapScripts;
 
 public:
-    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey);
-    bool HaveKey(const CKeyID &address) const
+    bool AddKeyPubKey(const CKey& key, const CPubKey &pubkey) override;
+    bool HaveKey(const CKeyID &address) const override
     {
         bool result;
         {
@@ -64,7 +65,7 @@ public:
         }
         return result;
     }
-    void GetKeys(std::set<CKeyID> &setAddress) const
+    void GetKeys(std::set<CKeyID> &setAddress) const override
     {
         setAddress.clear();
         {
@@ -77,7 +78,7 @@ public:
             }
         }
     }
-    bool GetKey(const CKeyID &address, CKey &keyOut) const
+    bool GetKey(const CKeyID &address, CKey &keyOut) const override
     {
         {
             LOCK(cs_KeyStore);
@@ -90,9 +91,9 @@ public:
         }
         return false;
     }
-    virtual bool AddCScript(const CScript& redeemScript);
-    virtual bool HaveCScript(const CScriptID &hash) const;
-    virtual bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const;
+    bool AddCScript(const CScript& redeemScript) override;
+    bool HaveCScript(const CScriptID &hash) const override;
+    bool GetCScript(const CScriptID &hash, CScript& redeemScriptOut) const override;
 };
 
 typedef std::map<CKeyID, std::pair<CPubKey, std::vector<unsigned char> > > CryptedKeyMap;

@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 #
@@ -77,7 +78,19 @@ common_SOURCES = anonymize.cpp \
 		 chainparams.cpp \
 		 state.cpp \
 		 bloom.cpp \
-		 shutdown.cpp
+		 shutdown.cpp \
+		 validation_alias.cpp \
+		 validation_connectblock_alias.cpp \
+		 net_alias.cpp \
+		 net_node_alias.cpp \
+		 chainparams_compat.cpp \
+		 chainparams_migration.cpp \
+		 kernel/chainparams.cpp \
+		 kernel/context.cpp \
+		 node/context.cpp \
+		 pos/kernel.cpp \
+		 util/chaintype.cpp \
+		 chainparamsbase.cpp
 
 bin_PROGRAMS = aliaswalletd
 aliaswalletd_SOURCES = $(common_SOURCES) \

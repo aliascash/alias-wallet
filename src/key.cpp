@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -580,7 +581,7 @@ int CExtKeyPair::SetKeyCode(const unsigned char *pkey, const unsigned char *pcod
 bool ECC_InitSanityCheck()
 {
     EC_KEY *pkey = EC_KEY_new_by_curve_name(NID_secp256k1);
-    if(pkey == NULL)
+    if(pkey == nullptr)
         return false;
     EC_KEY_free(pkey);
 

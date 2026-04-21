@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -130,17 +131,17 @@ QString webviewResource(QString resource)
 SpectreGUI::SpectreGUI(QWebChannel *webChannel, QWidget *parent):
     QMainWindow(parent),
     bridge(new SpectreBridge(this)),
-    clientModel(0),
-    walletModel(0),
-    messageModel(0),
-    encryptWalletAction(0),
-    changePassphraseAction(0),
-    unlockWalletAction(0),
-    lockWalletAction(0),
-    aboutQtAction(0),
-    trayIcon(0),
-    notificator(0),
-    rpcConsole(0),
+    clientModel(nullptr),
+    walletModel(nullptr),
+    messageModel(nullptr),
+    encryptWalletAction(nullptr),
+    changePassphraseAction(nullptr),
+    unlockWalletAction(nullptr),
+    lockWalletAction(nullptr),
+    aboutQtAction(nullptr),
+    trayIcon(nullptr),
+    notificator(nullptr),
+    rpcConsole(nullptr),
     nWeight(0),
     uiReady(false)
 {
@@ -459,7 +460,7 @@ void SpectreGUI::setWalletModel(WalletModel *walletModel)
 
         //register a QObject to be exposed to JavaScript
         addJavascriptObjects(QStringLiteral("walletModel"), walletModel);
-        if (walletModel->getOptionsModel() != NULL)
+        if (walletModel->getOptionsModel() != nullptr)
             //register a QObject to be exposed to JavaScript
             addJavascriptObjects(QStringLiteral("optionsModel"), walletModel->getOptionsModel());
     }
@@ -485,7 +486,7 @@ void SpectreGUI::createTrayIcon()
 #else
     // Note: On Mac, the dock icon is used to provide the tray's functionality.
     MacDockIconHandler *dockIconHandler = MacDockIconHandler::instance();
-    dockIconHandler->setMainWindow((QMainWindow *)this);
+    dockIconHandler->setMainWindow(static_cast<QMainWindow *>(this));
     trayIconMenu = dockIconHandler->dockMenu();
 #endif
 
@@ -851,7 +852,7 @@ void SpectreGUI::dropEvent(QDropEvent *event)
     {
         int nValidUrisFound = 0;
         QList<QUrl> uris = event->mimeData()->urls();
-        foreach(const QUrl &uri, uris)
+        for (const QUrl &uri : uris)
         {
             handleURI(uri.toString());
             nValidUrisFound++;

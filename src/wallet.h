@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -84,15 +85,12 @@ public:
     int64_t nTime;
     CPubKey vchPubKey;
 
-    CKeyPool()
+    CKeyPool() : nTime(GetTime())
     {
-        nTime = GetTime();
     }
 
-    CKeyPool(const CPubKey& vchPubKeyIn)
+    CKeyPool(const CPubKey& vchPubKeyIn) : nTime(GetTime()), vchPubKey(vchPubKeyIn)
     {
-        nTime = GetTime();
-        vchPubKey = vchPubKeyIn;
     }
 
     IMPLEMENT_SERIALIZE
@@ -116,7 +114,7 @@ class CWallet : public CCryptoKeyStore
 {
 public:
     bool SelectCoinsForStaking(int64_t nMaxAmount, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
-    bool SelectCoins(int64_t nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet, const CCoinControl *coinControl=NULL) const;
+    bool SelectCoins(int64_t nTargetValue, unsigned int nSpendTime, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet, const CCoinControl *coinControl=nullptr) const;
 
     bool GetStealthAddress(const std::string& address, CStealthAddress& addressRet) const;
     bool SaveNarrationOutput(CWalletTx& wtxNew, const CScript& scriptNarration, const std::string& sNarr, std::string& sError);
@@ -168,17 +166,14 @@ public:
     CPubKey vchDefaultKey;
     int64_t nTimeFirstKey;
 
-    CWallet()
+    CWallet() : pwalletdbEncryption(nullptr), nWalletVersion(FEATURE_BASE), nWalletMaxVersion(FEATURE_BASE), fFileBacked(false), pEkMaster(nullptr), pBloomFilter(nullptr), nLastFilteredHeight(0), nStealth(0), nFoundStealth(0), nMasterKeyMaxID(0), nOrderPosNext(0), nTimeFirstKey(0)
     {
         SetNull();
     }
 
-    CWallet(std::string strWalletFileIn)
+    CWallet(std::string strWalletFileIn) : pwalletdbEncryption(nullptr), nWalletVersion(FEATURE_BASE), nWalletMaxVersion(FEATURE_BASE), fFileBacked(true), strWalletFile(strWalletFileIn), pEkMaster(nullptr), pBloomFilter(nullptr), nLastFilteredHeight(0), nStealth(0), nFoundStealth(0), nMasterKeyMaxID(0), nOrderPosNext(0), nTimeFirstKey(0)
     {
         SetNull();
-
-        strWalletFile = strWalletFileIn;
-        fFileBacked = true;
     }
 
     void SetNull()
@@ -187,9 +182,9 @@ public:
         nWalletMaxVersion = FEATURE_BASE;
         fFileBacked = false;
         nMasterKeyMaxID = 0;
-        pwalletdbEncryption = NULL;
-        pBloomFilter = NULL;
-        pEkMaster = NULL;
+        pwalletdbEncryption = nullptr;
+        pBloomFilter = nullptr;
+        pEkMaster = nullptr;
         nOrderPosNext = 0;
         nTimeFirstKey = 0;
         nLastFilteredHeight = 0;
@@ -202,7 +197,7 @@ public:
     bool CanSupportFeature(enum WalletFeature wf) { AssertLockHeld(cs_wallet); return nWalletMaxVersion >= wf; }
 
     void AvailableCoinsForStaking(std::vector<COutput>& vCoins, unsigned int nSpendTime) const;
-    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl=NULL) const;
+    void AvailableCoins(std::vector<COutput>& vCoins, bool fOnlyConfirmed=true, const CCoinControl *coinControl=nullptr) const;
     bool SelectCoinsMinConf(int64_t nTargetValue, unsigned int nSpendTime, int nConfMine, int nConfTheirs, std::vector<COutput> vCoins, std::set<std::pair<const CWalletTx*,unsigned int> >& setCoinsRet, int64_t& nValueRet) const;
 
     // keystore implementation
@@ -241,7 +236,7 @@ public:
     /** Increment the next transaction order id
         @return next transaction order id
      */
-    int64_t IncOrderPosNext(CWalletDB *pwalletdb = NULL);
+    int64_t IncOrderPosNext(CWalletDB *pwalletdb = nullptr);
 
     typedef std::pair<CWalletTx*, CAccountingEntry*> TxPair;
     typedef std::multimap<int64_t, TxPair > TxItems;
@@ -274,8 +269,8 @@ public:
     int64_t GetImmatureSpectreBalance() const;
     int64_t GetSpectreStake() const;
 
-    bool CreateTransaction(const std::vector<std::pair<CScript, int64_t> >& vecSend, CWalletTx& wtxNew, int64_t& nFeeRet, int32_t& nChangePos, const CCoinControl *coinControl=NULL);
-    bool CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, const CCoinControl *coinControl=NULL);
+    bool CreateTransaction(const std::vector<std::pair<CScript, int64_t> >& vecSend, CWalletTx& wtxNew, int64_t& nFeeRet, int32_t& nChangePos, const CCoinControl *coinControl=nullptr);
+    bool CreateTransaction(CScript scriptPubKey, int64_t nValue, std::string& sNarr, CWalletTx& wtxNew, int64_t& nFeeRet, const CCoinControl *coinControl=nullptr);
 
     bool CommitTransaction(CWalletTx& wtxNew, const std::map<CKeyID, CStealthAddress> * const mapPubStealth=nullptr);
 
@@ -378,7 +373,7 @@ public:
     }
     bool IsMine(const CTransaction& tx) const
     {
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
             if (IsMine(txout) && txout.nValue >= nMinimumInputValue)
                 return true;
         return false;
@@ -391,8 +386,7 @@ public:
     int64_t GetDebit(const CTransaction& tx) const
     {
         int64_t nDebit = 0;
-        BOOST_FOREACH(const CTxIn& txin, tx.vin)
-        {
+        for (const CTxIn& txin : tx.vin) {
             if (tx.nVersion == ANON_TXN_VERSION
                 && txin.IsAnonInput())
             {
@@ -412,10 +406,8 @@ public:
     {
         bool fNeedsWalletUnlock = false;
         int64_t nSPEC = 0, nSpectre = 0;
-        if (tx.IsAnonCoinStake() && GetCredit(tx, nSPEC, nSpectre) && nSpectre > 0)
-        {
-            BOOST_FOREACH(const CTxIn& txin, tx.vin)
-            {
+        if (tx.IsAnonCoinStake() && GetCredit(tx, nSPEC, nSpectre) && nSpectre > 0) {
+            for (const CTxIn& txin : tx.vin) {
                 if (GetSpectreDebit(txin) == 0)
                     return true;
             }
@@ -426,7 +418,7 @@ public:
     int64_t GetCredit(const CTransaction& tx) const
     {
         int64_t nCredit = 0;
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
         {
             if (tx.nVersion == ANON_TXN_VERSION
                 && txout.IsAnonOutput())
@@ -444,7 +436,7 @@ public:
     {
         nSPEC = 0;
         nSpectre = 0;
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
         {
             if (tx.nVersion == ANON_TXN_VERSION
                 && txout.IsAnonOutput())
@@ -462,7 +454,7 @@ public:
     int64_t GetChange(const CTransaction& tx) const
     {
         int64_t nChange = 0;
-        BOOST_FOREACH(const CTxOut& txout, tx.vout)
+        for (const CTxOut& txout : tx.vout)
         {
             nChange += GetChange(txout);
             if (!MoneyRange(nChange))
@@ -476,9 +468,9 @@ public:
 
     DBErrors LoadWallet(int& oltWalletVersion, std::function<void (const uint32_t&)> funcProgress);
 
-    bool SetAddressBookName(const CTxDestination& address, const std::string& strName, CWalletDB *pwdb = NULL, bool fAddKeyToMerkleFilters = true, bool fManual = false);
+    bool SetAddressBookName(const CTxDestination& address, const std::string& strName, CWalletDB *pwdb = nullptr, bool fAddKeyToMerkleFilters = true, bool fManual = false);
 
-    bool DelAddressBookName(const CTxDestination& address, CWalletDB *pwdb = NULL);
+    bool DelAddressBookName(const CTxDestination& address, CWalletDB *pwdb = nullptr);
 
     void UpdatedTransaction(const uint256 &hashTx);
 
@@ -505,7 +497,7 @@ public:
     bool SetDefaultKey(const CPubKey &vchPubKey);
 
     // signify that a particular wallet feature is now used. this may change nWalletVersion and nWalletMaxVersion if those are lower
-    bool SetMinVersion(enum WalletFeature, CWalletDB* pwalletdbIn = NULL, bool fExplicit = false);
+    bool SetMinVersion(enum WalletFeature, CWalletDB* pwalletdbIn = nullptr, bool fExplicit = false);
 
     // change which version we're allowed to upgrade to (note that this does not immediately imply upgrading to that format)
     bool SetMaxVersion(int nVersion);
@@ -612,10 +604,8 @@ protected:
     int64_t nIndex;
     CPubKey vchPubKey;
 public:
-    CReserveKey(CWallet* pwalletIn)
+    CReserveKey(CWallet* pwalletIn) : pwallet(pwalletIn), nIndex(-1)
     {
-        nIndex = -1;
-        pwallet = pwalletIn;
     }
 
     ~CReserveKey()
@@ -686,7 +676,7 @@ public:
 
     CWalletTx()
     {
-        Init(NULL);
+        Init(nullptr);
     }
 
     CWalletTx(const CWallet* pwalletIn)
@@ -738,7 +728,7 @@ public:
     (
         CWalletTx* pthis = const_cast<CWalletTx*>(this);
         if (fRead)
-            pthis->Init(NULL);
+            pthis->Init(nullptr);
         char fSpent = false;
 
         if (!fRead)
@@ -746,7 +736,7 @@ public:
             pthis->mapValue["fromaccount"] = pthis->strFromAccount;
 
             std::string str;
-            BOOST_FOREACH(char f, vfSpent)
+            for (char f : vfSpent)
             {
                 str += (f ? '1' : '0');
                 if (f)
@@ -775,7 +765,7 @@ public:
 
             if (mapValue.count("spent"))
             {
-                BOOST_FOREACH(char c, pthis->mapValue["spent"])
+                for (char c : pthis->mapValue["spent"])
                     pthis->vfSpent.push_back(c != '0');
             } else
             {
@@ -1033,11 +1023,11 @@ public:
 
             if (mapPrev.empty())
             {
-                BOOST_FOREACH(const CMerkleTx& tx, vtxPrev)
+                for (const CMerkleTx& tx : vtxPrev)
                     mapPrev[tx.GetHash()] = &tx;
             }
 
-            BOOST_FOREACH(const CTxIn& txin, ptx->vin)
+            for (const CTxIn& txin : ptx->vin)
             {
                 if (!mapPrev.count(txin.prevout.hash))
                     return false;

@@ -1,31 +1,36 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: Alias
-Upstream-Contact: Alias Developers <info@alias.cash>
+Upstream-Name: ALIAS
+Upstream-Contact: ALIAS Developers <info@alias.cash>
 Source: https://github.com/aliascash/alias-wallet
 
 # ############################################################################
 # MIT Licenses
 Files: doc/* Docker/*/*.patch src/qt/forms/* src/qt/locale/* src/qt/res/assets/css/* src/qt/res/assets/fonts/Footable/*
+Copyright: 2025 ALIAS Developers
 Copyright: 2020 Alias Developers
 Copyright: 2016 SpectreCoin Developers
 License: MIT
 
 Files: src/qt/res/assets/fonts/Framework-icon/* src/qt/res/assets/icons/* src/qt/res/assets/img/* src/qt/res/assets/js/*
+Copyright: 2025 ALIAS Developers
 Copyright: 2020 Alias Developers
 Copyright: 2016 SpectreCoin Developers
 License: MIT
 
 Files: src/qt/res/assets/plugins/framework/* src/qt/res/assets/svg/* src/qt/res/icons/* src/qt/res/images/*
+Copyright: 2025 ALIAS Developers
 Copyright: 2020 Alias Developers
 Copyright: 2016 SpectreCoin Developers
 License: MIT
 
 Files: src/qt/res/qml/* src/qt/res/src/* src/src.aps src/osx/app-slide-arrow.png
+Copyright: 2025 ALIAS Developers
 Copyright: 2020 Alias Developers
 Copyright: 2016 SpectreCoin Developers
 License: MIT
 
 Files: external/*/patches/* scripts/patches/* src/qt/res/alias-qt.rc src/qt/res/index.html src/qt/res/qml/main.qml
+Copyright: 2025 ALIAS Developers
 Copyright: 2020 Alias Developers
 Copyright: 2016 SpectreCoin Developers
 License: MIT

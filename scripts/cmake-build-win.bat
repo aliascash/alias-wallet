@@ -1,5 +1,6 @@
 :: ===========================================================================
 ::
+:: SPDX-FileCopyrightText: © 2025 ALIAS Developers
 :: SPDX-FileCopyrightText: © 2020 Alias Developers
 :: SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 :: SPDX-License-Identifier: MIT
@@ -10,6 +11,10 @@
 ::
 :: ===========================================================================
 
+@echo off
+setlocal enabledelayedexpansion
+
+:: Check for required environment variables
 IF "%QTDIR%" == "" GOTO NOQT
 :YESQT
 
@@ -22,24 +27,50 @@ IF "%CMAKEDIR%" == "" GOTO NOCMAKE
 IF "%VCPKGDIR%" == "" GOTO NOVCPKG
 :YESVS
 
-set SRC_DIR=%cd%
-set BUILD_DIR=%cd%\build
+:: Set up directory paths
+set "SRC_DIR=%cd%"
+set "BUILD_DIR=%cd%\build"
 
+:: Initialize Visual Studio environment
 :: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
 call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat"
+if errorlevel 1 (
+    echo Failed to initialize Visual Studio environment
+    endlocal
+    exit /b 1
+)
+
 cd
-cd %SRC_DIR%
+cd "%SRC_DIR%"
+if errorlevel 1 (
+    echo Failed to change to source directory: %SRC_DIR%
+    endlocal
+    exit /b 1
+)
 dir
 
 echo on
 
-rmdir /S /Q "%BUILD_DIR%\delivery"
-mkdir "%BUILD_DIR%"
-cd %BUILD_DIR%
+:: Clean and prepare build directory
+if exist "%BUILD_DIR%\delivery" (
+    rmdir /S /Q "%BUILD_DIR%\delivery"
+    if errorlevel 1 (
+        echo Warning: Failed to remove delivery directory
+    )
+)
+if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
+if errorlevel 1 goto :ERROR
 
-"%CMAKEDIR%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH=%QTDIR%\lib\cmake -D CMAKE_BUILD_TYPE=Release .. || goto :ERROR
+cd "%BUILD_DIR%"
+if errorlevel 1 goto :ERROR
 
-"%CMAKEDIR%\cmake.exe" --build . --target Aliaswallet --config Release || goto :ERROR
+:: Configure CMake
+"%CMAKEDIR%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE="%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake" -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH="%QTDIR%\lib\cmake" -D CMAKE_BUILD_TYPE=Release ..
+if errorlevel 1 goto :ERROR
+
+:: Build the project
+"%CMAKEDIR%\cmake.exe" --build . --target Aliaswallet --config Release
+if errorlevel 1 goto :ERROR
 
 ::ren "%OUT_DIR%" Alias
 ::echo "The prepared package is in: %BUILD_DIR%\delivery"
@@ -49,23 +80,34 @@ GOTO END
 
 :ERROR
 echo Failed with error #%errorlevel%.
+cd "%SRC_DIR%"
+endlocal
 exit /b %errorlevel%
 GOTO END
 
 :NOVCPKG
 @ECHO The VCPKGDIR environment variable was NOT detected!
+endlocal
+exit /b 1
 GOTO END
 
 :NOCMAKE
 @ECHO The CMAKEDIR environment variable was NOT detected!
+endlocal
+exit /b 1
 GOTO END
 
 :NOVS
 @ECHO The VSDIR environment variable was NOT detected!
+endlocal
+exit /b 1
 GOTO END
 
 :NOQT
 @ECHO The QTDIR environment variable was NOT detected!
+endlocal
+exit /b 1
 
 :END
-cd %SRC_DIR%
+cd "%SRC_DIR%"
+endlocal

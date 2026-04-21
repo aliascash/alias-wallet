@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -15,18 +16,17 @@
 #include "db.h"
 #include "interface.h"
 #include "wallet.h"
+#include "chainparams_migration.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio.hpp>
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/ssl.hpp>
 #include <boost/bind/bind.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/foreach.hpp>
 #include <boost/iostreams/concepts.hpp>
 #include <boost/iostreams/stream.hpp>
 #include <boost/shared_ptr.hpp>
+#include "util/fs.h"
 #include <list>
 
 using namespace std;
@@ -39,17 +39,17 @@ namespace ba = boost::asio;
 static std::string strRPCUserColonPass;
 
 // These are created by StartRPCThreads, destroyed in StopRPCThreads
-static asio::io_service* rpc_io_service = NULL;
+static asio::io_service* rpc_io_service = nullptr;
 static map<string, boost::shared_ptr<deadline_timer> > deadlineTimers;
-static ssl::context* rpc_ssl_context = NULL;
-static boost::thread_group* rpc_worker_group = NULL;
+static ssl::context* rpc_ssl_context = nullptr;
+static boost::thread_group* rpc_worker_group = nullptr;
 
 void RPCTypeCheck(const Array& params,
                   const list<Value_type>& typesExpected,
                   bool fAllowNull)
 {
     unsigned int i = 0;
-    BOOST_FOREACH(Value_type t, typesExpected)
+    for (Value_type t : typesExpected)
     {
         if (params.size() <= i)
             break;
@@ -69,8 +69,7 @@ void RPCTypeCheck(const Object& o,
                   const map<string, Value_type>& typesExpected,
                   bool fAllowNull)
 {
-    BOOST_FOREACH(const PAIRTYPE(string, Value_type)& t, typesExpected)
-    {
+    for (const auto& t : typesExpected) {
         const Value& v = find_value(o, t.first);
         if (!fAllowNull && v.type() == null_type)
             throw JSONRPCError(RPC_TYPE_ERROR, strprintf("Missing %s", t.first));
@@ -184,10 +183,10 @@ string CRPCTable::help(string strCommand) const
 
     string strRet;
     set<rpcfn_type> setDone;
-    for (map<string, const CRPCCommand*>::const_iterator mi = mapCommands.begin(); mi != mapCommands.end(); ++mi)
+    for (const auto& mi : mapCommands)
     {
-        const CRPCCommand *pcmd = mi->second;
-        string strMethod = mi->first;
+        const CRPCCommand *pcmd = mi.second;
+        string strMethod = mi.first;
         // We already filter duplicates, but these deprecated screw up the sort order
         if (strMethod.find("label") != string::npos)
             continue;
@@ -395,8 +394,8 @@ const CRPCCommand *CRPCTable::operator[](string name) const
 {
     map<string, const CRPCCommand*>::const_iterator it = mapCommands.find(name);
     if (it == mapCommands.end())
-        return NULL;
-    return (*it).second;
+        return nullptr;
+    return it->second;
 }
 
 
@@ -438,7 +437,7 @@ bool ClientAllowed(const boost::asio::ip::address& address)
 
     const string strAddress = address.to_string();
     const vector<string>& vAllow = mapMultiArgs["-rpcallowip"];
-    BOOST_FOREACH(string strAllow, vAllow)
+    for (const std::string& strAllow : vAllow)
         if (WildcardMatch(strAddress, strAllow))
             return true;
     return false;
@@ -468,17 +467,17 @@ public:
     {
     }
 
-    virtual std::iostream& stream()
+    std::iostream& stream() override
     {
         return _stream;
     }
 
-    virtual std::string peer_address_to_string() const
+    std::string peer_address_to_string() const override
     {
         return peer.address().to_string();
     }
 
-    virtual void close()
+    void close() override
     {
         _stream.close();
     }
@@ -585,7 +584,7 @@ void StartRPCThreads()
 {
     strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
     if (((mapArgs["-rpcpassword"] == "") ||
-         (mapArgs["-rpcuser"] == mapArgs["-rpcpassword"])) && Params().RequireRPCPassword())
+         (mapArgs["-rpcuser"] == mapArgs["-rpcpassword"])) && ChainParamsMigration::RequireRPCPassword())
     {
         unsigned char rand_pwd[32];
         RAND_bytes(rand_pwd, 32);
@@ -613,7 +612,7 @@ void StartRPCThreads()
         return;
     }
 
-    assert(rpc_io_service == NULL);
+    assert(rpc_io_service == nullptr);
     rpc_io_service = new asio::io_service();
     rpc_ssl_context = new ssl::context(
 #if BOOST_VERSION <= 104800
@@ -628,14 +627,14 @@ void StartRPCThreads()
     {
         rpc_ssl_context->set_options(ssl::context::no_sslv2);
 
-        boost::filesystem::path pathCertFile(GetArg("-rpcsslcertificatechainfile", "server.cert"));
-        if (!pathCertFile.is_complete()) pathCertFile = boost::filesystem::path(GetDataDir()) / pathCertFile;
-        if (boost::filesystem::exists(pathCertFile)) rpc_ssl_context->use_certificate_chain_file(pathCertFile.string());
+        fs::path pathCertFile(GetArg("-rpcsslcertificatechainfile", "server.cert"));
+        if (!pathCertFile.is_absolute()) pathCertFile = fs::path(GetDataDir()) / pathCertFile;
+        if (fs::exists(pathCertFile)) rpc_ssl_context->use_certificate_chain_file(pathCertFile.string());
         else LogPrintf("ThreadRPCServer ERROR: missing server certificate file %s\n", pathCertFile.string());
 
-        boost::filesystem::path pathPKFile(GetArg("-rpcsslprivatekeyfile", "server.pem"));
-        if (!pathPKFile.is_complete()) pathPKFile = boost::filesystem::path(GetDataDir()) / pathPKFile;
-        if (boost::filesystem::exists(pathPKFile)) rpc_ssl_context->use_private_key_file(pathPKFile.string(), ssl::context::pem);
+        fs::path pathPKFile(GetArg("-rpcsslprivatekeyfile", "server.pem"));
+        if (!pathPKFile.is_absolute()) pathPKFile = fs::path(GetDataDir()) / pathPKFile;
+        if (fs::exists(pathPKFile)) rpc_ssl_context->use_private_key_file(pathPKFile.string(), ssl::context::pem);
         else LogPrintf("ThreadRPCServer ERROR: missing server private key file %s\n", pathPKFile.string());
 
         string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
@@ -645,7 +644,7 @@ void StartRPCThreads()
     // Try a dual IPv6/IPv4 socket, falling back to separate IPv4 and IPv6 sockets
     const bool loopback = !mapArgs.count("-rpcallowip");
     asio::ip::address bindAddress = loopback ? asio::ip::address_v6::loopback() : asio::ip::address_v6::any();
-    ip::tcp::endpoint endpoint(bindAddress, GetArg("-rpcport", Params().RPCPort()));
+    ip::tcp::endpoint endpoint(bindAddress, GetArg("-rpcport", ChainParamsMigration::GetRPCPort()));
     boost::system::error_code v6_only_error;
     boost::shared_ptr<ip::tcp::acceptor> acceptor(new ip::tcp::acceptor(*rpc_io_service));
 
@@ -707,19 +706,19 @@ void StartRPCThreads()
 
 void StopRPCThreads()
 {
-    if (rpc_io_service == NULL) return;
+    if (rpc_io_service == nullptr) return;
 
     deadlineTimers.clear();
     rpc_io_service->stop();
-    if (rpc_worker_group != NULL)
+    if (rpc_worker_group != nullptr)
         rpc_worker_group->join_all();
-    delete rpc_worker_group; rpc_worker_group = NULL;
-    delete rpc_ssl_context; rpc_ssl_context = NULL;
-    delete rpc_io_service; rpc_io_service = NULL;
+    delete rpc_worker_group; rpc_worker_group = nullptr;
+    delete rpc_ssl_context; rpc_ssl_context = nullptr;
+    delete rpc_io_service; rpc_io_service = nullptr;
 }
 
 bool IsRPCServerRunning() {
-	return rpc_io_service != NULL;
+	return rpc_io_service != nullptr;
 }
 
 void RPCRunHandler(const boost::system::error_code& err, boost::function<void(void)> func)
@@ -730,7 +729,7 @@ void RPCRunHandler(const boost::system::error_code& err, boost::function<void(vo
 
 void RPCRunLater(const std::string& name, boost::function<void(void)> func, int64_t nSeconds)
 {
-    assert(rpc_io_service != NULL);
+    assert(rpc_io_service != nullptr);
 
     if (deadlineTimers.count(name) == 0)
     {
@@ -821,8 +820,8 @@ static Object JSONRPCExecOne(const Value& req)
 static string JSONRPCExecBatch(const Array& vReq)
 {
     Array ret;
-    for (unsigned int reqIdx = 0; reqIdx < vReq.size(); reqIdx++)
-        ret.push_back(JSONRPCExecOne(vReq[reqIdx]));
+    for (const auto& req : vReq)
+        ret.push_back(JSONRPCExecOne(req));
 
     return write_string(Value(ret), false) + "\n";
 }
@@ -849,7 +848,7 @@ void ServiceConnection(AcceptedConnection *conn)
         }
 
         // Check authorization
-        if (mapHeaders.count("authorization") == 0)
+        if (mapHeaders.find("authorization") == mapHeaders.end())
         {
             conn->stream() << HTTPReply(HTTP_UNAUTHORIZED, "", false) << std::flush;
             break;

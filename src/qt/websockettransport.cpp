@@ -117,5 +117,5 @@ void WebSocketTransport::textMessageReceived(const QString &messageData)
         return;
     }
     //qDebug() << "textMessageReceived:" << messageData;
-    emit messageReceived(message.object(), this);
+    Q_EMIT messageReceived(message.object(), this);
 }

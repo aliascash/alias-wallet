@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2013 StealthCoin/StealthSend Developers
@@ -9,8 +10,8 @@
 
 #include "anonymize.h"
 #include "util.h"
+#include "util/fs.h"
 
-#include <boost/filesystem.hpp>
 #include <string>
 #include <cstring>
 

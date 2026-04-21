@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -16,12 +17,10 @@
 #include "interface.h"
 #include "ringsig.h"
 #include "miner.h"
+#include "util/fs.h"
 
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/fstream.hpp>
-#include <boost/filesystem/convenience.hpp>
-#include <boost/interprocess/sync/file_lock.hpp>
-#include <boost/algorithm/string/predicate.hpp>
+#include <algorithm>
+#include <fstream>
 #include <openssl/crypto.h>
 
 #ifndef WIN32
@@ -31,7 +30,7 @@
 using namespace std;
 using namespace boost;
 
-namespace fs = boost::filesystem;
+// Using modern std::filesystem via util/fs.h
 
 CWallet* pwalletMain;
 CClientUIInterface uiInterface;
@@ -99,29 +98,25 @@ bool Finalise()
         bitdb.Flush(true);
         UnregisterWallet(pwalletMain);
         delete pwalletMain;
-        pwalletMain = NULL;
+        pwalletMain = nullptr;
     };
 
     finaliseRingSigs();
 
     if (nNodeMode == NT_FULL)
     {
-        std::map<uint256, CBlockIndex*>::iterator it;
-
-        for (it = mapBlockIndex.begin(); it != mapBlockIndex.end(); ++it)
+        for (auto& pair : mapBlockIndex)
         {
-            delete it->second;
+            delete pair.second;
         };
         mapBlockIndex.clear();
         if (fDebug)
             LogPrintf("mapBlockIndex cleared.\n");
     } else
     {
-        std::map<uint256, CBlockThinIndex*>::iterator it;
-
-        for (it = mapBlockThinIndex.begin(); it != mapBlockThinIndex.end(); ++it)
+        for (auto& pair : mapBlockThinIndex)
         {
-            delete it->second;
+            delete pair.second;
         };
         mapBlockThinIndex.clear();
         if (fDebug)
@@ -165,7 +160,7 @@ int BlockSignals()
     sigaddset(&blockedSignals, SIGINT);
     sigaddset(&blockedSignals, SIGTERM);
     sigaddset(&blockedSignals, SIGHUP);
-    return pthread_sigmask(SIG_BLOCK, &blockedSignals, NULL);
+    return pthread_sigmask(SIG_BLOCK, &blockedSignals, nullptr);
 }
 
 void ThreadSignalHandler(void *nothing)
@@ -372,7 +367,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 #ifdef _MSC_VER
     // Turn off Microsoft heap dump noise
     _CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-    _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, 0));
+    _CrtSetReportFile(_CRT_WARN, CreateFileA("NUL", GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, 0));
 #endif
 #if _MSC_VER >= 1400
     // Disable confusing "helpful" text message on abort, Ctrl-C
@@ -389,13 +384,13 @@ bool AppInit2(boost::thread_group& threadGroup)
 #endif
     typedef BOOL (WINAPI *PSETPROCDEPPOL)(DWORD);
     PSETPROCDEPPOL setProcDEPPol = (PSETPROCDEPPOL)GetProcAddress(GetModuleHandleA("Kernel32.dll"), "SetProcessDEPPolicy");
-    if (setProcDEPPol != NULL) setProcDEPPol(PROCESS_DEP_ENABLE);
+    if (setProcDEPPol != nullptr) setProcDEPPol(PROCESS_DEP_ENABLE);
 #endif
 #ifndef WIN32
     umask(077);
 
     // Start a thread to wait for SIGINT, SIGTERM and SIGHUP and handle them appropriately
-    NewThread(&ThreadSignalHandler, NULL);
+    NewThread(&ThreadSignalHandler, nullptr);
 #endif
 
     if (GetBoolArg("-version")) {
@@ -760,14 +755,12 @@ bool AppInit2(boost::thread_group& threadGroup)
         return InitError(_("Failed to listen on any port."));
 
     if (!(mapArgs.count("-tor") && mapArgs["-tor"] != "0")) {
-        if (!NewThread(&StartTor, NULL))
+        if (!NewThread(&StartTor, nullptr))
             return InitError(_("Error: could not start tor node"));
     }
 
-    if (mapArgs.count("-externalip"))
-    {
-        BOOST_FOREACH(std::string strAddr, mapMultiArgs["-externalip"])
-        {
+    if (mapArgs.count("-externalip")) {
+        for (const std::string& strAddr : mapMultiArgs["-externalip"]) {
             CService addrLocal(strAddr, GetListenPort(), fNameLookup);
             if (!addrLocal.IsValid())
                 return InitError(strprintf(_("Cannot resolve -externalip address: '%s'"), strAddr.c_str()));
@@ -776,13 +769,13 @@ bool AppInit2(boost::thread_group& threadGroup)
     } else
     {
         string automatic_onion;
-        boost::filesystem::path hostname_path = GetDataDir() / "tor" / "onion" / "hostname";
+        fs::path hostname_path = GetDataDir() / "tor" / "onion" / "hostname";
         if (fs::exists(hostname_path) && ((GetBoolArg("-onionv2") && fs::file_size(hostname_path) != 23) || (!GetBoolArg("-onionv2") && fs::file_size(hostname_path) != 63)))
             remove(hostname_path.string().c_str());
 
         int attempts = 0;
         while (1) {
-            if (boost::filesystem::exists(hostname_path))
+            if (fs::exists(hostname_path))
                 break;
             ++attempts;
             boost::this_thread::sleep(boost::posix_time::seconds(2));
@@ -805,7 +798,7 @@ bool AppInit2(boost::thread_group& threadGroup)
         };
     };
 
-    BOOST_FOREACH(std::string strDest, mapMultiArgs["-seednode"])
+    for (const std::string& strDest : mapMultiArgs["-seednode"])
         AddOneShot(strDest);
 
     // ********************************************************* Step 7: load blockchain
@@ -881,12 +874,12 @@ bool AppInit2(boost::thread_group& threadGroup)
     {
         std::string strMatch = mapArgs["-printblock"];
         int nFound = 0;
-        for (std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.begin(); mi != mapBlockIndex.end(); ++mi)
+        for (auto& pair : mapBlockIndex)
         {
-            uint256 hash = (*mi).first;
+            uint256 hash = pair.first;
             if (strncmp(hash.ToString().c_str(), strMatch.c_str(), strMatch.size()) == 0)
             {
-                CBlockIndex* pindex = (*mi).second;
+                CBlockIndex* pindex = pair.second;
                 CBlock block;
                 block.ReadFromDisk(pindex);
                 block.BuildMerkleTree();
@@ -981,10 +974,10 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     // ********************************************************* Step 9: import blocks
 
-    std::vector<boost::filesystem::path> vImportFiles;
+    std::vector<fs::path> vImportFiles;
     if (mapArgs.count("-loadblock"))
     {
-        BOOST_FOREACH(std::string strFile, mapMultiArgs["-loadblock"])
+        for (const std::string& strFile : mapMultiArgs["-loadblock"])
             vImportFiles.push_back(strFile);
     };
     threadGroup.create_thread(boost::bind(&ThreadImport, vImportFiles));

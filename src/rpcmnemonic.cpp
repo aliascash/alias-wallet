@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2015 ShadowCoin Developers
@@ -11,6 +12,7 @@
 #include "key.h"
 #include "extkey.h"
 #include "chainparams.h"
+#include "chainparams_migration.h"
 #include "hash.h"
 #include "base58.h"
 
@@ -50,7 +52,7 @@ Value mnemonic(const Array &params, bool fHelp)
         std::string st = " " + s + " "; // Note the spaces
         std::transform(st.begin(), st.end(), st.begin(), ::tolower);
         static const char *pmodes = " new decode addchecksum ";
-        if (strstr(pmodes, st.c_str()) != NULL)
+        if (strstr(pmodes, st.c_str()) != nullptr)
         {
             st.erase(std::remove(st.begin(), st.end(), ' '), st.end());
             mode = st;
@@ -208,7 +210,7 @@ Value mnemonic(const Array &params, bool fHelp)
             // m / purpose' / coin_type' / account' / change / address_index
             CExtKey ekDerived;
             ekMaster.Derive(ekDerived, BIP44_PURPOSE);
-            ekDerived.Derive(ekDerived, Params().BIP44ID());
+            ekDerived.Derive(ekDerived, ChainParamsMigration::GetBIP44ID());
 
             eKey58.SetKey(ekDerived, CChainParams::EXT_SECRET_KEY);
             result.push_back(Pair("derived", eKey58.ToString()));

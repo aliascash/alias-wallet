@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -32,9 +33,8 @@ public:
     std::map<std::vector<uint8_t>, CKeyImageSpent> mapKeyImage;
 
 
-    CTxMemPool()
+    CTxMemPool() : nTransactionsUpdated(0)
     {
-        nTransactionsUpdated = 0;
     };
 
     bool addUnchecked(const uint256& hash, CTransaction &tx);

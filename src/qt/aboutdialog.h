@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -12,22 +13,23 @@
 namespace Ui {
     class AboutDialog;
 }
+
 class ClientModel;
 
-/** "About" dialog box */
 class AboutDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit AboutDialog(QWidget *parent = 0);
+    explicit AboutDialog(QWidget *parent = nullptr);
     ~AboutDialog();
 
     void setModel(ClientModel *model);
+
 private:
     Ui::AboutDialog *ui;
 
-private slots:
+private Q_SLOTS:
     void on_buttonBox_accepted();
 };
 

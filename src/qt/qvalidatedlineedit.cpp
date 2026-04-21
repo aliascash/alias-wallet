@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -11,7 +12,7 @@
 QValidatedLineEdit::QValidatedLineEdit(QWidget *parent) :
     QLineEdit(parent), valid(true)
 {
-    connect(this, SIGNAL(textChanged(QString)), this, SLOT(markValid()));
+    connect(this, &QLineEdit::textChanged, this, &QValidatedLineEdit::markValid);
 }
 
 void QValidatedLineEdit::setValid(bool valid)

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -15,22 +16,22 @@ namespace {
 int EC_KEY_regenerate_key(EC_KEY *eckey, BIGNUM *priv_key)
 {
     int ok = 0;
-    BN_CTX *ctx = NULL;
-    EC_POINT *pub_key = NULL;
+    BN_CTX *ctx = nullptr;
+    EC_POINT *pub_key = nullptr;
 
     if (!eckey) return 0;
 
     const EC_GROUP *group = EC_KEY_get0_group(eckey);
 
-    if ((ctx = BN_CTX_new()) == NULL)
+    if ((ctx = BN_CTX_new()) == nullptr)
         goto err;
 
     pub_key = EC_POINT_new(group);
 
-    if (pub_key == NULL)
+    if (pub_key == nullptr)
         goto err;
 
-    if (!EC_POINT_mul(group, pub_key, priv_key, NULL, NULL, ctx))
+    if (!EC_POINT_mul(group, pub_key, priv_key, nullptr, nullptr, ctx))
         goto err;
 
     EC_KEY_set_private_key(eckey,priv_key);
@@ -42,7 +43,7 @@ err:
 
     if (pub_key)
         EC_POINT_free(pub_key);
-    if (ctx != NULL)
+    if (ctx != nullptr)
         BN_CTX_free(ctx);
 
     return(ok);
@@ -56,26 +57,26 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     if (!eckey) return 0;
 
     int ret = 0;
-    BN_CTX *ctx = NULL;
+    BN_CTX *ctx = nullptr;
 
-    const BIGNUM *pr = NULL;
-    const BIGNUM *ps = NULL;
-    BIGNUM *x = NULL;
-    BIGNUM *e = NULL;
-    BIGNUM *order = NULL;
-    BIGNUM *sor = NULL;
-    BIGNUM *eor = NULL;
-    BIGNUM *field = NULL;
-    EC_POINT *R = NULL;
-    EC_POINT *O = NULL;
-    EC_POINT *Q = NULL;
-    BIGNUM *rr = NULL;
-    BIGNUM *zero = NULL;
+    const BIGNUM *pr = nullptr;
+    const BIGNUM *ps = nullptr;
+    BIGNUM *x = nullptr;
+    BIGNUM *e = nullptr;
+    BIGNUM *order = nullptr;
+    BIGNUM *sor = nullptr;
+    BIGNUM *eor = nullptr;
+    BIGNUM *field = nullptr;
+    EC_POINT *R = nullptr;
+    EC_POINT *O = nullptr;
+    EC_POINT *Q = nullptr;
+    BIGNUM *rr = nullptr;
+    BIGNUM *zero = nullptr;
     int n = 0;
     int i = recid / 2;
 
     const EC_GROUP *group = EC_KEY_get0_group(eckey);
-    if ((ctx = BN_CTX_new()) == NULL) { ret = -1; goto err; }
+    if ((ctx = BN_CTX_new()) == nullptr) { ret = -1; goto err; }
     BN_CTX_start(ctx);
     order = BN_CTX_get(ctx);
     if (!EC_GROUP_get_order(group, order, ctx)) { ret = -2; goto err; }
@@ -85,17 +86,17 @@ int ECDSA_SIG_recover_key_GFp(EC_KEY *eckey, ECDSA_SIG *ecsig, const unsigned ch
     ECDSA_SIG_get0(ecsig, &pr, &ps);
     if (!BN_add(x, x, pr)) { ret=-1; goto err; }
     field = BN_CTX_get(ctx);
-    if (!EC_GROUP_get_curve_GFp(group, field, NULL, NULL, ctx)) { ret=-2; goto err; }
+    if (!EC_GROUP_get_curve_GFp(group, field, nullptr, nullptr, ctx)) { ret=-2; goto err; }
     if (BN_cmp(x, field) >= 0) { ret=0; goto err; }
-    if ((R = EC_POINT_new(group)) == NULL) { ret = -2; goto err; }
+    if ((R = EC_POINT_new(group)) == nullptr) { ret = -2; goto err; }
     if (!EC_POINT_set_compressed_coordinates_GFp(group, R, x, recid % 2, ctx)) { ret=0; goto err; }
     if (check)
     {
-        if ((O = EC_POINT_new(group)) == NULL) { ret = -2; goto err; }
-        if (!EC_POINT_mul(group, O, NULL, R, order, ctx)) { ret=-2; goto err; }
+        if ((O = EC_POINT_new(group)) == nullptr) { ret = -2; goto err; }
+        if (!EC_POINT_mul(group, O, nullptr, R, order, ctx)) { ret=-2; goto err; }
         if (!EC_POINT_is_at_infinity(group, O)) { ret = 0; goto err; }
     }
-    if ((Q = EC_POINT_new(group)) == NULL) { ret = -2; goto err; }
+    if ((Q = EC_POINT_new(group)) == nullptr) { ret = -2; goto err; }
     n = EC_GROUP_get_degree(group);
     e = BN_CTX_get(ctx);
     if (!BN_bin2bn(msg, msglen, e)) { ret=-1; goto err; }
@@ -119,9 +120,9 @@ err:
         BN_CTX_end(ctx);
         BN_CTX_free(ctx);
     }
-    if (R != NULL) EC_POINT_free(R);
-    if (O != NULL) EC_POINT_free(O);
-    if (Q != NULL) EC_POINT_free(Q);
+    if (R != nullptr) EC_POINT_free(R);
+    if (O != nullptr) EC_POINT_free(O);
+    if (Q != nullptr) EC_POINT_free(Q);
     return ret;
 }
 
@@ -148,7 +149,7 @@ void CECKey::SetSecretBytes(const unsigned char vch[32])
 
 void CECKey::GetPrivKey(CPrivKey &privkey, bool fCompressed) {
     EC_KEY_set_conv_form(pkey, fCompressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED);
-    int nSize = i2d_ECPrivateKey(pkey, NULL);
+    int nSize = i2d_ECPrivateKey(pkey, nullptr);
     assert(nSize);
     privkey.resize(nSize);
     unsigned char* pbegin = &privkey[0];
@@ -172,7 +173,7 @@ bool CECKey::SetPrivKey(const CPrivKey &privkey, bool fSkipCheck) {
 
 void CECKey::GetPubKey(CPubKey &pubkey, bool fCompressed) {
     EC_KEY_set_conv_form(pkey, fCompressed ? POINT_CONVERSION_COMPRESSED : POINT_CONVERSION_UNCOMPRESSED);
-    int nSize = i2o_ECPublicKey(pkey, NULL);
+    int nSize = i2o_ECPublicKey(pkey, nullptr);
     assert(nSize);
     assert(nSize <= 65);
     unsigned char c[65];
@@ -190,7 +191,7 @@ bool CECKey::SetPubKey(const CPubKey &pubkey) {
 bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {
     vchSig.clear();
     ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
-    if (sig == NULL)
+    if (sig == nullptr)
         return false;
     BN_CTX *ctx = BN_CTX_new();
     BN_CTX_start(ctx);
@@ -199,8 +200,8 @@ bool CECKey::Sign(const uint256 &hash, std::vector<unsigned char>& vchSig) {
     BIGNUM *halforder = BN_CTX_get(ctx);
     EC_GROUP_get_order(group, order, ctx);
     BN_rshift1(halforder, order);
-    const BIGNUM *pr = NULL;
-    const BIGNUM *ps = NULL;
+    const BIGNUM *pr = nullptr;
+    const BIGNUM *ps = nullptr;
     ECDSA_SIG_get0(sig, &pr, &ps);
     if (BN_cmp(ps, halforder) > 0) {
         // enforce low S values, by negating the value (modulo the order) if above order/2.
@@ -230,11 +231,11 @@ bool CECKey::Verify(const uint256 &hash, const std::vector<unsigned char>& vchSi
 bool CECKey::SignCompact(const uint256 &hash, unsigned char *p64, int &rec) {
     bool fOk = false;
     ECDSA_SIG *sig = ECDSA_do_sign((unsigned char*)&hash, sizeof(hash), pkey);
-    if (sig==NULL)
+    if (sig==nullptr)
         return false;
     memset(p64, 0, 64);
-    const BIGNUM *pr = NULL;
-    const BIGNUM *ps = NULL;
+    const BIGNUM *pr = nullptr;
+    const BIGNUM *ps = nullptr;
     ECDSA_SIG_get0(sig, &pr, &ps);
     int nBitsR = BN_num_bits(pr);
     int nBitsS = BN_num_bits(ps);
@@ -270,8 +271,8 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
     if (rec<0 || rec>=3)
         return false;
     ECDSA_SIG *sig = ECDSA_SIG_new();
-    BIGNUM *pr = NULL;
-    BIGNUM *ps = NULL;
+    BIGNUM *pr = nullptr;
+    BIGNUM *ps = nullptr;
     BN_bin2bn(&p64[0],  32, pr);
     BN_bin2bn(&p64[32], 32, ps);
     ECDSA_SIG_set0(sig, pr, ps);

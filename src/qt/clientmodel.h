@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -8,12 +9,15 @@
 #define CLIENTMODEL_H
 
 #include <QObject>
+#include <QDateTime>
 
-enum BlockSource {
-    BLOCK_SOURCE_NONE,
-    BLOCK_SOURCE_REINDEX,
-    BLOCK_SOURCE_DISK,
-    BLOCK_SOURCE_NETWORK
+#include <atomic>
+
+enum class BlockSource {
+    NONE,
+    REINDEX,
+    DISK,
+    NETWORK
 };
 
 enum NumConnections {
@@ -30,7 +34,6 @@ class TransactionTableModel;
 class CWallet;
 
 QT_BEGIN_NAMESPACE
-class QDateTime;
 class QTimer;
 QT_END_NAMESPACE
 
@@ -42,39 +45,30 @@ struct CoreInfoModel {
 };
 Q_DECLARE_METATYPE(CoreInfoModel);
 
-/** Model for Bitcoin network client. */
 class ClientModel : public QObject
 {
     Q_OBJECT
+
 public:
-    explicit ClientModel(OptionsModel *optionsModel, QObject *parent = 0);
+    explicit ClientModel(OptionsModel *optionsModel, QObject *parent = nullptr);
     ~ClientModel();
 
     OptionsModel *getOptionsModel();
     PeerTableModel *getPeerTableModel();
 
-    //! Return number of connections, default is in- and outbound (total)
     int getNumConnections(unsigned int flags = CONNECTIONS_ALL) const;
     int getNumBlocks() const;
+    int getNumBlocksOfPeers() const;
 
     quint64 getTotalBytesRecv() const;
     quint64 getTotalBytesSent() const;
 
     QDateTime getLastBlockDate() const;
 
-    //! Return true if client connected to testnet
     bool isTestNet() const;
-
-    //! mode (thin/full) client is running in
     int getClientMode() const;
-
-    //! Return true if core is doing initial block download
     bool inInitialBlockDownload() const;
-    //! Return conservative estimate of total number of blocks, or 0 if unknown
-    int getNumBlocksOfPeers() const;
-    //! Return true if core is importing blocks
     bool isImporting() const;
-    //! Return warnings to be displayed in status bar
     QString getStatusBarWarnings() const;
 
     QString formatFullVersion() const;
@@ -84,25 +78,24 @@ public:
 
 private:
     OptionsModel *optionsModel;
-    PeerTableModel *peerTableModel;
+    PeerTableModel *peerTableModel{nullptr};
 
-    CoreInfoModel coreInfo;
-    CoreInfoModel lastPublishedCoreInfo;
+    CoreInfoModel coreInfo{};
+    CoreInfoModel lastPublishedCoreInfo{};
 
-    QTimer *pollTimer;
+    QTimer *pollTimer{nullptr};
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
 
-signals:
+Q_SIGNALS:
     void numConnectionsChanged(int count);
     void numBlocksChanged(int count, int countOfPeers);
     void bytesChanged(quint64 totalBytesIn, quint64 totalBytesOut);
-
-    //! Asynchronous error notification
+    void alertsChanged(const QString &warnings);
     void error(const QString &title, const QString &message, bool modal);
 
-public slots:
+public Q_SLOTS:
     void updateTimer();
     void updateFromCore(const CoreInfoModel &coreInfo);
     void updateNumConnections(int numConnections);

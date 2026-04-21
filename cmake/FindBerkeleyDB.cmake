@@ -4,7 +4,22 @@
 #
 # SPDX-FileCopyrightText: © 2018
 # SPDX-License-Identifier: Unlicense
-
+#
+# FindBerkeleyDB.cmake
+# ====================
+# Modern CMake find module for Berkeley DB library.
+#
+# This module provides:
+#   - BerkeleyDB_FOUND: Boolean indicating if Berkeley DB was found
+#   - BerkeleyDB_INCLUDE_DIRS: Include directories for Berkeley DB
+#   - BerkeleyDB_LIBRARIES: List of library files
+#   - BerkeleyDB_VERSION: Version string (e.g., "6.2.32")
+#   - Oracle::BerkeleyDB: Imported target for modern CMake usage
+#
+# Usage:
+#   find_package(BerkeleyDB REQUIRED)
+#   target_link_libraries(my_target PRIVATE Oracle::BerkeleyDB)
+#
 # NOTE: If Berkeley DB ever gets a Pkg-config ".pc" file, add pkg_check_modules() here
 
 # Checks if environment paths are empty, set them if they aren't
@@ -166,14 +181,17 @@ mark_as_advanced(FORCE
         BerkeleyDB_Sql_LIBRARY
         )
 
-# Create an imported lib for easy linking by external projects
-if(BerkeleyDB_FOUND AND BerkeleyDB_LIBRARIES AND NOT TARGET Oracle::BerkeleyDB)
-    add_library(Oracle::BerkeleyDB UNKNOWN IMPORTED)
-    set_target_properties(Oracle::BerkeleyDB PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${BerkeleyDB_INCLUDE_DIRS}"
-            IMPORTED_LOCATION "${BerkeleyDB_LIBRARY}"
-            INTERFACE_LINK_LIBRARIES "${BerkeleyDB_LIBRARIES}"
-            )
+# Create an imported target for easy linking by external projects
+# This follows modern CMake practices by providing a target-based interface
+if(BerkeleyDB_FOUND AND BerkeleyDB_LIBRARIES)
+    if(NOT TARGET Oracle::BerkeleyDB)
+        add_library(Oracle::BerkeleyDB UNKNOWN IMPORTED)
+        set_target_properties(Oracle::BerkeleyDB PROPERTIES
+                INTERFACE_INCLUDE_DIRECTORIES "${BerkeleyDB_INCLUDE_DIRS}"
+                IMPORTED_LOCATION "${BerkeleyDB_LIBRARY}"
+                INTERFACE_LINK_LIBRARIES "${BerkeleyDB_LIBRARIES}"
+                )
+    endif()
 endif()
 
 include(FindPackageMessage)

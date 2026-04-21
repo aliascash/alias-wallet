@@ -97,5 +97,5 @@ void WebSocketClientWrapper::handleNewConnection()
     else if (token != accessToken)
         qDebug() << "new webocket connection refused: invalid token: " << token;
     else
-        emit clientConnected(new WebSocketTransport(pendingConnection));
+        Q_EMIT clientConnected(new WebSocketTransport(pendingConnection));
 }

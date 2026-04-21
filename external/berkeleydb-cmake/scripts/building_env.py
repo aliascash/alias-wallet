@@ -1,16 +1,21 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
 #
 # Inspired by The ViaDuck Project for building OpenSSL
-
-# creates a building environment for berkeleydb
-# - working directory
-# - on windows: uses msys' bash for command execution (berkeleydb's scripts need an UNIX-like environment with perl)
+#
+# building_env.py - Build environment setup script for BerkeleyDB
+#
+# Creates a building environment for BerkeleyDB:
+# - Sets working directory
+# - On Windows: uses MSYS bash for command execution (BerkeleyDB's scripts need an UNIX-like environment with perl)
+# - Handles cross-compilation environment setup for Android
 
 from subprocess import PIPE, Popen
-from sys import argv, exit
-import os, re
+from sys import argv
+import os
+import re
 
 env = os.environ
 l = []
@@ -45,29 +50,35 @@ target_dir = binary_berkeleydb_dir_source+"/../../../usr/local/bin"
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
 
-# read environment from file if cross-compiling
+# Read environment from file if cross-compiling for Android
 if os_s == "LINUX_CROSS_ANDROID":
-    expr = re.compile('^(.*?)="(.*?)"', re.MULTILINE | re.DOTALL)
-    f = open(binary_berkeleydb_dir_source+"/../../../../buildenv.txt", "r")
-    content = f.read()
-    f.close()
+    expr = re.compile(r'^(.*?)="(.*?)"', re.MULTILINE | re.DOTALL)
+    # Note: Using string concatenation for relative paths with ../
+    env_file_path = binary_berkeleydb_dir_source + "/../../../../buildenv.txt"
+    
+    # Use modern Python file handling with context manager
+    with open(env_file_path, "r", encoding='utf-8') as f:
+        content = f.read()
 
     for k, v in expr.findall(content):
-        # print('k: ' + k + ', v: ' + v)
         if "\n" in k.strip():
             print('Skipping multiline key')
         elif k != "PATH":
             env[k] = v.replace('"', '')
         else:
-            env[k] = v.replace('"', '')+":"+env[k]
+            # Prepend to PATH to ensure cross-compilation tools are found first
+            env[k] = v.replace('"', '') + ":" + env[k]
 
+# Execute the build command in the appropriate environment
 proc = None
 if os_s == "WIN32":
-    # we must emulate a UNIX environment to build berkeleydb using mingw
+    # We must emulate a UNIX environment to build BerkeleyDB using MinGW/MSYS
     proc = Popen(bash, env=env, cwd=binary_berkeleydb_dir_source, stdin=PIPE, universal_newlines=True)
-    proc.communicate(input=" ".join(l)+" || exit $?")
+    proc.communicate(input=" ".join(l) + " || exit $?")
 else:
-    proc = Popen(" ".join(l)+" || exit $?", shell=True, env=env, cwd=binary_berkeleydb_dir_source)
+    # On Unix-like systems, execute directly with shell
+    proc = Popen(" ".join(l) + " || exit $?", shell=True, env=env, cwd=binary_berkeleydb_dir_source)
     proc.communicate()
 
+# Exit with the return code from the build command
 exit(proc.returncode)

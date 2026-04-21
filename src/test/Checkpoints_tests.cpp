@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -7,7 +8,6 @@
 //
 #include <boost/assign/list_of.hpp> // for 'map_list_of()'
 #include <boost/test/unit_test.hpp>
-#include <boost/foreach.hpp>
 
 #include "../checkpoints.h"
 #include "../util.h"

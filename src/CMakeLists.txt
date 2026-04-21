@@ -1,3 +1,4 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -109,6 +110,22 @@ target_sources(aliaswallet_lib
         ${CMAKE_CURRENT_LIST_DIR}/walletdb.h
         ${CMAKE_CURRENT_LIST_DIR}/wallet.h
         ${CMAKE_CURRENT_LIST_DIR}/shutdown.h
+        ${CMAKE_CURRENT_LIST_DIR}/validation_alias.h
+        ${CMAKE_CURRENT_LIST_DIR}/validation_connectblock_alias.h
+        ${CMAKE_CURRENT_LIST_DIR}/net_alias.h
+        ${CMAKE_CURRENT_LIST_DIR}/net_node_alias.h
+        ${CMAKE_CURRENT_LIST_DIR}/chainparams_compat.h
+        ${CMAKE_CURRENT_LIST_DIR}/chainparams_migration.h
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/chainparams.h
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/messagestartchars.h
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/context.h
+        ${CMAKE_CURRENT_LIST_DIR}/node/context.h
+        ${CMAKE_CURRENT_LIST_DIR}/pos/kernel.h
+        ${CMAKE_CURRENT_LIST_DIR}/consensus/params.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/chaintype.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/vector.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/hash_type.h
+        ${CMAKE_CURRENT_LIST_DIR}/chainparamsbase.h
 
         PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/addrman.cpp
@@ -159,6 +176,18 @@ target_sources(aliaswallet_lib
         ${CMAKE_CURRENT_LIST_DIR}/wallet.cpp
         ${CMAKE_CURRENT_LIST_DIR}/walletdb.cpp
         ${CMAKE_CURRENT_LIST_DIR}/shutdown.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/validation_alias.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/validation_connectblock_alias.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net_alias.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net_node_alias.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/chainparams_compat.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/chainparams_migration.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/chainparams.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/context.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/node/context.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/pos/kernel.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/util/chaintype.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/chainparamsbase.cpp
         )
 
 add_subdirectory(json)

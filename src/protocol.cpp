@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -21,21 +22,17 @@ static const char* ppszTypeName[] =
     "filtered block"
 };
 
-CMessageHeader::CMessageHeader()
+CMessageHeader::CMessageHeader() : nMessageSize(-1), nChecksum(0)
 {
     memcpy(pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE);
     memset(pchCommand, 0, sizeof(pchCommand));
     pchCommand[1] = 1;
-    nMessageSize = -1;
-    nChecksum = 0;
 }
 
-CMessageHeader::CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn)
+CMessageHeader::CMessageHeader(const char* pszCommand, unsigned int nMessageSizeIn) : nMessageSize(nMessageSizeIn), nChecksum(0)
 {
     memcpy(pchMessageStart, Params().MessageStart(), MESSAGE_START_SIZE);
     strncpy(pchCommand, pszCommand, COMMAND_SIZE);
-    nMessageSize = nMessageSizeIn;
-    nChecksum = 0;
 }
 
 std::string CMessageHeader::GetCommand() const
@@ -96,10 +93,8 @@ void CAddress::Init()
     nLastTry = 0;
 }
 
-CInv::CInv()
+CInv::CInv() : type(0), hash(0)
 {
-    type = 0;
-    hash = 0;
 }
 
 CInv::CInv(int typeIn, const uint256& hashIn)

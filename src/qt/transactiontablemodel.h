@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -10,31 +11,31 @@
 #include <QAbstractTableModel>
 #include <QStringList>
 
+#include <vector>
+
 class CWallet;
 class TransactionTablePriv;
 class TransactionRecord;
 class WalletModel;
 
-// Class for queueing notifications to show a non freezing progress dialog e.g. for rescan
 struct TransactionNotification
 {
 public:
     TransactionNotification() {}
-    TransactionNotification(QString hash, int status, bool showTransaction):
-        hash(hash), status(status), showTransaction(showTransaction) {}
+    TransactionNotification(QString hash, int status, bool showTransaction)
+        : hash(hash), status(status), showTransaction(showTransaction) {}
 
     QString hash;
-    int status;
-    bool showTransaction;
+    int status{0};
+    bool showTransaction{false};
 };
 
-/** UI model for the transaction table of a wallet.
- */
 class TransactionTableModel : public QAbstractTableModel
 {
     Q_OBJECT
+
 public:
-    explicit TransactionTableModel(CWallet* wallet, WalletModel *parent = 0);
+    explicit TransactionTableModel(CWallet* wallet, WalletModel *parent = nullptr);
     ~TransactionTableModel();
 
     enum ColumnIndex {
@@ -46,59 +47,44 @@ public:
         Narration = 5
     };
 
-    /** Roles to get specific information from a transaction row.
-        These are independent of column.
-    */
     enum RoleIndex {
-        /** Type of transaction */
         TypeRole = Qt::UserRole,
-        /** Date and time this transaction was created */
         DateRole,
-        /** Long description (HTML format) */
         LongDescriptionRole,
-        /** Address of transaction */
         AddressRole,
-        /** Label of address related to transaction */
         LabelRole,
-        /** Net amount of transaction */
         AmountRole,
-        /** Currency of amount received or sended */
         CurrencyRole,
-        /** Unit of amount received or sended */
         UnitRole,
-        /** Unique identifier */
         TxIDRole,
-        /** Is transaction confirmed? */
         ConfirmedRole,
-        /** Formatted amount, without brackets when unconfirmed */
         FormattedAmountRole,
-        /** Transaction status (TransactionRecord::Status) */
         StatusRole,
-        /** Amount of Confirmations */
         ConfirmationsRole
     };
 
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const;
+    int rowCount(const QModelIndex &parent) const override;
+    int columnCount(const QModelIndex &parent) const override;
+    QVariant data(const QModelIndex &index, int role) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
+    QModelIndex index(int row, int column, const QModelIndex & parent = QModelIndex()) const override;
 
     int lookupTransaction(const QString &txid) const;
+
 private:
     CWallet* wallet;
     WalletModel *walletModel;
     QStringList columns;
-    TransactionTablePriv *priv;
+    TransactionTablePriv *priv{nullptr};
     std::vector<TransactionNotification> vQueueNotifications;
-    bool fProcessTransactionNotifications = false;
+    bool fProcessTransactionNotifications{false};
 
     QString lookupAddress(const std::string &address, bool tooltip) const;
     QVariant addressColor(const TransactionRecord *wtx) const;
     QString formatTxStatus(const TransactionRecord *wtx) const;
     QString formatTxDate(const TransactionRecord *wtx) const;
     QString formatTxToAddress(const TransactionRecord *wtx, bool tooltip) const;
-    QString formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed=true) const;
+    QString formatTxAmount(const TransactionRecord *wtx, bool showUnconfirmed = true) const;
     QString formatNarration(const TransactionRecord *wtx) const;
     QString formatTooltip(const TransactionRecord *rec) const;
     QString txStatusDecoration(const TransactionRecord *wtx) const;
@@ -106,11 +92,9 @@ private:
 
     void subscribeToCoreSignals();
     void unsubscribeFromCoreSignals();
-
-    /** Notify listeners that data changed. */
     void emitDataChanged(int rowTop, int rowBottom);
 
-public slots:
+public Q_SLOTS:
     void updateTransaction(const QString &hash, int status, bool showTransaction);
     void updateConfirmations();
     void updateDisplayUnit();
@@ -119,4 +103,3 @@ public slots:
 };
 
 #endif
-

@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -14,8 +16,8 @@
 # Store path from where script was called, determine own location
 # and source helper content from there
 callDir=$(pwd)
-ownLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${ownLocation}
+ownLocation="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${ownLocation}"
 . ./include/helpers_console.sh
 
 # Go to Alias repository root directory
@@ -26,7 +28,7 @@ hdiutil convert "Alias.dmg" -format UDRW -o "Alias_Rw.dmg"
 info " -> Done"
 
 info "Mount it and save the device"
-DEVICE=$(hdiutil attach -readwrite -noverify "Alias_Rw.dmg" |egrep '^/dev/' |sed 1q |awk '{print $1}')
+DEVICE=$(hdiutil attach -readwrite -noverify "Alias_Rw.dmg" | grep -E '^/dev/' | sed 1q | awk '{print $1}')
 info " -> Done"
 
 sleep 2

@@ -1,34 +1,36 @@
 # SPDX-FileCopyrightText: © 2009 Iowa State University
 #
 # SPDX-License-Identifier: BSL-1.0
-
-# - Returns a version string from Git
+#
+# GetGitRevisionDescription.cmake
+# ================================
+# Modern CMake module for extracting Git revision information.
 #
 # These functions force a re-configure on each git commit so that you can
 # trust the values of the variables in your build system.
 #
-#  get_git_head_revision(<refspecvar> <hashvar> [<additional arguments to git describe> ...])
+# Functions provided:
+#   get_git_head_revision(<refspecvar> <hashvar>)
+#     Returns the refspec and sha hash of the current head revision
 #
-# Returns the refspec and sha hash of the current head revision
+#   git_describe(<var> [<additional arguments to git describe> ...])
+#     Returns the results of git describe on the source tree, and adjusting
+#     the output so that it tests false if an error occurs.
 #
-#  git_describe(<var> [<additional arguments to git describe> ...])
+#   git_get_exact_tag(<var> [<additional arguments to git describe> ...])
+#     Returns the results of git describe --exact-match on the source tree,
+#     and adjusting the output so that it tests false if there was no exact
+#     matching tag.
 #
-# Returns the results of git describe on the source tree, and adjusting
-# the output so that it tests false if an error occurs.
-#
-#  git_get_exact_tag(<var> [<additional arguments to git describe> ...])
-#
-# Returns the results of git describe --exact-match on the source tree,
-# and adjusting the output so that it tests false if there was no exact
-# matching tag.
-#
-#  git_local_changes(<var>)
-#
-# Returns either "CLEAN" or "DIRTY" with respect to uncommitted changes.
-# Uses the return code of "git diff-index --quiet HEAD --".
-# Does not regard untracked files.
+#   git_local_changes(<var>)
+#     Returns either "CLEAN" or "DIRTY" with respect to uncommitted changes.
+#     Uses the return code of "git diff-index --quiet HEAD --".
+#     Does not regard untracked files.
 #
 # Requires CMake 2.6 or newer (uses the 'function' command)
+#
+# Note: This module uses CMAKE_CURRENT_SOURCE_DIR to work correctly when
+#       included from subdirectories, following modern CMake practices.
 #
 # Original Author:
 # 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
@@ -49,6 +51,8 @@ set(__get_git_revision_description YES)
 # to find the path to this module rather than the path to a calling list file
 get_filename_component(_gitdescmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 
+# Get the Git head revision information
+# Uses CMAKE_CURRENT_SOURCE_DIR to work correctly from any subdirectory
 function(get_git_head_revision _refspecvar _hashvar)
 	set(GIT_PARENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	set(GIT_DIR "${GIT_PARENT_DIR}/.git")
@@ -90,6 +94,8 @@ function(get_git_head_revision _refspecvar _hashvar)
 	set(${_hashvar} "${HEAD_HASH}" PARENT_SCOPE)
 endfunction()
 
+# Get Git describe output for the current HEAD
+# Uses CMAKE_CURRENT_SOURCE_DIR to ensure correct working directory
 function(git_describe _var)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)
@@ -134,11 +140,14 @@ function(git_describe _var)
 	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
 
+# Get exact Git tag if HEAD points to a tag
 function(git_get_exact_tag _var)
 	git_describe(out --exact-match ${ARGN})
 	set(${_var} "${out}" PARENT_SCOPE)
 endfunction()
 
+# Check if there are local uncommitted changes
+# Uses CMAKE_CURRENT_SOURCE_DIR to check the correct directory
 function(git_local_changes _var)
 	if(NOT GIT_FOUND)
 		find_package(Git QUIET)

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -80,10 +81,10 @@ public:
     CTransaction* ptx;
     unsigned int n;
 
-    CInPoint() { SetNull(); }
-    CInPoint(CTransaction* ptxIn, unsigned int nIn) { ptx = ptxIn; n = nIn; }
-    void SetNull() { ptx = NULL; n = (unsigned int) -1; }
-    bool IsNull() const { return (ptx == NULL && n == (unsigned int) -1); }
+    CInPoint() : ptx(nullptr), n((unsigned int)-1) { }
+    CInPoint(CTransaction* ptxIn, unsigned int nIn) : ptx(ptxIn), n(nIn) { }
+    void SetNull() { ptx = nullptr; n = (unsigned int) -1; }
+    bool IsNull() const { return (ptx == nullptr && n == (unsigned int) -1); }
 };
 
 
@@ -289,14 +290,15 @@ class CKeyImageSpent
 {
 // stored in txdb, key is keyimage
 public:
-    CKeyImageSpent() {};
+    CKeyImageSpent() : inputNo(0), nValue(0), nBlockHeight(0) { }
 
     CKeyImageSpent(uint256& txnHash_, uint32_t inputNo_, int64_t nValue_)
+        : txnHash(txnHash_)
+        , inputNo(inputNo_)
+        , nValue(nValue_)
+        , nBlockHeight(0)
     {
-        txnHash = txnHash_;
-        inputNo = inputNo_;
-        nValue  = nValue_;
-    };
+    }
 
     uint256 txnHash;    // hash of spending transaction
     uint32_t inputNo;   // keyimage is for inputNo of txnHash
@@ -317,15 +319,15 @@ class CAnonOutput
 // stored in txdb, key is pubkey
 public:
 
-    CAnonOutput() {};
+    CAnonOutput() : nValue(0), nBlockHeight(0), nCompromised(0), fCoinStake(0) { }
 
     CAnonOutput(COutPoint& outpoint_, int64_t nValue_, int nBlockHeight_, uint8_t nCompromised_, char fCoinStake_)
+        : outpoint(outpoint_)
+        , nValue(nValue_)
+        , nBlockHeight(nBlockHeight_)
+        , nCompromised(nCompromised_)
+        , fCoinStake(fCoinStake_)
     {
-        outpoint = outpoint_;
-        nValue = nValue_;
-        nBlockHeight = nBlockHeight_;
-        nCompromised = nCompromised_;
-        fCoinStake = fCoinStake_;
     }
 
     COutPoint outpoint;
@@ -348,18 +350,19 @@ class CAnonOutputCount
 public:
 
     CAnonOutputCount()
+        : nValue(0)
+        , nExists(0)
+        , nUnconfirmed(0)
+        , nSpends(0)
+        , nOwned(0)
+        , nLastHeight(0)
+        , nCompromised(0)
+        , nCompromisedHeight(0)
+        , nMature(0)
+        , nMixins(0)
+        , nMixinsStaking(0)
+        , nStakes(0)
     {
-        nValue = 0;
-        nExists = 0;
-        nSpends = 0;
-        nOwned = 0;
-        nLastHeight = 0;
-        nCompromised = 0;
-        nStakes = 0;
-        nMature = 0;
-        nMixins = 0;
-        nMixinsStaking = 0;
-        nCompromisedHeight = 0;
     }
 
     CAnonOutputCount(int64_t nValue_, int nExists_, int nUnconfirmed_, int nSpends_, int nOwned_, int nLastHeight_, int nCompromised_, int nMature_, int nMixins_, int nMixinsStaking_, int nStakes_, int nCompromisedHeight_)
@@ -478,10 +481,7 @@ public:
 
 struct CTxMixins
 {
-    CTxMixins(uint256 txHash_)
-    {
-        txHash = txHash_;
-    }
+    CTxMixins(uint256 txHash_) : txHash(txHash_) { }
 
     uint256 txHash;
     mutable std::vector<std::pair<unsigned int, CPubKey>> vOutPubKeys;

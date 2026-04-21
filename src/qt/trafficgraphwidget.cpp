@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -30,7 +31,7 @@ TrafficGraphWidget::TrafficGraphWidget(QWidget *parent) :
     clientModel(0)
 {
     timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(updateRates()));
+    connect(timer, &QTimer::timeout, this, &TrafficGraphWidget::updateRates);
 }
 
 void TrafficGraphWidget::setClientModel(ClientModel *model)

@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -15,8 +17,8 @@
 # Store path from where script was called, determine own location
 # and source helper content from there
 callDir=$(pwd)
-ownLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${ownLocation}
+ownLocation="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${ownLocation}"
 . ./include/helpers_console.sh
 
 # Go to Aliaswallet repository root directory
@@ -24,19 +26,19 @@ cd ..
 
 _init
 
-if [[ -z "$1" ]] ; then
-    downloadURL=https://ci.alias.cash/job/Alias/job/alias-wallet-ui/job/Aliaswallet-UI/lastSuccessfulBuild/artifact/alias-wallet-ui-assets.tgz
+if [[ -z "${1}" ]]; then
+    downloadURL="https://ci.alias.cash/job/Alias/job/alias-wallet-ui/job/Aliaswallet-UI/lastSuccessfulBuild/artifact/alias-wallet-ui-assets.tgz"
 else
-    downloadURL=$1
+    downloadURL="${1}"
 fi
 
 info "Using download URL ${downloadURL}"
 cd src/qt/res
-wget ${downloadURL}
+wget "${downloadURL}"
 
 info "Updating content"
-tar xzf ${downloadURL##*/}
+tar xzf "${downloadURL##*/}"
 mv spectre.qrc ../../../
 
 info "Cleanup"
-rm -f ${downloadURL##*/}
+rm -f "${downloadURL##*/}"

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -63,7 +64,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
 
     // Simple block creation, nothing special yet:
 //    CreateNewBlock(CWallet *pwallet, bool fProofOfStake, int64_t *pFees)
-    BOOST_CHECK(pindexBest != NULL);
+    BOOST_CHECK(pindexBest != nullptr);
     BOOST_CHECK(pblock = CreateNewBlock(pwalletMain, true, nFees));
 
     // We can't make transactions until we have inputs
@@ -83,7 +84,7 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
         pblock->nNonce = blockinfo[i].nonce;
         uint256 hashBlock = pblock->GetHash();
 
-        assert(ProcessBlock(NULL, pblock, hashBlock));
+        assert(ProcessBlock(nullptr, pblock, hashBlock));
         pblock->hashPrevBlock = pblock->GetHash();
     }
     delete pblock;

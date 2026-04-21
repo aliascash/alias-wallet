@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -18,6 +19,7 @@
 #include "wallet.h"
 #include "interface.h"
 #include "shutdown.h"
+#include "chainparams_migration.h"
 
 #include <QLocale>
 #include <QList>
@@ -252,7 +254,7 @@ TransactionTableModel::TransactionTableModel(CWallet* wallet, WalletModel *paren
 
     priv->refreshWallet();
 
-    connect(walletModel->getOptionsModel(), SIGNAL(displayUnitChanged(int)), this, SLOT(updateDisplayUnit()));
+    connect(walletModel->getOptionsModel(), &OptionsModel::displayUnitChanged, this, &TransactionTableModel::updateDisplayUnit);
     subscribeToCoreSignals();
 }
 
@@ -302,8 +304,8 @@ void TransactionTableModel::updateConfirmations()
     // Invalidate status (number of confirmations) and (possibly) description
     //  for all rows. Qt is smart enough to only actually request the data for the
     //  visible rows.
-    emit dataChanged(index(0, Status), index(priv->size()-1, Status));
-    emit dataChanged(index(0, ToAddress), index(priv->size()-1, ToAddress));
+    Q_EMIT dataChanged(index(0, Status), index(priv->size()-1, Status));
+    Q_EMIT dataChanged(index(0, ToAddress), index(priv->size()-1, ToAddress));
 }
 
 int TransactionTableModel::rowCount(const QModelIndex &parent) const
@@ -501,7 +503,7 @@ QString TransactionTableModel::txStatusDecoration(const TransactionRecord *wtx) 
     case TransactionStatus::Confirming:
         status_switch = (confirmations * 3) / (wtx->status.status == TransactionStatus::Confirming ?
                     wtx->currency == PRIVATE ? MIN_ANON_SPEND_DEPTH : TransactionRecord::RecommendedNumConfirmations :
-                    Params().GetStakeMinConfirmations(wtx->time)) + 1;
+                    ChainParamsMigration::GetStakeMinConfirmations(wtx->time)) + 1;
         switch(status_switch)
         {
             case 1: return "fa-clock-o grey";
@@ -698,13 +700,12 @@ int TransactionTableModel::lookupTransaction(const QString &txid) const
 
 void TransactionTableModel::updateDisplayUnit()
 {
-    // emit dataChanged to update Amount column with the current unit
-    emit dataChanged(index(0, Amount), index(priv->size()-1, Amount));
+    Q_EMIT dataChanged(index(0, Amount), index(priv->size()-1, Amount));
 }
 
 void TransactionTableModel::emitDataChanged(int rowTop, int rowBottom)
 {
-    emit dataChanged(index(rowTop, 0), index(rowBottom, columns.length()-1));
+    Q_EMIT dataChanged(index(rowTop, 0), index(rowBottom, columns.length()-1));
 }
 
 static void NotifyTransactionChanged(TransactionTableModel *ttm, CWallet *wallet, const uint256 &hash, ChangeType status)

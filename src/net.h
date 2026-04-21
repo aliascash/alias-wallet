@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -11,7 +12,6 @@
 #include <deque>
 #ifndef Q_MOC_RUN
 #include <boost/array.hpp>
-#include <boost/foreach.hpp>
 #include <boost/signals2/signal.hpp>
 #endif
 #include <openssl/rand.h>
@@ -65,7 +65,7 @@ void AddressCurrentlyConnected(const CService& addr);
 CNode* FindNode(const CNetAddr& ip);
 CNode* FindNode(const std::string& addrName);
 CNode* FindNode(const CService& ip);
-CNode* ConnectNode(CAddress addrConnect, const char *strDest = NULL);
+CNode* ConnectNode(CAddress addrConnect, const char *strDest = nullptr);
 void MapPort(bool fUseUPnP);
 unsigned short GetListenPort();
 bool BindListenPort(const CService &bindAddr, std::string& strError=REF(std::string()));
@@ -113,11 +113,11 @@ bool AddLocal(const CService& addr, int nScore = LOCAL_NONE);
 bool AddLocal(const CNetAddr& addr, int nScore = LOCAL_NONE);
 bool SeenLocal(const CService& addr);
 bool IsLocal(const CService& addr);
-bool GetLocal(CService &addr, const CNetAddr *paddrPeer = NULL);
+bool GetLocal(CService &addr, const CNetAddr *paddrPeer = nullptr);
 bool IsReachable(const CNetAddr &addr);
 bool IsReachable(enum Network net);
 void SetReachable(enum Network net, bool fFlag = true);
-CAddress GetLocalAddress(const CNetAddr *paddrPeer = NULL);
+CAddress GetLocalAddress(const CNetAddr *paddrPeer = nullptr);
 
 class CRequestTracker
 {
@@ -133,7 +133,7 @@ public:
 
     bool IsNull()
     {
-        return fn == NULL;
+        return fn == nullptr;
     }
 };
 
@@ -214,6 +214,7 @@ public:
     double dPingTime;
     double dPingWait;
     std::string addrLocal;
+    Network m_network;
 };
 
 
@@ -384,7 +385,7 @@ public:
         fGetAddr = false;
         nMisbehavior = 0;
         setInventoryKnown.max_size(SendBufferSize() / 1000);
-        pfilter = NULL;
+        pfilter = nullptr;
         nPingNonceSent = 0;
         nPingUsecStart = 0;
         nPingUsecTime = 0;
@@ -432,7 +433,7 @@ public:
     unsigned int GetTotalRecvSize()
     {
         unsigned int total = 0;
-        BOOST_FOREACH(const CNetMessage &msg, vRecvMsg)
+        for (const CNetMessage& msg : vRecvMsg)
             total += msg.vRecv.size() + 24;
         return total;
     }
@@ -444,7 +445,7 @@ public:
     void SetRecvVersion(int nVersionIn)
     {
         nRecvVersion = nVersionIn;
-        BOOST_FOREACH(CNetMessage &msg, vRecvMsg)
+        for (CNetMessage& msg : vRecvMsg)
             msg.SetVersion(nVersionIn);
     }
 
