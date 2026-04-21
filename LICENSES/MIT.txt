@@ -1,3 +1,4 @@
+Copyright (c) 2025 ALIAS Developers
 Copyright (c) 2020 Alias Developers
 Copyright (c) 2016 SpectreCoin Developers
 Copyright (c) 2014 ShadowCoin Developers

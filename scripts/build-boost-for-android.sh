@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -74,7 +76,7 @@ done
 info " -> Boost $BOOST_VERSION..."
 cd "${callDir}"
 
-case ${ANDROID_ARCH} in
+case "${ANDROID_ARCH}" in
     arm64)
         jamEntry1="7.0~arm64"
         jamEntry2="aarch64"
@@ -85,13 +87,12 @@ case ${ANDROID_ARCH} in
         ;;
 esac
 
-set -eu
 info " -> Generating config..."
-echo "path-constant ndk : ${ANDROID_NDK_ROOT} ;" > "${ANDROID_ARCH}"-config.jam
-if [[ "${ANDROID_ARCH}" = "armv7a" ]] ; then
-    echo "using clang : ${jamEntry1} : \$(ndk)/toolchains/llvm/prebuilt/${HOST_SYSTEM}-x86_64/bin/${jamEntry2}-linux-androideabi${ANDROID_API}-clang++ ;" >> "${ANDROID_ARCH}"-config.jam
+echo "path-constant ndk : ${ANDROID_NDK_ROOT} ;" > "${ANDROID_ARCH}-config.jam"
+if [[ "${ANDROID_ARCH}" == "armv7a" ]]; then
+    echo "using clang : ${jamEntry1} : \$(ndk)/toolchains/llvm/prebuilt/${HOST_SYSTEM}-x86_64/bin/${jamEntry2}-linux-androideabi${ANDROID_API}-clang++ ;" >> "${ANDROID_ARCH}-config.jam"
 else
-    echo "using clang : ${jamEntry1} : \$(ndk)/toolchains/llvm/prebuilt/${HOST_SYSTEM}-x86_64/bin/${jamEntry2}-linux-android${ANDROID_API}-clang++ ;" >> "${ANDROID_ARCH}"-config.jam
+    echo "using clang : ${jamEntry1} : \$(ndk)/toolchains/llvm/prebuilt/${HOST_SYSTEM}-x86_64/bin/${jamEntry2}-linux-android${ANDROID_API}-clang++ ;" >> "${ANDROID_ARCH}-config.jam"
 fi
 
 info " -> Bootstrapping..."
@@ -108,8 +109,8 @@ info " -> Building boost with './b2 -d+2 \
     threading=multi \
     cxxflags="-std=c++14 -fPIC" \
     --with-${BOOST_LIBS_TO_BUILD//,/ --with-} \
-    --user-config=${ANDROID_ARCH}-config.jam \
-    --prefix=$(pwd)/../boost_${BOOST_VERSION//./_} \
+    --user-config="${ANDROID_ARCH}-config.jam" \
+    --prefix="$(pwd)/../boost_${BOOST_VERSION//./_}" \
     install'"
 ./b2 -d+2 \
     -j "${CORES_TO_USE}" \

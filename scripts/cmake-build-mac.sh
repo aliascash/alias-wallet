@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2019 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -129,11 +131,12 @@ checkOpenSSL() {
     info ""
     info "OpenSSL:"
     info " -> Searching required Homebrew OpenSSL package"
+    local opensslVersion
     opensslVersion=$(brew ls --versions openssl)
-    if [ $? -eq 0 ] ; then
+    if [[ $? -eq 0 ]]; then
         info " -> Found ${opensslVersion}"
-        OPENSSL_VERSION_MAC=$(echo ${opensslVersion#* } | xargs)
-        OPENSSL_FOLDERNAME=$(echo ${opensslVersion% *} | xargs)
+        OPENSSL_VERSION_MAC=$(echo "${opensslVersion#* }" | xargs)
+        OPENSSL_FOLDERNAME=$(echo "${opensslVersion% *}" | xargs)
     else
         error " -> Required OpenSSL dependency not found!"
         error "    You need to install homebrew and install OpenSSL:"
@@ -151,8 +154,9 @@ checkBerkeleyDB() {
     info ""
     info "BerkeleyDB:"
     info " -> Searching required Homebrew BerkeleyDB package"
+    local berkeleydbVersion
     berkeleydbVersion=$(brew ls --versions berkeley-db@4)
-    if [ $? -eq 0 ] ; then
+    if [[ $? -eq 0 ]]; then
         info " -> Found ${berkeleydbVersion}"
     else
         error " -> Required BerkeleyDB dependency not found!"
@@ -171,12 +175,13 @@ checkBoost() {
     info ""
     info "Boost:"
     info " -> Searching required Homebrew Boost package"
+    local boostVersion
     boostVersion=$(brew ls --versions boost)
-    if [ $? -eq 0 ] ; then
+    if [[ $? -eq 0 ]]; then
         info " -> Found ${boostVersion}"
         if [[ -z "${BOOST_VERSION_MAC}" ]]; then
             # Use only version from "boost 1.2.3" and trim potential whitespaces
-            BOOST_VERSION_MAC=$(echo ${boostVersion#* } | xargs)
+            BOOST_VERSION_MAC=$(echo "${boostVersion#* }" | xargs)
         fi
     else
         error " -> Required Boost dependencies not found!"
@@ -185,8 +190,8 @@ checkBoost() {
         error ""
         die 42 "Stopping build because of missing Boost"
     fi
-    BOOST_INCLUDEDIR=/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/include
-    BOOST_LIBRARYDIR=/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/lib
+    BOOST_INCLUDEDIR="/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/include"
+    BOOST_LIBRARYDIR="/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/lib"
 }
 # ===== End of boost functions ===============================================
 
@@ -387,8 +392,9 @@ checkWget() {
     info ""
     info "Wget:"
     info " -> Searching required Homebrew wget package"
+    local wgetVersion
     wgetVersion=$(brew ls --versions wget)
-    if [ $? -eq 0 ] ; then
+    if [[ $? -eq 0 ]]; then
         info " -> Found ${wgetVersion}"
     else
         error " -> Required wget dependency not found!"

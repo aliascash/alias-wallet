@@ -1,29 +1,37 @@
-# Aliaswallet building from source for Mac OSX
+# Aliaswallet Building from Source for macOS
 
-At first you need to clone the Git repository. ;-)
+First, you need to clone the Git repository.
 
-## Build with Qt-Creator
+## Build with Qt Creator
+
 ### Install Qt SDK 5.12.2 (QtWebEngine)
-- Qt SDK: https://www.qt.io/download-qt-installer
 
-Now you can open `<path-to-your-alias-wallet-git-repo-clone>/src/src.pro` on Qt-Creator.
+- **Qt SDK**: [Download Qt Installer](https://www.qt.io/download-qt-installer)
 
+Now you can open `<path-to-your-alias-wallet-git-repo-clone>/src/src.pro` in Qt Creator.
 
-## Build on cmdline
-- Export path to Qt
-```
+## Build on Command Line
+
+### Export Path to Qt
+
+```bash
 export QT_PATH=~/Qt/5.12.2/clang_64
 ```
 
-### Setup required libraries and env var's
+### Setup Required Libraries and Environment Variables
+
 #### Boost
-- Determine amount of available cores to improve build speed
-```
+
+1. Determine the number of available cores to improve build speed:
+
+```bash
 system_profiler | grep "Total Number of Cores"
 export CORES=<insert-value-from-above-cmd>
 ```
-- Download, extract and build Boost
-```
+
+2. Download, extract and build Boost:
+
+```bash
 cd ~
 mkdir Boost
 cd Boost
@@ -34,36 +42,42 @@ cd boost_1_68_0
 ./b2 \
     cxxflags="-std=c++0x" \
     address-model=64 \
-    -j ${CORES}\
+    -j ${CORES} \
     install \
     --prefix=$(pwd) \
     --build-type=complete \
     --layout=tagged
 ```
-- Export path to Boost libraries and headers
-```
+
+3. Export path to Boost libraries and headers:
+
+```bash
 export BOOST_PATH=$(pwd)
 ```
 
 #### OpenSSL
-- Install OpenSSL 1.1.1
-- Export path to OpenSSL libraries and headers i. e. like this:
-```
+
+1. Install OpenSSL 1.1.1
+2. Export path to OpenSSL libraries and headers (example):
+
+```bash
 export OPENSSL_PATH=/usr/local/Cellar/openssl@1.1/1.1.1d
 ```
 
 #### Tor
-- Download prepared Tor archive
-```
+
+Download prepared Tor archive:
+
+```bash
 cd ~
 mkdir Tor
 cd Tor
 wget https://github.com/aliascash/resources/raw/master/resources/Aliaswallet.Tor.libraries.macOS.zip
 ```
 
-### Build using helper scripts
+### Build Using Helper Scripts
 
-```
+```bash
 cd <path-to-your-alias-wallet-git-repo-clone>
 ./scripts/mac-build.sh
 rm -f Aliaswallet*.dmg

@@ -1,4 +1,5 @@
 <?xml version="1.0"?>
+<!-- SPDX-FileCopyrightText: © 2025 ALIAS Developers -->
 <!-- SPDX-FileCopyrightText: © 2020 Alias Developers -->
 <!-- SPDX-License-Identifier: MIT -->
 <manifest package="org.spectrecoin.wallet" xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="-- %%INSERT_VERSION_NAME%% --" android:versionCode="-- %%INSERT_VERSION_CODE%% --" android:installLocation="auto">

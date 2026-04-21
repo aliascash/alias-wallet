@@ -1,48 +1,55 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 #
 # SPDX-License-Identifier: MIT
 
-### At first perform source build ###
-FROM aliascash/alias-wallet-builder-centos-8:2.6 as build
-MAINTAINER HLXEasy <hlxeasy@gmail.com>
+# =============================================================================
+# Stage 1: Build Alias Wallet
+# =============================================================================
+FROM aliascash/alias-wallet-builder-centos-8:2.6 AS build
 
-# Build parameters
+LABEL maintainer="HLXEasy <hlxeasy@gmail.com>"
+LABEL description="Alias Wallet build stage for CentOS 8"
+
 ARG BUILD_THREADS="6"
+ENV BUILD_THREADS=${BUILD_THREADS}
 
-# Runtime parameters
-ENV BUILD_THREADS=$BUILD_THREADS
+WORKDIR /alias-wallet
+COPY . .
 
-COPY . /alias-wallet
+RUN ./scripts/cmake-build.sh -g -o -s -c "${BUILD_THREADS}" \
+    && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd \
+    && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet
 
-RUN cd /alias-wallet \
- && ./scripts/cmake-build.sh -g -o -s -c ${BUILD_THREADS} \
- && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd \
- && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet
+# =============================================================================
+# Stage 2: Upload binaries to GitHub
+# =============================================================================
+FROM aliascash/github-uploader:latest AS uploader
 
-### Now upload binaries to GitHub ###
-FROM aliascash/github-uploader:latest
-MAINTAINER HLXEasy <hlxeasy@gmail.com>
+LABEL maintainer="HLXEasy <hlxeasy@gmail.com>"
+LABEL description="Alias Wallet upload stage for CentOS 8"
 
 ARG GITHUB_CI_TOKEN=1234567
 ARG ALIAS_RELEASE=latest
 ARG ALIAS_REPOSITORY=alias-wallet
 ARG GIT_COMMIT=unknown
 ARG REPLACE_EXISTING_ARCHIVE=''
-#ENV GITHUB_CI_TOKEN=${GITHUB_CI_TOKEN}
-ENV ARCHIVE=Alias-${ALIAS_RELEASE}-${GIT_COMMIT}-CentOS.tgz
-ENV ARCHIVE_CHKSUM=Alias-${ALIAS_RELEASE}-${GIT_COMMIT}-CentOS.sha256
-ENV CHKSUM_FILE=Checksum-Alias-CentOS-8.txt
+
+ENV ARCHIVE="Alias-${ALIAS_RELEASE}-${GIT_COMMIT}-CentOS.tgz"
+ENV ARCHIVE_CHKSUM="Alias-${ALIAS_RELEASE}-${GIT_COMMIT}-CentOS.sha256"
+ENV CHKSUM_FILE="Checksum-Alias-CentOS-8.txt"
+
+WORKDIR /filesToUpload
 
 RUN mkdir -p /filesToUpload/usr/local/bin
 
-COPY --from=build /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd /filesToUpload/usr/local/bin/aliaswalletd
-COPY --from=build /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet /filesToUpload/usr/local/bin/aliaswallet
+COPY --from=build /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd /filesToUpload/usr/local/bin/
+COPY --from=build /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet /filesToUpload/usr/local/bin/
 COPY --from=build /alias-wallet/scripts/createChecksums.sh /tmp/
 
-RUN cd /filesToUpload \
- && tar czf ${ARCHIVE} . \
- && github-release upload \
+RUN tar czf "${ARCHIVE}" . \
+    && github-release upload \
         --user aliascash \
         --security-token "${GITHUB_CI_TOKEN}" \
         --repo "${ALIAS_REPOSITORY}" \
@@ -50,9 +57,9 @@ RUN cd /filesToUpload \
         --name "${ARCHIVE}" \
         --file "/filesToUpload/${ARCHIVE}" \
         ${REPLACE_EXISTING_ARCHIVE} \
- && sha256sum /filesToUpload/${ARCHIVE} | awk '{ print $1 }' > /filesToUpload/${ARCHIVE_CHKSUM} \
- && cat /filesToUpload/${ARCHIVE_CHKSUM} \
- && github-release upload \
+    && sha256sum "/filesToUpload/${ARCHIVE}" | awk '{ print $1 }' > "/filesToUpload/${ARCHIVE_CHKSUM}" \
+    && cat "/filesToUpload/${ARCHIVE_CHKSUM}" \
+    && github-release upload \
         --user aliascash \
         --security-token "${GITHUB_CI_TOKEN}" \
         --repo "${ALIAS_REPOSITORY}" \
@@ -60,6 +67,6 @@ RUN cd /filesToUpload \
         --name "${ARCHIVE_CHKSUM}" \
         --file "/filesToUpload/${ARCHIVE_CHKSUM}" \
         ${REPLACE_EXISTING_ARCHIVE} \
- && chmod +x /tmp/createChecksums.sh \
- && sh /tmp/createChecksums.sh /filesToUpload/${ARCHIVE} ${CHKSUM_FILE} \
- && export GITHUB_CI_TOKEN=---
+    && chmod +x /tmp/createChecksums.sh \
+    && sh /tmp/createChecksums.sh "/filesToUpload/${ARCHIVE}" "${CHKSUM_FILE}" \
+    && unset GITHUB_CI_TOKEN

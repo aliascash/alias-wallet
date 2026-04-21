@@ -1,21 +1,23 @@
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 #
 # SPDX-License-Identifier: MIT
 
-### At first perform source build ###
+# =============================================================================
+# Build Alias Wallet (no upload)
+# =============================================================================
 FROM aliascash/alias-wallet-builder-fedora:2.6
-MAINTAINER HLXEasy <hlxeasy@gmail.com>
 
-# Build parameters
+LABEL maintainer="HLXEasy <hlxeasy@gmail.com>"
+LABEL description="Alias Wallet build for Fedora (no upload)"
+
 ARG BUILD_THREADS="6"
+ENV BUILD_THREADS=${BUILD_THREADS}
 
-# Runtime parameters
-ENV BUILD_THREADS=$BUILD_THREADS
+WORKDIR /alias-wallet
+COPY . .
 
-COPY . /alias-wallet
-
-RUN cd /alias-wallet \
- && ./scripts/cmake-build.sh -g -o -s -c ${BUILD_THREADS} \
- && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd \
- && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet
+RUN ./scripts/cmake-build.sh -g -o -s -c "${BUILD_THREADS}" \
+    && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd \
+    && strip /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswallet

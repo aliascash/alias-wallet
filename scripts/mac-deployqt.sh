@@ -1,6 +1,8 @@
 #!/bin/bash
+set -euo pipefail
 # ===========================================================================
 #
+# SPDX-FileCopyrightText: © 2025 ALIAS Developers
 # SPDX-FileCopyrightText: © 2020 Alias Developers
 # SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 # SPDX-License-Identifier: MIT
@@ -14,8 +16,8 @@
 # Store path from where script was called, determine own location
 # and source helper content from there
 callDir=$(pwd)
-ownLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd ${ownLocation}
+ownLocation="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "${ownLocation}"
 . ./include/helpers_console.sh
 
 # Go to Alias repository root directory
@@ -61,9 +63,9 @@ rm -v src/bin/alias.app/Contents/Frameworks/libssl.1.0.0.dylib
 rm -v src/bin/alias.app/Contents/Frameworks/libcrypto.1.0.0.dylib
 
 info "Replace openssl 1.0.0 lib references with 1.1:"
-for f in src/bin/alias.app/Contents/Frameworks/*.dylib ; do
-    install_name_tool -change @executable_path/../Frameworks/libssl.1.0.0.dylib @executable_path/../Frameworks/libssl.1.1.dylib ${f};
-    install_name_tool -change @executable_path/../Frameworks/libcrypto.1.0.0.dylib @executable_path/../Frameworks/libcrypto.1.1.dylib ${f};
+for f in src/bin/alias.app/Contents/Frameworks/*.dylib; do
+    install_name_tool -change @executable_path/../Frameworks/libssl.1.0.0.dylib @executable_path/../Frameworks/libssl.1.1.dylib "${f}"
+    install_name_tool -change @executable_path/../Frameworks/libcrypto.1.0.0.dylib @executable_path/../Frameworks/libcrypto.1.1.dylib "${f}"
 done
 
 
@@ -73,8 +75,8 @@ otool -l src/bin/alias.app/Contents/Frameworks/libssl.1.1.dylib | grep dylib
 
 
 info "Please check for non included lib references:"
-for f in src/bin/alias.app/Contents/Frameworks/*.dylib ; do
-    otool -l ${f} | grep dylib | grep -v @
+for f in src/bin/alias.app/Contents/Frameworks/*.dylib; do
+    otool -l "${f}" | grep dylib | grep -v @
 done
 
 
