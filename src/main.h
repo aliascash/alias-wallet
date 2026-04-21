@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -5,11 +6,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-#ifndef BITCOIN_MAIN_H
-#define BITCOIN_MAIN_H
+#ifndef ALIAS_MAIN_H
+#define ALIAS_MAIN_H
 
 #ifdef _MSC_BUILD
-#define __PRETTY_FUNCTION__ BOOST_CURRENT_FUNCTION
+#define __PRETTY_FUNCTION__ __FUNCSIG__
 #endif
 
 #include "core.h"
@@ -21,7 +22,15 @@
 #include "scrypt.h"
 #include "state.h"
 
+#include <cstdint>
+#include <functional>
 #include <list>
+#include <map>
+#include <memory>
+#include <optional>
+#include <set>
+#include <string>
+#include <vector>
 
 class CWallet;
 class CWalletTx;
@@ -150,7 +159,7 @@ class CTxIndex;
 
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
-void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
+void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = nullptr, bool fUpdate = false, bool fConnect = true);
 bool ProcessBlock(CNode* pfrom, CBlock* pblock, uint256& hash);
 bool CheckDiskSpace(uint64_t nAdditionalBytes=0);
 FILE* OpenBlockFile(bool fHeaderFile, unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
@@ -163,7 +172,7 @@ bool ProcessMessages(CNode* pfrom);
 bool SendMessages(CNode* pto, std::vector<CNode*> &vNodesCopy, bool fSendTrickle);
 
 bool LoadExternalBlockFile(int nFile, FILE* fileIn, std::function<void (const uint32_t&)> funcProgress = nullptr);
-void ThreadImport(std::vector<boost::filesystem::path> vImportFiles);
+void ThreadImport(std::vector<fs::path> vImportFiles);
 
 bool CheckProofOfWork(uint256 hash, unsigned int nBits);
 unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfStake);
@@ -318,7 +327,7 @@ public:
             nBlockTime = GetAdjustedTime();
         if ((int64_t)nLockTime < ((int64_t)nLockTime < LOCKTIME_THRESHOLD ? (int64_t)nBlockHeight : nBlockTime))
             return true;
-        BOOST_FOREACH(const CTxIn& txin, vin)
+        for (const CTxIn& txin : vin)
             if (!txin.IsFinal())
                 return false;
         return true;
@@ -405,8 +414,7 @@ public:
     int64_t GetValueOut() const
     {
         int64_t nValueOut = 0;
-        BOOST_FOREACH(const CTxOut& txout, vout)
-        {
+        for (const CTxOut& txout : vout) {
             nValueOut += txout.nValue;
             if (!MoneyRange(txout.nValue) || !MoneyRange(nValueOut))
                 throw std::runtime_error("CTransaction::GetValueOut() : value out of range");
@@ -426,7 +434,7 @@ public:
 
     int64_t GetMinFee(unsigned int nBlockSize=1, enum GetMinFee_mode mode=GMF_BLOCK, unsigned int nBytes = 0) const;
 
-    bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=NULL)
+    bool ReadFromDisk(CDiskTxPos pos, FILE** pfileRet=nullptr)
     {
         CAutoFile filein = CAutoFile(OpenBlockFile(false, pos.nFile, 0, pfileRet ? "rb+" : "rb"), SER_DISK, CLIENT_VERSION);
         if (!filein)
@@ -584,7 +592,7 @@ public:
     )
 
 
-    int SetMerkleBranch(const CBlock* pblock=NULL);
+    int SetMerkleBranch(const CBlock* pblock=nullptr);
 
     // Return depth of transaction in blockchain:
     // -1  : not in blockchain, and not in memory pool (conflicted transaction)
@@ -862,7 +870,7 @@ public:
     int64_t GetMaxTransactionTime() const
     {
         int64_t maxTransactionTime = 0;
-        BOOST_FOREACH(const CTransaction& tx, vtx)
+        for (const CTransaction& tx : vtx)
             maxTransactionTime = std::max(maxTransactionTime, (int64_t)tx.nTime);
         return maxTransactionTime;
     }
@@ -870,7 +878,7 @@ public:
     uint256 BuildMerkleTree() const
     {
         vMerkleTree.clear();
-        BOOST_FOREACH(const CTransaction& tx, vtx)
+        for (const CTransaction& tx : vtx)
             vMerkleTree.push_back(tx.GetHash());
         int j = 0;
         for (int nSize = vtx.size(); nSize > 1; nSize = (nSize + 1) / 2)
@@ -906,7 +914,7 @@ public:
     {
         if (nIndex == -1)
             return 0;
-        BOOST_FOREACH(const uint256& otherside, vMerkleBranch)
+        for (const uint256& otherside : vMerkleBranch)
         {
             if (nIndex & 1)
                 hash = Hash(BEGIN(otherside), END(otherside), BEGIN(hash), END(hash));
@@ -1190,47 +1198,53 @@ public:
     unsigned int nNonce;
 
     CBlockIndex()
+        : phashBlock(nullptr)
+        , pprev(nullptr)
+        , pnext(nullptr)
+        , nFile(0)
+        , nBlockPos(0)
+        , nChainTrust(0)
+        , nHeight(0)
+        , nMint(0)
+        , nMoneySupply(0)
+        , nAnonSupply(0)
+        , nFlags(0)
+        , nStakeModifier(0)
+        , bnStakeModifierV2(0)
+        , prevoutStake()
+        , nStakeTime(0)
+        , hashProof(0)
+        , nVersion(0)
+        , hashMerkleRoot(0)
+        , nTime(0)
+        , nBits(0)
+        , nNonce(0)
     {
-        phashBlock = NULL;
-        pprev = NULL;
-        pnext = NULL;
-        nFile = 0;
-        nBlockPos = 0;
-        nHeight = 0;
-        nChainTrust = 0;
-        nMint = 0;
-        nMoneySupply = 0;
-        nAnonSupply = 0;
-        nFlags = 0;
-        nStakeModifier = 0;
-        bnStakeModifierV2 = 0;
-        hashProof = 0;
-        prevoutStake.SetNull();
-        nStakeTime = 0;
-
-        nVersion       = 0;
-        hashMerkleRoot = 0;
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
     }
 
     CBlockIndex(unsigned int nFileIn, unsigned int nBlockPosIn, CBlock& block)
+        : phashBlock(nullptr)
+        , pprev(nullptr)
+        , pnext(nullptr)
+        , nFile(nFileIn)
+        , nBlockPos(nBlockPosIn)
+        , nChainTrust(0)
+        , nHeight(0)
+        , nMint(0)
+        , nMoneySupply(0)
+        , nAnonSupply(0)
+        , nFlags(0)
+        , nStakeModifier(0)
+        , bnStakeModifierV2(0)
+        , prevoutStake()
+        , nStakeTime(0)
+        , hashProof(0)
+        , nVersion(block.nVersion)
+        , hashMerkleRoot(block.hashMerkleRoot)
+        , nTime(block.nTime)
+        , nBits(block.nBits)
+        , nNonce(block.nNonce)
     {
-        phashBlock = NULL;
-        pprev = NULL;
-        pnext = NULL;
-        nFile = nFileIn;
-        nBlockPos = nBlockPosIn;
-        nHeight = 0;
-        nChainTrust = 0;
-        nMint = 0;
-        nMoneySupply = 0;
-        nAnonSupply = 0;
-        nFlags = 0;
-        nStakeModifier = 0;
-        bnStakeModifierV2 = 0;
-        hashProof = 0;
         if (block.IsProofOfStake())
         {
             SetProofOfStake();
@@ -1240,14 +1254,7 @@ public:
         else
         {
             prevoutStake.SetNull();
-            nStakeTime = 0;
         }
-
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
     }
 
     CBlock GetBlockHeader() const
@@ -1413,50 +1420,42 @@ public:
     uint256 hashProof;
 
     CBlockThinIndex()
+        : phashBlock(nullptr)
+        , pprev(nullptr)
+        , pnext(nullptr)
+        , nFile(0)
+        , nBlockPos(0)
+        , nHeight(0)
+        , nChainTrust(0)
+        , nStakeModifier(0)
+        , hashProof(0)
+        , nVersion(0)
+        , hashMerkleRoot(0)
+        , nTime(0)
+        , nBits(0)
+        , nNonce(0)
+        , nFlags(0)
     {
-        phashBlock = NULL;
-        pprev = NULL;
-        pnext = NULL;
-        nFile = 0;
-        nBlockPos = 0;
-        nHeight = 0;
-
-        nChainTrust = 0;
-        nStakeModifier = 0;
-
-        hashProof = 0;
-
-
-
-        nVersion       = 0;
-        hashMerkleRoot = 0;
-        nTime          = 0;
-        nBits          = 0;
-        nNonce         = 0;
-        nFlags         = 0;
-        nStakeModifier = 0;
     }
 
 
     CBlockThinIndex(unsigned int nFileIn, unsigned int nBlockPosIn, CBlockThin& block)
+        : phashBlock(nullptr)
+        , pprev(nullptr)
+        , pnext(nullptr)
+        , nFile(nFileIn)
+        , nBlockPos(nBlockPosIn)
+        , nHeight(0)
+        , nChainTrust(0)
+        , nStakeModifier(0)
+        , hashProof(0)
+        , nVersion(block.nVersion)
+        , hashMerkleRoot(block.hashMerkleRoot)
+        , nTime(block.nTime)
+        , nBits(block.nBits)
+        , nNonce(block.nNonce)
+        , nFlags(block.nFlags)
     {
-        phashBlock = NULL;
-        pprev = NULL;
-        pnext = NULL;
-        nFile = nFileIn;
-        nBlockPos = nBlockPosIn;
-        nHeight = 0;
-
-        hashProof = 0;
-
-        nVersion       = block.nVersion;
-        hashMerkleRoot = block.hashMerkleRoot;
-        nTime          = block.nTime;
-        nBits          = block.nBits;
-        nNonce         = block.nNonce;
-
-        nFlags         = block.nFlags;
-
     }
 
     CBlockThin GetBlockThin() const
@@ -1592,16 +1591,16 @@ public:
     uint256 hashNext;
 
     CDiskBlockIndex()
+        : hashPrev(0)
+        , hashNext(0)
+        , blockHash(0)
     {
-        hashPrev = 0;
-        hashNext = 0;
-        blockHash = 0;
     }
 
     explicit CDiskBlockIndex(CBlockIndex* pindex) : CBlockIndex(*pindex)
     {
-        hashPrev = (pprev ? pprev->GetBlockHash() : 0);
-        hashNext = (pnext ? pnext->GetBlockHash() : 0);
+        hashPrev = (pprev ? pprev->GetBlockHash() : uint256(0));
+        hashNext = (pnext ? pnext->GetBlockHash() : uint256(0));
     }
 
     IMPLEMENT_SERIALIZE
@@ -1685,15 +1684,15 @@ public:
     uint256 hashNext;
 
     CDiskBlockThinIndex()
+        : hashPrev(0)
+        , hashNext(0)
     {
-        hashPrev = 0;
-        hashNext = 0;
     }
 
     explicit CDiskBlockThinIndex(CBlockThinIndex* pindex) : CBlockThinIndex(*pindex)
     {
-        hashPrev = (pprev ? pprev->GetBlockHash() : 0);
-        hashNext = (pnext ? pnext->GetBlockHash() : 0);
+        hashPrev = (pprev ? pprev->GetBlockHash() : uint256(0));
+        hashNext = (pnext ? pnext->GetBlockHash() : uint256(0));
     }
 
     IMPLEMENT_SERIALIZE
@@ -1852,7 +1851,7 @@ public:
         // Retrace how far back it was in the sender's branch
         int nDistance = 0;
         int nStep = 1;
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())
@@ -1871,7 +1870,7 @@ public:
     CBlockIndex* GetBlockIndex()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())
@@ -1887,7 +1886,7 @@ public:
     uint256 GetBlockHash()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hash);
             if (mi != mapBlockIndex.end())
@@ -1980,7 +1979,7 @@ public:
         // Retrace how far back it was in the sender's branch
         int nDistance = 0;
         int nStep = 1;
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockThinIndex*>::iterator mi = mapBlockThinIndex.find(hash);
             if (mi != mapBlockThinIndex.end())
@@ -1999,7 +1998,7 @@ public:
     CBlockThinIndex* GetBlockIndex()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockThinIndex*>::iterator mi = mapBlockThinIndex.find(hash);
             if (mi != mapBlockThinIndex.end())
@@ -2015,7 +2014,7 @@ public:
     uint256 GetBlockHash()
     {
         // Find the first block the caller has in the main chain
-        BOOST_FOREACH(const uint256& hash, vHave)
+        for (const uint256& hash : vHave)
         {
             std::map<uint256, CBlockThinIndex*>::iterator mi = mapBlockThinIndex.find(hash);
             if (mi != mapBlockThinIndex.end())
@@ -2254,4 +2253,4 @@ public:
     )
 };
 
-#endif
+#endif // ALIAS_MAIN_H
