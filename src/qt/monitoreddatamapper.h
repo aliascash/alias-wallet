@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -13,25 +14,21 @@ QT_BEGIN_NAMESPACE
 class QWidget;
 QT_END_NAMESPACE
 
-/** Data to Widget mapper that watches for edits and notifies listeners when a field is edited.
-   This can be used, for example, to enable a commit/apply button in a configuration dialog.
- */
 class MonitoredDataMapper : public QDataWidgetMapper
 {
     Q_OBJECT
+
 public:
-    explicit MonitoredDataMapper(QObject *parent=0);
+    explicit MonitoredDataMapper(QObject *parent = nullptr);
 
     void addMapping(QWidget *widget, int section);
     void addMapping(QWidget *widget, int section, const QByteArray &propertyName);
+
 private:
     void addChangeMonitor(QWidget *widget);
 
-signals:
+Q_SIGNALS:
     void viewModified();
-
 };
-
-
 
 #endif // MONITOREDDATAMAPPER_H

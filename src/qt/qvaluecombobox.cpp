@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -9,7 +10,7 @@
 QValueComboBox::QValueComboBox(QWidget *parent) :
         QComboBox(parent), role(Qt::UserRole)
 {
-    connect(this, SIGNAL(currentIndexChanged(int)), this, SLOT(handleSelectionChanged(int)));
+    connect(this, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &QValueComboBox::handleSelectionChanged);
 }
 
 QVariant QValueComboBox::value() const
@@ -29,5 +30,5 @@ void QValueComboBox::setRole(int role)
 
 void QValueComboBox::handleSelectionChanged(int idx)
 {
-    emit valueChanged();
+    Q_EMIT valueChanged();
 }

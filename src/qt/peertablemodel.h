@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -11,10 +12,12 @@
 #include "net.h"
 
 #include <QAbstractTableModel>
+#include <QList>
+#include <QModelIndex>
 #include <QStringList>
+#include <QVariant>
 
 class ClientModel;
-class PeerTablePriv;
 
 QT_BEGIN_NAMESPACE
 class QTimer;
@@ -25,59 +28,60 @@ struct CNodeCombinedStats {
     CNodeStateStats nodeStateStats;
     bool fNodeStateStatsAvailable;
 };
+Q_DECLARE_METATYPE(CNodeCombinedStats*)
 
-class NodeLessThan
-{
-public:
-    NodeLessThan(int nColumn, Qt::SortOrder fOrder) :
-        column(nColumn), order(fOrder) {}
-    bool operator()(const CNodeCombinedStats &left, const CNodeCombinedStats &right) const;
-
-private:
-    int column;
-    Qt::SortOrder order;
-};
-
-/**
-   Qt model providing information about connected peers, similar to the
-   "getpeerinfo" RPC call. Used by the rpc console UI.
- */
 class PeerTableModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
-    explicit PeerTableModel(ClientModel *parent = 0);
+    explicit PeerTableModel(ClientModel *parent = nullptr);
+    ~PeerTableModel();
     const CNodeCombinedStats *getNodeStats(int idx);
     int getRowByNodeId(NodeId nodeid);
     void startAutoRefresh();
     void stopAutoRefresh();
 
     enum ColumnIndex {
-        Address = 0,
-        Subversion = 1,
-        Ping = 2
+        NetNodeId = 0,
+        Age,
+        Address,
+        Direction,
+        Network,
+        Ping,
+        Sent,
+        Received,
+        Subversion
     };
 
-    /** @name Methods overridden from QAbstractTableModel
-        @{*/
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    QModelIndex index(int row, int column, const QModelIndex &parent) const;
-    Qt::ItemFlags flags(const QModelIndex &index) const;
-    void sort(int column, Qt::SortOrder order);
-    /*@}*/
+    enum {
+        StatsRole = Qt::UserRole,
+    };
 
-public slots:
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
+    int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+    QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
+    Qt::ItemFlags flags(const QModelIndex &index) const override;
+
+public Q_SLOTS:
     void refresh();
 
 private:
+    QList<CNodeCombinedStats> m_peers_data;
     ClientModel *clientModel;
-    QStringList columns;
-    PeerTablePriv *priv;
-    QTimer *timer;
+    const QStringList columns{
+        tr("Peer"),
+        tr("Age"),
+        tr("Address"),
+        tr("Direction"),
+        tr("Network"),
+        tr("Ping"),
+        tr("Sent"),
+        tr("Received"),
+        tr("User Agent")};
+    QTimer* timer{nullptr};
 };
 
 #endif // BITCOIN_QT_PEERTABLEMODEL_H

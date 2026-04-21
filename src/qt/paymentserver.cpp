@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -108,7 +109,7 @@ PaymentServer::PaymentServer(QApplication* parent) : QObject(parent), saveURIs(t
     if (!uriServer->listen(name))
         qDebug() << tr("Cannot start Alias: click-to-pay handler");
     else
-        connect(uriServer, SIGNAL(newConnection()), this, SLOT(handleURIConnection()));
+        connect(uriServer, &QLocalServer::newConnection, this, &PaymentServer::handleURIConnection);
 }
 
 bool PaymentServer::eventFilter(QObject *object, QEvent *event)
@@ -122,7 +123,7 @@ bool PaymentServer::eventFilter(QObject *object, QEvent *event)
             if (saveURIs) // Before main window is ready:
                 savedPaymentRequests.append(fileEvent->url().toString());
             else
-                emit receivedURI(fileEvent->url().toString());
+                Q_EMIT receivedURI(fileEvent->url().toString());
             return true;
         }
     }
@@ -133,7 +134,7 @@ void PaymentServer::uiReady()
 {
     saveURIs = false;
     foreach (const QString& s, savedPaymentRequests)
-        emit receivedURI(s);
+        Q_EMIT receivedURI(s);
     savedPaymentRequests.clear();
 }
 
@@ -144,8 +145,8 @@ void PaymentServer::handleURIConnection()
     while (clientConnection->bytesAvailable() < (int)sizeof(quint32))
         clientConnection->waitForReadyRead();
 
-    connect(clientConnection, SIGNAL(disconnected()),
-            clientConnection, SLOT(deleteLater()));
+    connect(clientConnection, &QLocalSocket::disconnected,
+            clientConnection, &QLocalSocket::deleteLater);
 
     QDataStream in(clientConnection);
     in.setVersion(QDataStream::Qt_4_0);
@@ -158,7 +159,7 @@ void PaymentServer::handleURIConnection()
     if (saveURIs)
         savedPaymentRequests.append(message);
     else
-        emit receivedURI(message);
+        Q_EMIT receivedURI(message);
 }
 
 void PaymentServer::setOptionsModel(OptionsModel *optionsModel)

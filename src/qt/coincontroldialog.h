@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -19,6 +20,7 @@
 namespace Ui {
     class CoinControlDialog;
 }
+
 class WalletModel;
 class SpectreBridge;
 class CCoinControl;
@@ -28,13 +30,12 @@ class CoinControlDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit CoinControlDialog(QWidget *parent = 0);
+    explicit CoinControlDialog(QWidget *parent = nullptr);
     ~CoinControlDialog();
 
     void setModel(WalletModel *model);
 
-    // static because also called from sendcoinsdialog
-    static void updateLabels(WalletModel*, QDialog*, SpectreBridge *bridge = 0);
+    static void updateLabels(WalletModel*, QDialog*, SpectreBridge *bridge = nullptr);
     static QString getPriorityLabel(double);
 
     static QList<qint64> payAmounts;
@@ -42,15 +43,13 @@ public:
 
 private:
     Ui::CoinControlDialog *ui;
-    WalletModel *model;
-    int sortColumn;
-    Qt::SortOrder sortOrder;
+    WalletModel *model{nullptr};
+    int sortColumn{0};
+    Qt::SortOrder sortOrder{Qt::AscendingOrder};
 
-    QMenu *contextMenu;
-    QTreeWidgetItem *contextMenuItem;
-    QAction *copyTransactionHashAction;
-    //QAction *lockAction;
-    //QAction *unlockAction;
+    QMenu *contextMenu{nullptr};
+    QTreeWidgetItem *contextMenuItem{nullptr};
+    QAction *copyTransactionHashAction{nullptr};
 
     QString strPad(QString, int, QString);
     void sortView(int, Qt::SortOrder);
@@ -71,14 +70,12 @@ private:
         COLUMN_PRIORITY_INT64
     };
 
-private slots:
+private Q_SLOTS:
     void showMenu(const QPoint &);
     void copyAmount();
     void copyLabel();
     void copyAddress();
     void copyTransactionHash();
-    //void lockCoin();
-    //void unlockCoin();
     void clipboardQuantity();
     void clipboardAmount();
     void clipboardFee();
@@ -93,7 +90,6 @@ private slots:
     void headerSectionClicked(int);
     void buttonBoxClicked(QAbstractButton*);
     void buttonSelectAllClicked();
-    //void updateLabelLocked();
 };
 
 #endif // COINCONTROLDIALOG_H

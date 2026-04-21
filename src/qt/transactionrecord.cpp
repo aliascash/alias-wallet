@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -7,6 +8,7 @@
 #include "transactionrecord.h"
 
 #include "base58.h"
+#include "chainparams_migration.h"
 
 #include "spectregui.h"
 
@@ -129,7 +131,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
             for (const auto & destination: listSent)
             {
                 std::string strAddress = CBitcoinAddress(destination.address).ToString();
-                if (strAddress == Params().GetDevContributionAddress() || strAddress == Params().GetSupplyIncreaseAddress())
+                if (strAddress == ChainParamsMigration::GetDevContributionAddress() || strAddress == ChainParamsMigration::GetSupplyIncreaseAddress())
                 {
                     sub.address = strAddress;
                     int blockHeight = wtx.GetDepthAndHeightInMainChain().second;
@@ -235,7 +237,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
                             if (ExtractDestination(txout.scriptPubKey, address))
                             {
                                 std::string strAddress = CBitcoinAddress(address).ToString();
-                                if (strAddress == Params().GetDevContributionAddress() || strAddress == Params().GetSupplyIncreaseAddress())
+                                if (strAddress == ChainParamsMigration::GetDevContributionAddress() || strAddress == ChainParamsMigration::GetSupplyIncreaseAddress())
                                 {
                                     sub.address = strAddress;
                                     int blockHeight = wtx.GetDepthAndHeightInMainChain().second;
@@ -257,7 +259,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
     } else
     {
         bool fAllFromMe = true;
-        BOOST_FOREACH(const CTxIn& txin, wtx.vin)
+        for (const CTxIn& txin : wtx.vin)
         {
             if (wallet->IsMine(txin))
                 continue;
@@ -266,7 +268,7 @@ QList<TransactionRecord> TransactionRecord::decomposeTransaction(const CWallet *
         };
 
         bool fAllToMe = true;
-        BOOST_FOREACH(const CTxOut& txout, wtx.vout)
+        for (const CTxOut& txout : wtx.vout)
         {
             opcodetype firstOpCode;
             CScript::const_iterator pc = txout.scriptPubKey.begin();
@@ -389,7 +391,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
     // Find the block the tx is in
     if (nNodeMode == NT_FULL)
     {
-        CBlockIndex* pindex = NULL;
+        CBlockIndex* pindex = nullptr;
         std::map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(wtx.hashBlock);
         if (mi != mapBlockIndex.end())
         {
@@ -398,7 +400,7 @@ void TransactionRecord::updateStatus(const CWalletTx &wtx)
         };
     } else
     {
-        CBlockThinIndex* pindex = NULL;
+        CBlockThinIndex* pindex = nullptr;
         std::map<uint256, CBlockThinIndex*>::iterator mi = mapBlockThinIndex.find(wtx.hashBlock);
         if (mi != mapBlockThinIndex.end())
         {

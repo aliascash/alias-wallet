@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -14,7 +15,6 @@
 #include <QtWidgets>
 #include <QtConcurrent>
 
-namespace fs = boost::filesystem;
 
 SetupWalletWizard::SetupWalletWizard(QWidget *parent)
     : QWizard(parent)
@@ -171,7 +171,7 @@ bool ImportWalletDatPage::validatePage()
         fs::copy_file(fs::path(fileName.toStdWString()), GetDataDir() / "wallet.dat");
         return true;
     }
-    catch (const boost::filesystem::filesystem_error& e) {
+    catch (const std::filesystem::filesystem_error& e) {
         QMessageBox::critical(this, tr("Error"), tr("Failed to copy wallet.dat: %1").arg(e.what()));
     }
     return false;
@@ -205,14 +205,14 @@ NewMnemonicSettingsPage::NewMnemonicSettingsPage(QWidget *parent)
     passwordEdit->setEchoMode(QLineEdit::Password);
     passwordLabel->setBuddy(passwordEdit);
     registerField("newmnemonic.password", passwordEdit);
-    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+    connect(passwordEdit, &QLineEdit::textChanged, this, &NewMnemonicSettingsPage::completeChanged);
 
     passwordVerifyLabel = new QLabel(tr("&Verify Password:"));
     passwordVerifyEdit = new QLineEdit;
     passwordVerifyEdit->setEchoMode(QLineEdit::Password);
     passwordVerifyLabel->setBuddy(passwordVerifyEdit);
     registerField("newmnemonic.passwordverify", passwordVerifyEdit);
-    connect(passwordVerifyEdit, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+    connect(passwordVerifyEdit, &QLineEdit::textChanged, this, &NewMnemonicSettingsPage::completeChanged);
 
     registerField("newmnemonic.language", languageComboBox, "currentData", "currentIndexChanged");
 
@@ -414,7 +414,7 @@ NewMnemonicVerificationPage::NewMnemonicVerificationPage(QWidget *parent)
     passwordEdit->installEventFilter(this);
     passwordLabel->setBuddy(passwordEdit);
     registerField("verification.password", passwordEdit);
-    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+    connect(passwordEdit, &QLineEdit::textChanged, this, &NewMnemonicVerificationPage::completeChanged);
 
     mnemonicLabel = new QLabel(tr("<br>Enter Mnemonic Seed Words:"));
 
@@ -473,7 +473,7 @@ RecoverFromMnemonicPage::RecoverFromMnemonicPage(QWidget *parent)
     passwordEdit->installEventFilter(this);
     passwordLabel->setBuddy(passwordEdit);
     registerField("recover.password", passwordEdit);
-    connect(passwordEdit, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+    connect(passwordEdit, &QLineEdit::textChanged, this, &RecoverFromMnemonicPage::completeChanged);
 
     passwordVerifyLabel = new QLabel(tr("&Verify Password:"));
     passwordVerifyEdit = new QLineEdit;
@@ -481,7 +481,7 @@ RecoverFromMnemonicPage::RecoverFromMnemonicPage(QWidget *parent)
     passwordVerifyEdit->installEventFilter(this);
     passwordVerifyLabel->setBuddy(passwordVerifyEdit);
     registerField("recover.passwordverify", passwordVerifyEdit);
-    connect(passwordVerifyEdit, SIGNAL(textChanged(QString)), this, SIGNAL(completeChanged()));
+    connect(passwordVerifyEdit, &QLineEdit::textChanged, this, &RecoverFromMnemonicPage::completeChanged);
 
     mnemonicLabel = new QLabel(tr("<br>Enter Mnemonic Seed Words:"));
 

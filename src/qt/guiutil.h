@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -41,6 +42,15 @@ namespace GUIUtil
 
     /* Format a CNodeCombinedStats.nTimeOffset into a user-readable string. */
     QString formatTimeOffset(int64_t nTimeOffset);
+
+    /* Format bytes into human-readable string (B, kB, MB, GB) */
+    QString formatBytes(uint64_t bytes);
+
+    /* Format peer connection age into human-readable string */
+    QString FormatPeerAge(int64_t nTimeConnected);
+
+    /* Convert network type to QString */
+    QString NetworkToQString(int netType);
 
 
     // Render Bitcoin addresses in monospace font

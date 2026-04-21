@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -10,14 +11,15 @@
 #include <QKeyEvent>
 #include <QTreeWidget>
 
-class CoinControlTreeWidget : public QTreeWidget {
-Q_OBJECT
+class CoinControlTreeWidget : public QTreeWidget
+{
+    Q_OBJECT
 
 public:
-    explicit CoinControlTreeWidget(QWidget *parent = 0);
+    explicit CoinControlTreeWidget(QWidget *parent = nullptr);
 
 protected:
-  virtual void  keyPressEvent(QKeyEvent *event);
+    void keyPressEvent(QKeyEvent *event) override;
 };
 
 #endif // COINCONTROLTREEWIDGET_H

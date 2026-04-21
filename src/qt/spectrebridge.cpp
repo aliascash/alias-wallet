@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -8,6 +9,7 @@
 
 #include "spectregui.h"
 #include "guiutil.h"
+#include "chainparams_migration.h"
 
 #ifndef Q_MOC_RUN
 #include <boost/algorithm/string.hpp>
@@ -361,7 +363,7 @@ void SpectreBridge::populateOptions()
 
     languages.insert("", "(" + tr("default") + ")");
 
-    foreach(const QString &langStr, translations.entryList())
+    for (const QString &langStr : translations.entryList())
     {
         QLocale locale(langStr);
 
@@ -428,7 +430,7 @@ void SpectreBridge::sendCoins(bool fUseCoinControl, QString sChangeAddr)
     int ringSizes = -1;
     // Format confirmation message
     QStringList formatted;
-    foreach(const SendCoinsRecipient &rcp, recipients)
+    for (const SendCoinsRecipient &rcp : recipients)
     {
         int inputType; // 0 XSPEC, 1 Spectre
         switch(rcp.txnTypeInd)
@@ -545,9 +547,9 @@ void SpectreBridge::sendCoins(bool fUseCoinControl, QString sChangeAddr)
     }
 
     if (inputTypes == 1 || nAnonOutputs > 0)
-        sendstatus = window->walletModel->sendCoinsAnon(recipients, fUseCoinControl ? CoinControlDialog::coinControl : NULL);
+        sendstatus = window->walletModel->sendCoinsAnon(recipients, fUseCoinControl ? CoinControlDialog::coinControl : nullptr);
     else
-        sendstatus = window->walletModel->sendCoins    (recipients, fUseCoinControl ? CoinControlDialog::coinControl : NULL);
+        sendstatus = window->walletModel->sendCoins    (recipients, fUseCoinControl ? CoinControlDialog::coinControl : nullptr);
 
     switch(sendstatus.status)
     {
@@ -734,27 +736,27 @@ QVariantMap SpectreBridge::listAnonOutputs()
             return anonOutputs;
         }
 
-        for (std::map<int64_t, CAnonOutputCount>::iterator mi(mapAnonOutputStats.begin()); mi != mapAnonOutputStats.end(); mi++)
+        for (const auto &pair : mapAnonOutputStats)
         {
-            CAnonOutputCount* aoc = &mi->second;
+            const CAnonOutputCount& aoc = pair.second;
             QVariantMap anonOutput;
 
-            anonOutput.insert("owned_mature",   mMatureOutputCounts[aoc->nValue]);
-            anonOutput.insert("owned_outputs",  mOwnedOutputCounts [aoc->nValue]);
-            anonOutput.insert("system_mature",  aoc->nMature);
-            anonOutput.insert("system_compromised",  aoc->nCompromised);
-            anonOutput.insert("system_outputs", aoc->nExists);
-            anonOutput.insert("system_spends",  aoc->nSpends);
-            anonOutput.insert("system_unspent",  aoc->nExists - aoc->nSpends);
-            anonOutput.insert("system_unspent_mature",  aoc->numOfMatureUnspends());
-            anonOutput.insert("system_mixins",  aoc->nExists - aoc->nCompromised);
-            anonOutput.insert("system_mixins_mature",  aoc->nMixins);
-            anonOutput.insert("system_mixins_staking",  aoc->nMixinsStaking);
+            anonOutput.insert("owned_mature",   mMatureOutputCounts[aoc.nValue]);
+            anonOutput.insert("owned_outputs",  mOwnedOutputCounts [aoc.nValue]);
+            anonOutput.insert("system_mature",  aoc.nMature);
+            anonOutput.insert("system_compromised",  aoc.nCompromised);
+            anonOutput.insert("system_outputs", aoc.nExists);
+            anonOutput.insert("system_spends",  aoc.nSpends);
+            anonOutput.insert("system_unspent",  aoc.nExists - aoc.nSpends);
+            anonOutput.insert("system_unspent_mature",  aoc.numOfMatureUnspends());
+            anonOutput.insert("system_mixins",  aoc.nExists - aoc.nCompromised);
+            anonOutput.insert("system_mixins_mature",  aoc.nMixins);
+            anonOutput.insert("system_mixins_staking",  aoc.nMixinsStaking);
 
-            anonOutput.insert("least_depth",    aoc->nLastHeight == 0 ? '-' : nBestHeight - aoc->nLastHeight + 1);
-            anonOutput.insert("value_s",        BitcoinUnits::format(window->clientModel->getOptionsModel()->getDisplayUnit(), aoc->nValue));
+            anonOutput.insert("least_depth",    aoc.nLastHeight == 0 ? '-' : nBestHeight - aoc.nLastHeight + 1);
+            anonOutput.insert("value_s",        BitcoinUnits::format(window->clientModel->getOptionsModel()->getDisplayUnit(), aoc.nValue));
 
-            anonOutputs.insert(QString::number(aoc->nValue), anonOutput);
+            anonOutputs.insert(QString::number(aoc.nValue), anonOutput);
         }
     }
 
@@ -1042,7 +1044,7 @@ void SpectreBridge::findBlock(QString searchID)
             findBlock = mi->second;
         } else
         {
-            findBlock = NULL;
+            findBlock = nullptr;
         };
     };
 
@@ -1564,7 +1566,7 @@ void SpectreBridge::importFromMnemonic(QString inMnemonic, QString inPassword, Q
         // m / purpose' / coin_type' / account' / change / address_index
         CExtKey ekDerived;
         ekMaster.Derive(ekDerived, BIP44_PURPOSE);
-        ekDerived.Derive(ekDerived, Params().BIP44ID());
+        ekDerived.Derive(ekDerived, ChainParamsMigration::GetBIP44ID());
 
         eKey58.SetKey(ekDerived, CChainParams::EXT_SECRET_KEY);
 
@@ -1587,7 +1589,7 @@ inline uint32_t reversePlace(uint8_t *p)
 {
     uint32_t rv = 0;
     for (int i = 0; i < 4; ++i)
-        rv |= (uint32_t) *(p+i) << (8 * (3-i));
+        rv |= static_cast<uint32_t>(*(p+i)) << (8 * (3-i));
     return rv;
 };
 
@@ -1917,7 +1919,7 @@ void SpectreBridge::extKeyImport(QString inKey, QString inLabel, bool fBip44, qu
     {
         CExtKey ekDerived;
         sek.kp.Derive(ekDerived, BIP44_PURPOSE);
-        ekDerived.Derive(ekDerived, Params().BIP44ID());
+        ekDerived.Derive(ekDerived, ChainParamsMigration::GetBIP44ID());
         sek.kp = ekDerived;
     }
     extKeySetMaster(QString::fromStdString(sek.GetIDString58()));

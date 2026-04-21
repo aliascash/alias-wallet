@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -14,26 +15,20 @@ QT_BEGIN_NAMESPACE
 class QAbstractItemModel;
 QT_END_NAMESPACE
 
-/** Export a Qt table model to a CSV file. This is useful for analyzing or post-processing the data in
-    a spreadsheet.
- */
 class CSVModelWriter : public QObject
 {
     Q_OBJECT
+
 public:
-    explicit CSVModelWriter(const QString &filename, QObject *parent = 0);
+    explicit CSVModelWriter(const QString &filename, QObject *parent = nullptr);
 
     void setModel(const QAbstractItemModel *model);
-    void addColumn(const QString &title, int column, int role=Qt::EditRole);
-
-    /** Perform export of the model to CSV.
-        @returns true on success, false otherwise
-    */
+    void addColumn(const QString &title, int column, int role = Qt::EditRole);
     bool write();
 
 private:
     QString filename;
-    const QAbstractItemModel *model;
+    const QAbstractItemModel *model{nullptr};
 
     struct Column
     {
@@ -42,11 +37,6 @@ private:
         int role;
     };
     QList<Column> columns;
-
-signals:
-
-public slots:
-
 };
 
 #endif // CSVMODELWRITER_H

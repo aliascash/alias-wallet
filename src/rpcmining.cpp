@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -12,6 +13,7 @@
 #include "init.h"
 #include "miner.h"
 #include "kernel.h"
+#include "chainparams_migration.h"
 
 #include <boost/assign/list_of.hpp>
 
@@ -21,7 +23,7 @@ using namespace boost::assign;
 
 // Key used by getwork/getblocktemplate miners.
 // Allocated in InitRPCMining, free'd in ShutdownRPCMining
-static CReserveKey* pMiningKey = NULL;
+static CReserveKey* pMiningKey = nullptr;
 
 void InitRPCMining()
 {
@@ -37,7 +39,7 @@ void ShutdownRPCMining()
     if (!pMiningKey)
         return;
 
-    delete pMiningKey; pMiningKey = NULL;
+    delete pMiningKey; pMiningKey = nullptr;
 }
 
 Value getsubsidy(const Array& params, bool fHelp)
@@ -53,7 +55,7 @@ Value getsubsidy(const Array& params, bool fHelp)
    else
        nShowHeight = nBestHeight+1; // block currently being solved
 
-   return (uint64_t)Params().GetProofOfWorkReward(nShowHeight, 0);
+   return (uint64_t)ChainParamsMigration::GetProofOfWorkReward(nShowHeight, 0);
 
 }
 
@@ -81,7 +83,7 @@ Value getstakesubsidy(const Array& params, bool fHelp)
     if (!Params().IsProtocolV3(pindexBest->nHeight) && !tx.GetCoinAge(txdb, pindexBest, nCoinAge))
         throw JSONRPCError(RPC_MISC_ERROR, "GetCoinAge failed");
 
-    return (uint64_t)Params().GetProofOfStakeReward(pindexBest->pprev, nCoinAge, 0);
+    return (uint64_t)ChainParamsMigration::GetProofOfStakeReward(pindexBest->pprev, nCoinAge, 0);
 }
 
 Value getmininginfo(const Array& params, bool fHelp)
@@ -111,7 +113,7 @@ Value getmininginfo(const Array& params, bool fHelp)
     diff.push_back(Pair("search-interval",      (int)nLastCoinStakeSearchInterval));
     obj.push_back(Pair("difficulty",            diff));
 
-    obj.push_back(Pair("blockvalue",            (uint64_t)Params().GetProofOfWorkReward(nBestHeight+1, 0)));
+    obj.push_back(Pair("blockvalue",            (uint64_t)ChainParamsMigration::GetProofOfWorkReward(nBestHeight+1, 0)));
     obj.push_back(Pair("netmhashps",            GetPoWMHashPS()));
     obj.push_back(Pair("netstakeweight",        GetPoSKernelPS()));
     obj.push_back(Pair("netstakeweightrecent",  GetPoSKernelPSRecent()));
@@ -187,7 +189,7 @@ Value checkkernel(const Array& params, bool fHelp)
     int64_t nTime = GetAdjustedTime();
     nTime &= ~STAKE_TIMESTAMP_MASK;
 
-    BOOST_FOREACH(Value& input, inputs)
+    for (Value& input : inputs)
     {
         const Object& o = input.get_obj();
 
@@ -262,7 +264,7 @@ Value getworkex(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(-10, "Alias is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock())
+    if (pindexBest->nHeight >= ChainParamsMigration::GetLastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -283,7 +285,7 @@ Value getworkex(const Array& params, bool fHelp)
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for (CBlock* pblock : vNewBlock)
                     delete pblock;
                 vNewBlock.clear();
             }
@@ -330,7 +332,7 @@ Value getworkex(const Array& params, bool fHelp)
 
         Array merkle_arr;
 
-        BOOST_FOREACH(uint256 merkleh, merkle) {
+        for (const uint256& merkleh : merkle) {
             merkle_arr.push_back(HexStr(BEGIN(merkleh), END(merkleh)));
         }
 
@@ -398,7 +400,7 @@ Value getwork(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Alias is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock())
+    if (pindexBest->nHeight >= ChainParamsMigration::GetLastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     typedef map<uint256, pair<CBlock*, CScript> > mapNewBlock_t;
@@ -420,13 +422,13 @@ Value getwork(const Array& params, bool fHelp)
             {
                 // Deallocate old blocks since they're obsolete now
                 mapNewBlock.clear();
-                BOOST_FOREACH(CBlock* pblock, vNewBlock)
+                for (CBlock* pblock : vNewBlock)
                     delete pblock;
                 vNewBlock.clear();
             }
 
             // Clear pindexPrev so future getworks make a new block, despite any failures from here on
-            pindexPrev = NULL;
+            pindexPrev = nullptr;
 
             // Store the pindexBest used before CreateNewBlock, to avoid races
             nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
@@ -542,7 +544,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Alias is downloading blocks...");
 
-    if (pindexBest->nHeight >= Params().LastPOWBlock())
+    if (pindexBest->nHeight >= ChainParamsMigration::GetLastPOWBlock())
         throw JSONRPCError(RPC_MISC_ERROR, "No more PoW blocks");
 
     static CReserveKey reservekey(pwalletMain);
@@ -556,7 +558,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
         (mempool.GetTransactionsUpdated() != nTransactionsUpdatedLast && GetTime() - nStart > 5))
     {
         // Clear pindexPrev so future calls make a new block, despite any failures from here on
-        pindexPrev = NULL;
+        pindexPrev = nullptr;
 
         // Store the pindexBest used before CreateNewBlock, to avoid races
         nTransactionsUpdatedLast = mempool.GetTransactionsUpdated();
@@ -567,7 +569,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
         if(pblock)
         {
             delete pblock;
-            pblock = NULL;
+            pblock = nullptr;
         }
 
         pblock = CreateNewBlock(pwalletMain);
@@ -586,8 +588,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
     map<uint256, int64_t> setTxIndex;
     int i = 0;
     CTxDB txdb("r");
-    BOOST_FOREACH (CTransaction& tx, pblock->vtx)
-    {
+    for (CTransaction& tx : pblock->vtx) {
         uint256 txHash = tx.GetHash();
         setTxIndex[txHash] = i++;
 
@@ -610,7 +611,7 @@ Value getblocktemplate(const Array& params, bool fHelp)
             entry.push_back(Pair("fee", (int64_t)(tx.GetValueIn(mapInputs) - tx.GetValueOut())));
 
             Array deps;
-            BOOST_FOREACH (MapPrevTx::value_type& inp, mapInputs)
+            for (auto& inp : mapInputs)
             {
                 if (setTxIndex.count(inp.first))
                     deps.push_back(setTxIndex[inp.first]);
@@ -710,7 +711,7 @@ Value submitblock(const Array& params, bool fHelp)
         }
     }
     uint256 hashblock = block.GetHash();
-    bool fAccepted = ProcessBlock(NULL, &block, hashblock);
+    bool fAccepted = ProcessBlock(nullptr, &block, hashblock);
     if (!fAccepted)
         return "rejected";
 

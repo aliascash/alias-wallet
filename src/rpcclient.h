@@ -1,19 +1,24 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
-// SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
-// SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
-// SPDX-FileCopyrightText: © 2009 Bitcoin Developers
-//
-// SPDX-License-Identifier: MIT
+// Copyright (c) 2022 The Bitcoin Core developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef _BITCOINRPC_CLIENT_H_
-#define _BITCOINRPC_CLIENT_H_ 1
+#ifndef BITCOIN_KERNEL_CONTEXT_H
+#define BITCOIN_KERNEL_CONTEXT_H
 
-#include "json/json_spirit_reader_template.h"
-#include "json/json_spirit_utils.h"
-#include "json/json_spirit_writer_template.h"
+namespace kernel {
+//! Context struct holding the kernel library's logically global state, and
+//! passed to external libbitcoin_kernel functions which need access to this
+//! state. The kernel library API is a work in progress, so state organization
+//! and member list will evolve over time.
+//!
+//! State stored directly in this struct should be simple. More complex state
+//! should be stored to std::unique_ptr members pointing to opaque types.
+struct Context {
+    Context();
+};
+} // namespace kernel
 
-int CommandLineRPC(int argc, char *argv[]);
+#endif // BITCOIN_KERNEL_CONTEXT_H
 
-json_spirit::Array RPCConvertValues(const std::string &strMethod, const std::vector<std::string> &strParams);
-
-#endif

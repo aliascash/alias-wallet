@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2015 ShadowCoin Developers
@@ -11,6 +12,7 @@
 #include "key.h"
 #include "extkey.h"
 #include "chainparams.h"
+#include "chainparams_migration.h"
 #include "hash.h"
 #include "base58.h"
 
@@ -39,10 +41,10 @@ int ExtractBip32InfoV(std::vector<unsigned char> &vchKey, Object &keyInfo, std::
     vk.DecodeV(&vchKey[4]);
 
     CChainParams::Base58Type typePk = CChainParams::EXT_PUBLIC_KEY;
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0)
+    if (memcmp(&vchKey[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0)
         keyInfo.push_back(Pair("type", "Alias extended secret key"));
     else
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
+    if (memcmp(&vchKey[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
     {
         keyInfo.push_back(Pair("type", "Bitcoin extended secret key"));
         typePk = CChainParams::EXT_PUBLIC_KEY_BTC;
@@ -81,10 +83,10 @@ int ExtractBip32InfoP(std::vector<unsigned char> &vchKey, Object &keyInfo, std::
 {
     CExtPubKey pk;
 
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0)
+    if (memcmp(&vchKey[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0)
         keyInfo.push_back(Pair("type", "Alias extended public key"));
     else
-    if (memcmp(&vchKey[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
+    if (memcmp(&vchKey[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
         keyInfo.push_back(Pair("type", "Bitcoin extended public key"));
     else
         keyInfo.push_back(Pair("type", "Unknown extended public key"));
@@ -129,13 +131,13 @@ int ExtKeyPathV(std::string &sPath, std::vector<uint8_t> &vchKey, Object &keyInf
         return 1;
     };
 
-    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
+    for (uint32_t pathItem : vPath)
     {
-        if (*it == 0)
+        if (pathItem == 0)
         {
             vkOut = vkWork;
         } else
-        if (!vkWork.Derive(vkOut, *it))
+        if (!vkWork.Derive(vkOut, pathItem))
         {
             sError = "CExtKey Derive failed.";
             return 1;
@@ -169,18 +171,18 @@ int ExtKeyPathP(std::string &sPath, std::vector<uint8_t> &vchKey, Object &keyInf
         return 1;
     };
 
-    for (std::vector<uint32_t>::iterator it = vPath.begin(); it != vPath.end(); ++it)
+    for (uint32_t pathItem : vPath)
     {
-        if (*it == 0)
+        if (pathItem == 0)
         {
             pkOut = pkWork;
         } else
-        if ((*it >> 31) == 1)
+        if ((pathItem >> 31) == 1)
         {
             sError = "Can't derive hardened keys from public ext key.";
             return 1;
         } else
-        if (!pkWork.Derive(pkOut, *it))
+        if (!pkWork.Derive(pkOut, pathItem))
         {
             sError = "CExtKey Derive failed.";
             return 1;
@@ -620,7 +622,7 @@ Value extkey(const Array &params, bool fHelp)
         std::string st = " " + s + " "; // Note the spaces
         std::transform(st.begin(), st.end(), st.begin(), ::tolower);
         static const char *pmodes = " info list gen account import importaccount setmaster setdefaultaccount deriveaccount options ";
-        if (strstr(pmodes, st.c_str()) != NULL)
+        if (strstr(pmodes, st.c_str()) != nullptr)
         {
             st.erase(std::remove(st.begin(), st.end(), ' '), st.end());
             mode = st;
@@ -674,14 +676,14 @@ Value extkey(const Array &params, bool fHelp)
 
         const CChainParams &otherNet = TestNet() ? MainNetParams() : TestNetParams();
 
-        if (memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0
-            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
+        if (memcmp(&vchOut[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY)[0], 4) == 0
+            || memcmp(&vchOut[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_SECRET_KEY_BTC)[0], 4) == 0)
         {
             if (ExtKeyPathV(sMode, vchOut, keyInfo, sError) != 0)
                 throw std::runtime_error(strprintf("ExtKeyPathV failed %s.", sError.c_str()));
         } else
-        if (memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0
-            || memcmp(&vchOut[0], &Params().Base58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)
+        if (memcmp(&vchOut[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_PUBLIC_KEY)[0], 4) == 0
+            || memcmp(&vchOut[0], &ChainParamsMigration::GetBase58Prefix(CChainParams::EXT_PUBLIC_KEY_BTC)[0], 4) == 0)
         {
             if (ExtKeyPathP(sMode, vchOut, keyInfo, sError) != 0)
                 throw std::runtime_error(strprintf("ExtKeyPathP failed %s.", sError.c_str()));
@@ -934,7 +936,7 @@ Value extkey(const Array &params, bool fHelp)
             {
                 // - setting timestamp directly
                 errno = 0;
-                nTimeStartScan = strtoimax(sVar.c_str(), NULL, 10);
+                nTimeStartScan = strtoimax(sVar.c_str(), nullptr, 10);
                 if (errno != 0)
                     throw std::runtime_error("Import Account failed - Parse time error.");
             } else

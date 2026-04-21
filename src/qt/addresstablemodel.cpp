@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -60,7 +61,7 @@ public:
         cachedAddressTable.clear();
         {
             LOCK(wallet->cs_wallet);
-            BOOST_FOREACH(const PAIRTYPE(CTxDestination, std::string)& item, wallet->mapAddressBook)
+            for (const auto& item : wallet->mapAddressBook)
             {
                 const CBitcoinAddress& address = item.first;
                 const QString & strName(QString::fromStdString(item.second));
@@ -214,7 +215,9 @@ public:
 };
 
 AddressTableModel::AddressTableModel(CWallet *wallet, WalletModel *parent) :
-    QAbstractTableModel(parent),walletModel(parent),wallet(wallet),priv(0)
+    QAbstractTableModel(parent),
+    walletModel(parent),
+    wallet(wallet)
 {
     columns << tr("Label") << tr("Address") << tr("pubkey") << tr("stealth");
     priv = new AddressTablePriv(wallet, this);
@@ -660,5 +663,5 @@ void AddressTableModel::setEncryptionStatus(int status)
 
 void AddressTableModel::emitDataChanged(int row)
 {
-    emit dataChanged(index(row, 0, QModelIndex()), index(row, columns.length()-1, QModelIndex()));
+    Q_EMIT dataChanged(index(row, 0, QModelIndex()), index(row, columns.length()-1, QModelIndex()));
 }

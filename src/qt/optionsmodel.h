@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -10,52 +11,41 @@
 #include <QAbstractListModel>
 #include <QStringList>
 
-/** Interface from Qt to configuration data structure for Bitcoin client.
-   To Qt, the options are presented as a list with the different options
-   laid out vertically.
-   This can be changed to a tree once the settings become sufficiently
-   complex.
- */
 class OptionsModel : public QAbstractListModel
 {
     Q_OBJECT
 
 public:
-    explicit OptionsModel(QObject *parent = 0);
+    explicit OptionsModel(QObject *parent = nullptr);
 
     enum OptionID {
-        /// Main Options
-        Fee,                 /**< Transaction Fee. qint64 - Optional transaction fee per kB that helps make sure your transactions are processed quickly.
-                               *< Most transactions are 1 kB. Fee 0.01 recommended. 0.0001 ALIAS */
-        ReserveBalance,      /**< Reserve Balance. qint64 - Reserved amount does not participate in staking and is therefore spendable at any time. */
-        StartAtStartup,      /**< Default Transaction Fee. bool */
-        DetachDatabases,     /**< Default Transaction Fee. bool */
-        Staking,             /**< Default Transaction Fee. bool */
+        Fee,
+        ReserveBalance,
+        StartAtStartup,
+        DetachDatabases,
+        Staking,
         StakingDonation,
         MinStakeInterval,
-        ThinMode,            /**< Default Transaction Fee. bool */
+        ThinMode,
         ThinFullIndex,
         ThinIndexWindow,
-        AutoRingSize,        /**< Default Transaction Fee. bool */
-        AutoRedeemSpectre,    /**< Default Transaction Fee. bool */
-        MinRingSize,         /**< Default Transaction Fee. int */
-        MaxRingSize,         /**< Default Transaction Fee. int */
-        /// Network Related Options
-        MapPortUPnP,         /**< Default Transaction Fee. bool */
-        ProxyUse,            /**< Default Transaction Fee. bool */
-        ProxyIP,             // QString
-        ProxyPort,           // int
-        ProxySocksVersion,   // int
-        /// Window Options
-        MinimizeToTray,      /**< Default Transaction Fee. bool */
-        MinimizeOnClose,     /**< Default Transaction Fee. bool */
-        /// Display Options
-        Language,            // QString
-        DisplayUnit,         // Bitcoinnits::Unit
-        DisplayAddresses,    /**< Default Transaction Fee. bool */
-        RowsPerPage,         // int
-        Notifications,       // QStringList
-        VisibleTransactions, // QStringList
+        AutoRingSize,
+        AutoRedeemSpectre,
+        MinRingSize,
+        MaxRingSize,
+        MapPortUPnP,
+        ProxyUse,
+        ProxyIP,
+        ProxyPort,
+        ProxySocksVersion,
+        MinimizeToTray,
+        MinimizeOnClose,
+        Language,
+        DisplayUnit,
+        DisplayAddresses,
+        RowsPerPage,
+        Notifications,
+        VisibleTransactions,
         OptionIDRowCount,
     };
 
@@ -64,11 +54,10 @@ public:
 
     void Init();
 
-    int rowCount(const QModelIndex & parent = QModelIndex()) const;
-    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const;
-    bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+    int rowCount(const QModelIndex & parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex & index, int role = Qt::DisplayRole) const override;
+    bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole) override;
 
-    /* Explicit getters */
     qint64 getTransactionFee();
     qint64 getReserveBalance();
     bool getMinimizeToTray();
@@ -92,23 +81,23 @@ public:
     void emitVisibleTransactionsChanged(QStringList);
 
 private:
-    int nDisplayUnit;
-    int nRowsPerPage;
-    int nMinRingSize;
-    int nMaxRingSize;
-    int fStakingDonation;
-    bool bDisplayAddresses;
-    bool fMinimizeToTray;
-    bool fMinimizeOnClose;
-    bool fAutoRingSize;
-    bool fAutoRedeemSpectre;
+    int nDisplayUnit{0};
+    int nRowsPerPage{20};
+    int nMinRingSize{0};
+    int nMaxRingSize{0};
+    int fStakingDonation{0};
+    bool bDisplayAddresses{false};
+    bool fMinimizeToTray{false};
+    bool fMinimizeOnClose{false};
+    bool fAutoRingSize{false};
+    bool fAutoRedeemSpectre{false};
     QString language;
     QStringList notifications;
     QStringList visibleTransactions;
-    bool bActivateAllTransactiontypesAfterLanguageSwitch = false;
-    bool bActivateAllNotificationsAfterLanguageSwitch = false;
+    bool bActivateAllTransactiontypesAfterLanguageSwitch{false};
+    bool bActivateAllNotificationsAfterLanguageSwitch{false};
 
-signals:
+Q_SIGNALS:
     void displayUnitChanged(int unit);
     void transactionFeeChanged(qint64);
     void reserveBalanceChanged(qint64);

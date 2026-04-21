@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -9,26 +10,24 @@
 
 #include <QLineEdit>
 
-/** Line edit that can be marked as "invalid" to show input validation feedback. When marked as invalid,
-   it will get a red background until it is focused.
- */
 class QValidatedLineEdit : public QLineEdit
 {
     Q_OBJECT
+
 public:
-    explicit QValidatedLineEdit(QWidget *parent = 0);
+    explicit QValidatedLineEdit(QWidget *parent = nullptr);
     void clear();
 
 protected:
-    void focusInEvent(QFocusEvent *evt);
+    void focusInEvent(QFocusEvent *evt) override;
 
 private:
-    bool valid;
+    bool valid{true};
 
-public slots:
+public Q_SLOTS:
     void setValid(bool valid);
 
-private slots:
+private Q_SLOTS:
     void markValid();
 };
 

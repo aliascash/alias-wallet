@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -65,7 +66,7 @@ std::string static EncodeDumpTime(int64_t nTime)
 std::string static EncodeDumpString(const std::string &str)
 {
     std::stringstream ret;
-    BOOST_FOREACH(unsigned char c, str)
+    for (unsigned char c : str)
     {
         if (c <= 32 || c >= 128 || c == '%')
         {
@@ -103,9 +104,9 @@ public:
     bool fSpent;
     CWalletTx* ptx;
     int nOut;
-    CTxDump(CWalletTx* ptx = NULL, int nOut = -1)
+    CTxDump(CWalletTx* ptx = nullptr, int nOut = -1)
     {
-        pindex = NULL;
+        pindex = nullptr;
         nValue = 0;
         fSpent = false;
         this->ptx = ptx;

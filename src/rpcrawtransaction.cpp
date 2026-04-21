@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -40,7 +41,7 @@ void ScriptPubKeyToJSON(const CScript& scriptPubKey, Object& out, bool fIncludeH
     out.push_back(Pair("type", GetTxnOutputType(type)));
 
     Array a;
-    BOOST_FOREACH(const CTxDestination& addr, addresses)
+    for (const CTxDestination& addr : addresses)
         a.push_back(CBitcoinAddress(addr).ToString());
     out.push_back(Pair("addresses", a));
 }
@@ -55,8 +56,7 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
     std::vector<uint8_t> vchImage;
 
     Array vin;
-    BOOST_FOREACH(const CTxIn& txin, tx.vin)
-    {
+    for (const CTxIn& txin : tx.vin) {
         Object in;
         if (tx.IsCoinBase())
         {
@@ -96,9 +96,9 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
 
     entry.push_back(Pair("vin", vin));
     Array vout;
-    for (unsigned int i = 0; i < tx.vout.size(); i++)
+    unsigned int i = 0;
+    for (const CTxOut& txout : tx.vout)
     {
-        const CTxOut& txout = tx.vout[i];
         Object out;
         out.push_back(Pair("value", ValueFromAmount(txout.nValue)));
         out.push_back(Pair("n", (int64_t)i));
@@ -106,16 +106,17 @@ void TxToJSON(const CTransaction& tx, const uint256 hashBlock, Object& entry)
         ScriptPubKeyToJSON(txout.scriptPubKey, o, true);
         out.push_back(Pair("scriptPubKey", o));
         vout.push_back(out);
+        i++;
     };
     entry.push_back(Pair("vout", vout));
 
-    if (hashBlock != 0)
+    if (hashBlock != uint256())
     {
         entry.push_back(Pair("blockhash", hashBlock.GetHex()));
         map<uint256, CBlockIndex*>::iterator mi = mapBlockIndex.find(hashBlock);
-        if (mi != mapBlockIndex.end() && (*mi).second)
+        if (mi != mapBlockIndex.end() && mi->second)
         {
-            CBlockIndex* pindex = (*mi).second;
+            CBlockIndex* pindex = mi->second;
             if (pindex->IsInMainChain())
             {
                 entry.push_back(Pair("confirmations", 1 + nBestHeight - pindex->nHeight));
@@ -145,7 +146,7 @@ Value getrawtransaction(const Array& params, bool fHelp)
         fVerbose = (params[1].get_int() != 0);
 
     CTransaction tx;
-    uint256 hashBlock = 0;
+    uint256 hashBlock = uint256();
     if (!GetTransaction(hash, tx, hashBlock))
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "No information available about transaction");
 
@@ -187,7 +188,7 @@ Value listunspent(const Array& params, bool fHelp)
     if (params.size() > 2)
     {
         Array inputs = params[2].get_array();
-        BOOST_FOREACH(Value& input, inputs)
+        for (Value& input : inputs)
         {
             CBitcoinAddress address(input.get_str());
             if (!address.IsValid())
@@ -201,8 +202,7 @@ Value listunspent(const Array& params, bool fHelp)
     Array results;
     vector<COutput> vecOutputs;
     pwalletMain->AvailableCoins(vecOutputs, false);
-    BOOST_FOREACH(const COutput& out, vecOutputs)
-    {
+    for (const COutput& out : vecOutputs) {
         if (out.nDepth < nMinDepth || out.nDepth > nMaxDepth)
             continue;
 
@@ -256,7 +256,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
 
     CTransaction rawTx;
 
-    BOOST_FOREACH(Value& input, inputs)
+    for (Value& input : inputs)
     {
         const Object& o = input.get_obj();
 
@@ -279,7 +279,7 @@ Value createrawtransaction(const Array& params, bool fHelp)
     };
 
     set<CBitcoinAddress> setAddress;
-    BOOST_FOREACH(const Pair& s, sendTo)
+    for (const Pair& s : sendTo)
     {
         CBitcoinAddress address(s.name_);
         if (!address.IsValid())
@@ -396,7 +396,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
 
     // Fetch previous transactions (inputs):
     std::map<COutPoint, CScript> mapPrevOut;
-    for (unsigned int i = 0; i < mergedTx.vin.size(); i++)
+    for (const CTxIn& vin : mergedTx.vin)
     {
         CTransaction tempTx;
         MapPrevTx mapPrevTx;
@@ -405,11 +405,11 @@ Value signrawtransaction(const Array& params, bool fHelp)
         bool fInvalid;
 
         // FetchInputs aborts on failure, so we go one at a time.
-        tempTx.vin.push_back(mergedTx.vin[i]);
+        tempTx.vin.push_back(vin);
         tempTx.FetchInputs(txdb, unused, false, false, mapPrevTx, fInvalid);
 
         // Copy results into mapPrevOut:
-        BOOST_FOREACH(const CTxIn& txin, tempTx.vin)
+        for (const CTxIn& txin : tempTx.vin)
         {
             const uint256& prevHash = txin.prevout.hash;
             if (mapPrevTx.count(prevHash) && mapPrevTx[prevHash].second.vout.size()>txin.prevout.n)
@@ -423,7 +423,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
     {
         fGivenKeys = true;
         Array keys = params[2].get_array();
-        BOOST_FOREACH(Value k, keys)
+        for (const Value& k : keys)
         {
             CBitcoinSecret vchSecret;
             bool fGood = vchSecret.SetString(k.get_str());
@@ -441,8 +441,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
     if (params.size() > 1 && params[1].type() != null_type)
     {
         Array prevTxs = params[1].get_array();
-        BOOST_FOREACH(Value& p, prevTxs)
-        {
+        for (Value& p : prevTxs) {
             if (p.type() != obj_type)
                 throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "expected object with {\"txid'\",\"vout\",\"scriptPubKey\"}");
 
@@ -524,7 +523,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
     for (unsigned int i = 0; i < mergedTx.vin.size(); i++)
     {
         CTxIn& txin = mergedTx.vin[i];
-        if (mapPrevOut.count(txin.prevout) == 0)
+        if (mapPrevOut.find(txin.prevout) == mapPrevOut.end())
         {
             fComplete = false;
             continue;
@@ -539,7 +538,7 @@ Value signrawtransaction(const Array& params, bool fHelp)
         }
 
         // ... and merge in other signatures:
-        BOOST_FOREACH(const CTransaction& txv, txVariants)
+        for (const CTransaction& txv : txVariants)
         {
             txin.scriptSig = CombineSignatures(prevPubKey, mergedTx, i, txin.scriptSig, txv.vin[i].scriptSig);
         };
@@ -584,10 +583,10 @@ Value sendrawtransaction(const Array& params, bool fHelp)
     // See if the transaction is already in a block
     // or in the memory pool:
     CTransaction existingTx;
-    uint256 hashBlock = 0;
+    uint256 hashBlock = uint256();
     if (GetTransaction(hashTx, existingTx, hashBlock))
     {
-        if (hashBlock != 0)
+        if (hashBlock != uint256())
             throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, string("transaction already in block ")+hashBlock.GetHex());
         // Not in block, but already in the memory pool; will drop
         // through to re-relay it.
@@ -598,7 +597,7 @@ Value sendrawtransaction(const Array& params, bool fHelp)
         if (!AcceptToMemoryPool(mempool, tx, txdb))
             throw JSONRPCError(RPC_DESERIALIZATION_ERROR, "TX rejected");
 
-        SyncWithWallets(tx, NULL, true);
+        SyncWithWallets(tx, nullptr, true);
     };
     RelayTransaction(tx, hashTx);
 

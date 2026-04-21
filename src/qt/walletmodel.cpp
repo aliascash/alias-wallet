@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -19,14 +20,9 @@
 #include <QTimer>
 
 WalletModel::WalletModel(CWallet *wallet, OptionsModel *optionsModel, QObject *parent) :
-    QObject(parent), wallet(wallet), optionsModel(optionsModel), addressTableModel(0),
-    transactionTableModel(0),
-    cachedBalance(0), cachedSpectreBal(0), cachedStake(0), cachedUnconfirmedBalance(0), cachedImmatureBalance(0),
-    cachedNumTransactions(0),
-    cachedEncryptionStatus(Unencrypted),
-    cachedNumBlocks(0),
-    fForceCheckBalanceChanged(false),
-    fUnlockRescanRequested(false)
+    QObject(parent),
+    wallet(wallet),
+    optionsModel(optionsModel)
 {
     addressTableModel = new AddressTableModel(wallet, this);
     transactionTableModel = new TransactionTableModel(wallet, this);
@@ -93,8 +89,8 @@ void WalletModel::updateStatus()
 {
     EncryptionStatus newEncryptionStatus = getEncryptionStatus();
 
-    if(cachedEncryptionStatus != newEncryptionStatus)
-        emit encryptionStatusChanged(newEncryptionStatus);
+    if (cachedEncryptionStatus != newEncryptionStatus)
+        Q_EMIT encryptionStatusChanged(newEncryptionStatus);
 }
 
 void WalletModel::pollBalanceChanged()
@@ -114,10 +110,9 @@ void WalletModel::pollBalanceChanged()
         fForceCheckBalanceChanged = false;
 
         int newNumTransactions = getNumTransactions();
-        if(cachedNumTransactions != newNumTransactions)
-        {
+        if (cachedNumTransactions != newNumTransactions) {
             cachedNumTransactions = newNumTransactions;
-            emit numTransactionsChanged(newNumTransactions);
+            Q_EMIT numTransactionsChanged(newNumTransactions);
         }
 
         // Balance and number of transactions might have changed
@@ -160,7 +155,7 @@ void WalletModel::checkBalanceChanged(bool force)
         cachedUnconfirmedSpectreBalance = newUnconfirmedSpectreBalance;
         cachedImmatureBalance = newImmatureBalance;
         cachedImmatureSpectreBalance = newImmatureSpectreBalance;
-        emit balanceChanged(newBalance, newSpectreBal, newStake, newSpectreStake, newUnconfirmedBalance, newUnconfirmedSpectreBalance, newImmatureBalance, cachedImmatureSpectreBalance);
+        Q_EMIT balanceChanged(newBalance, newSpectreBal, newStake, newSpectreStake, newUnconfirmedBalance, newUnconfirmedSpectreBalance, newImmatureBalance, cachedImmatureSpectreBalance);
     }
 }
 
@@ -232,7 +227,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(const QList<SendCoinsRecipie
     std::vector<COutput> vCoins;
     wallet->AvailableCoins(vCoins, true, coinControl);
 
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for (const COutput& out : vCoins)
         nBalance += out.tx->vout[out.i].nValue;
 
     if(total > nBalance)
@@ -818,22 +813,20 @@ static void NotifyTransactionChanged(WalletModel *walletModel, CWallet *wallet, 
 
 void WalletModel::subscribeToCoreSignals()
 {
-    // Connect signals to wallet
     wallet->NotifyStatusChanged.connect(boost::bind(&NotifyKeyStoreStatusChanged, this, boost::placeholders::_1));
     wallet->NotifyAddressBookChanged.connect(boost::bind(NotifyAddressBookChanged, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3, boost::placeholders::_4, boost::placeholders::_5, boost::placeholders::_6));
     wallet->NotifyTransactionChanged.connect(boost::bind(NotifyTransactionChanged, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 
-    connect(this, SIGNAL(encryptionStatusChanged(int)), addressTableModel, SLOT(setEncryptionStatus(int)));
+    connect(this, &WalletModel::encryptionStatusChanged, addressTableModel, &AddressTableModel::setEncryptionStatus);
 }
 
 void WalletModel::unsubscribeFromCoreSignals()
 {
-    // Disconnect signals from wallet
     wallet->NotifyStatusChanged.disconnect(boost::bind(&NotifyKeyStoreStatusChanged, this, boost::placeholders::_1));
     wallet->NotifyAddressBookChanged.disconnect(boost::bind(NotifyAddressBookChanged, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3, boost::placeholders::_4, boost::placeholders::_5, boost::placeholders::_6));
     wallet->NotifyTransactionChanged.disconnect(boost::bind(NotifyTransactionChanged, this, boost::placeholders::_1, boost::placeholders::_2, boost::placeholders::_3));
 
-    disconnect(this, SIGNAL(encryptionStatusChanged(int)), addressTableModel, SLOT(setEncryptionStatus(int)));
+    disconnect(this, &WalletModel::encryptionStatusChanged, addressTableModel, &AddressTableModel::setEncryptionStatus);
 }
 
 // WalletModel::UnlockContext implementation
@@ -847,10 +840,8 @@ WalletModel::UnlockContext WalletModel::requestUnlock(WalletModel::UnlockMode mo
        was_locked = getEncryptionStatus() == Locked;
 
     }
-    if(was_locked)
-    {
-        // Request UI to unlock wallet
-        emit requireUnlock(mode);
+    if (was_locked) {
+        Q_EMIT requireUnlock(mode);
     }
     // If wallet is still locked, unlock was failed or cancelled, mark context as invalid
     bool valid = getEncryptionStatus() != Locked;
@@ -860,13 +851,10 @@ WalletModel::UnlockContext WalletModel::requestUnlock(WalletModel::UnlockMode mo
 
 void WalletModel::requestUnlockRescan()
 {
-    if(!fUnlockRescanRequested && getEncryptionStatus() == Locked)
-    {
+    if (!fUnlockRescanRequested && getEncryptionStatus() == Locked) {
         fUnlockRescanRequested = true;
-        // Request UI to unlock wallet
-        emit requireUnlock(rescan);
-        if (getEncryptionStatus() != Locked)
-        {
+        Q_EMIT requireUnlock(rescan);
+        if (getEncryptionStatus() != Locked) {
             fForceCheckBalanceChanged = true;
             if (!fWalletUnlockStakingOnly)
                 setWalletLocked(true);
@@ -906,7 +894,7 @@ bool WalletModel::getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const
 void WalletModel::getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs)
 {
     LOCK2(cs_main, wallet->cs_wallet);
-    BOOST_FOREACH(const COutPoint& outpoint, vOutpoints)
+    for (const COutPoint& outpoint : vOutpoints)
     {
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
@@ -926,7 +914,7 @@ void WalletModel::listCoins(std::map<QString, std::vector<std::pair<COutput,bool
     std::vector<COutPoint> vLockedCoins;
 
     // add locked coins
-    BOOST_FOREACH(const COutPoint& outpoint, vLockedCoins)
+    for (const COutPoint& outpoint : vLockedCoins)
     {
         if (!wallet->mapWallet.count(outpoint.hash)) continue;
         int nDepth = wallet->mapWallet[outpoint.hash].GetDepthInMainChain();
@@ -935,7 +923,7 @@ void WalletModel::listCoins(std::map<QString, std::vector<std::pair<COutput,bool
         vCoins.push_back(out);
     }
 
-    BOOST_FOREACH(const COutput& out, vCoins)
+    for (const COutput& out : vCoins)
     {
         COutput cout = out;
         bool isChangeOutput = false;
@@ -995,9 +983,12 @@ void WalletModel::listLockedCoins(std::vector<COutPoint>& vOutpts)
     return;
 }
 
-void WalletModel::emitBalanceChanged(qint64 balance, qint64 spectreBal, qint64 stake, qint64 spectreStake, qint64 unconfirmed, qint64 spectreUnconfirmed, qint64 immature, qint64 spectreImmature) {
-    emit balanceChanged(balance, spectreBal, stake, spectreStake, unconfirmed, spectreUnconfirmed, immature, spectreImmature); }
-void WalletModel::emitNumTransactionsChanged(int count) { emit numTransactionsChanged(count); }
-void WalletModel::emitEncryptionStatusChanged(int status) { emit encryptionStatusChanged(status); }
-void WalletModel::emitRequireUnlock(UnlockMode mode) { emit requireUnlock(mode); }
-void WalletModel::emitError(const QString &title, const QString &message, bool modal) { emit error(title, message, modal); }
+void WalletModel::emitBalanceChanged(qint64 balance, qint64 spectreBal, qint64 stake, qint64 spectreStake, qint64 unconfirmed, qint64 spectreUnconfirmed, qint64 immature, qint64 spectreImmature)
+{
+    Q_EMIT balanceChanged(balance, spectreBal, stake, spectreStake, unconfirmed, spectreUnconfirmed, immature, spectreImmature);
+}
+
+void WalletModel::emitNumTransactionsChanged(int count) { Q_EMIT numTransactionsChanged(count); }
+void WalletModel::emitEncryptionStatusChanged(int status) { Q_EMIT encryptionStatusChanged(status); }
+void WalletModel::emitRequireUnlock(UnlockMode mode) { Q_EMIT requireUnlock(mode); }
+void WalletModel::emitError(const QString &title, const QString &message, bool modal) { Q_EMIT error(title, message, modal); }
