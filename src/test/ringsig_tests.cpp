@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -33,9 +34,9 @@ void testRingSigs(int nRingSize)
     uint8_t *pSigc    = (uint8_t*) malloc(sizeof(uint8_t) *     EC_SECRET_SIZE * nRingSize);
     uint8_t *pSigr    = (uint8_t*) malloc(sizeof(uint8_t) *     EC_SECRET_SIZE * nRingSize);
 
-    BOOST_REQUIRE(NULL != pPubkeys);
-    BOOST_REQUIRE(NULL != pSigc);
-    BOOST_REQUIRE(NULL != pSigr);
+    BOOST_REQUIRE(nullptr != pPubkeys);
+    BOOST_REQUIRE(nullptr != pSigc);
+    BOOST_REQUIRE(nullptr != pSigr);
 
     CKey *key = new CKey[nRingSize];
     for (int i = 0; i < nRingSize; ++i)
@@ -92,8 +93,8 @@ void testRingSigABs(int nRingSize)
     uint8_t *pPubkeys = (uint8_t*) malloc(sizeof(uint8_t) * EC_COMPRESSED_SIZE * nRingSize);
     uint8_t *pSigS    = (uint8_t*) malloc(sizeof(uint8_t) *     EC_SECRET_SIZE * nRingSize);
 
-    BOOST_CHECK(NULL != pPubkeys);
-    BOOST_CHECK(NULL != pSigS);
+    BOOST_CHECK(nullptr != pPubkeys);
+    BOOST_CHECK(nullptr != pSigS);
 
     CKey *key = new CKey[nRingSize];
     for (int i = 0; i < nRingSize; ++i)

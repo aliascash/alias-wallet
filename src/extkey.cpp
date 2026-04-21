@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -278,7 +279,7 @@ int ExtractExtKeyPath(const std::string &sPath, std::vector<uint32_t> &vPath)
 
         vPath.push_back(nChild);
 
-        p = strtok(NULL, "/");
+        p = strtok(nullptr, "/");
 
         if (nChild == 0
             && vPath.size() != 1
@@ -529,7 +530,7 @@ bool CExtKeyAccount::SaveKey(const CKeyID &id, CEKAKey &keyIn)
     mapKeys[id] = keyIn;
 
     CStoredExtKey *pc;
-    if ((pc = GetChain(keyIn.nParent)) != NULL)
+    if ((pc = GetChain(keyIn.nParent)) != nullptr)
     {
         if (keyIn.nKey == pc->nGenerated) // TODO: gaps?
             pc->nGenerated++;
@@ -546,7 +547,7 @@ bool CExtKeyAccount::SaveKey(const CKeyID &id, CEKAKey &keyIn)
 
         // - check match
         CStoredExtKey *pa;
-        if ((pa = GetChain(keyIn.nParent)) != NULL)
+        if ((pa = GetChain(keyIn.nParent)) != nullptr)
         {
             if ((keyIn.nKey >> 31) == 1
                 && pa->fLocked == 1)
@@ -840,7 +841,7 @@ int LoopExtAccountsInDB(bool fInactive, LoopExtKeyCallback &callback)
             {
                 addr.Set(idAccount, CChainParams::EXT_ACC_HASH);
                 LogPrintf("WARNING: Could not read key %d of account %s\n", i, addr.ToString().c_str());
-                sea.vExtKeys[i] = NULL;
+                sea.vExtKeys[i] = nullptr;
                 delete sek;
             };
         };
@@ -917,7 +918,7 @@ int GetWordOffset(const char *p, const char *pwl, int max, int &o)
 
 static const unsigned char *mnLanguages[] =
 {
-    NULL,
+    nullptr,
     english_txt,
     french_txt,
     japanese_txt,
@@ -958,7 +959,7 @@ int MnemonicDetectLanguage(const std::string &sWordList)
         int nMiss = 0;
         char *p;
         p = strtok(tmp, " ");
-        while (p != NULL)
+        while (p != nullptr)
         {
             int ofs;
             if (0 == GetWordOffset(p, pwl, m, ofs))
@@ -968,7 +969,7 @@ int MnemonicDetectLanguage(const std::string &sWordList)
 
             if (!maxTries--)
                 break;
-            p = strtok(NULL, " ");
+            p = strtok(nullptr, " ");
         };
 
         if (nHit > nMiss)
@@ -1105,7 +1106,7 @@ int MnemonicDecode(int nLanguage, const std::string &sWordListIn, std::vector<ui
 
     char *p;
     p = strtok(tmp, " ");
-    while (p != NULL)
+    while (p != nullptr)
     {
         int ofs;
         if (0 != GetWordOffset(p, pwl, m, ofs))

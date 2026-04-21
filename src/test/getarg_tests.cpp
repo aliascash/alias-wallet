@@ -1,10 +1,10 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
 // SPDX-License-Identifier: MIT
 
 #include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 
 #include "util.h"
@@ -22,7 +22,7 @@ ResetArgs(const std::string& strArg)
 
     // Convert to char*:
     std::vector<const char*> vecChar;
-    BOOST_FOREACH(std::string& s, vecArg)
+    for (std::string& s : vecArg)
         vecChar.push_back(s.c_str());
 
     ParseParameters(vecChar.size(), &vecChar[0]);

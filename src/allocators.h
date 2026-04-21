@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -218,18 +219,18 @@ struct secure_allocator : public std::allocator<T>
     template<typename _Other> struct rebind
     { typedef secure_allocator<_Other> other; };
 
-    T* allocate(std::size_t n, const void *hint = 0)
+    T* allocate(std::size_t n, const void *hint = nullptr)
     {
         T *p;
         p = std::allocator<T>::allocate(n, hint);
-        if (p != NULL)
+        if (p != nullptr)
             LockedPageManager::instance.LockRange(p, sizeof(T) * n);
         return p;
     }
 
     void deallocate(T* p, std::size_t n)
     {
-        if (p != NULL)
+        if (p != nullptr)
         {
             OPENSSL_cleanse(p, sizeof(T) * n);
             LockedPageManager::instance.UnlockRange(p, sizeof(T) * n);
@@ -264,7 +265,7 @@ struct zero_after_free_allocator : public std::allocator<T>
 
     void deallocate(T* p, std::size_t n)
     {
-        if (p != NULL)
+        if (p != nullptr)
             OPENSSL_cleanse(p, sizeof(T) * n);
         std::allocator<T>::deallocate(p, n);
     }

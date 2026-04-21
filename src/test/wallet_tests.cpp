@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -52,7 +53,7 @@ static void add_coin(int64_t nValue, int nAge = 6*24, bool fIsFromMe = false, in
 
 static void empty_wallet(void)
 {
-    BOOST_FOREACH(COutput output, vCoins)
+    for (const COutput& output : vCoins)
         delete output.tx;
     vCoins.clear();
 }

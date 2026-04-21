@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -144,9 +145,9 @@ int SecretToPublicKey(const ec_secret& secret, ec_point& out)
     EC_POINT* pub = EC_POINT_new(ecgrp);
 
 
-    EC_POINT_mul(ecgrp, pub, bnIn, NULL, NULL, NULL);
+    EC_POINT_mul(ecgrp, pub, bnIn, nullptr, nullptr, nullptr);
 
-    BIGNUM* bnOut = EC_POINT_point2bn(ecgrp, pub, POINT_CONVERSION_COMPRESSED, BN_new(), NULL);
+    BIGNUM* bnOut = EC_POINT_point2bn(ecgrp, pub, POINT_CONVERSION_COMPRESSED, BN_new(), nullptr);
     if (!bnOut)
     {
         LogPrintf("%s: point2bn failed.\n", __func__);
@@ -207,17 +208,17 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     int rv = 0;
     std::vector<uint8_t> vchOutQ;
 
-    BN_CTX* bnCtx   = NULL;
-    BIGNUM* bnEphem = NULL;
-    BIGNUM* bnQ     = NULL;
-    EC_POINT* Q     = NULL;
-    BIGNUM* bnOutQ  = NULL;
-    BIGNUM* bnc     = NULL;
-    EC_POINT* C     = NULL;
-    BIGNUM* bnR     = NULL;
-    EC_POINT* R     = NULL;
-    EC_POINT* Rout  = NULL;
-    BIGNUM* bnOutR  = NULL;
+    BN_CTX* bnCtx   = nullptr;
+    BIGNUM* bnEphem = nullptr;
+    BIGNUM* bnQ     = nullptr;
+    EC_POINT* Q     = nullptr;
+    BIGNUM* bnOutQ  = nullptr;
+    BIGNUM* bnc     = nullptr;
+    EC_POINT* C     = nullptr;
+    BIGNUM* bnR     = nullptr;
+    EC_POINT* R     = nullptr;
+    EC_POINT* Rout  = nullptr;
+    BIGNUM* bnOutR  = nullptr;
 
     EC_GROUP* ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
@@ -245,7 +246,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         goto End;
     };
 
-    if (!(Q = EC_POINT_bn2point(ecgrp, bnQ, NULL, bnCtx)))
+    if (!(Q = EC_POINT_bn2point(ecgrp, bnQ, nullptr, bnCtx)))
     {
         LogPrintf("%s: Q EC_POINT_bn2point failed.\n", __func__);
         rv = 1;
@@ -255,7 +256,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     // -- eQ
     // EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n, const EC_POINT *q, const BIGNUM *m, BN_CTX *ctx);
     // EC_POINT_mul calculates the value generator * n + q * m and stores the result in r. The value n may be NULL in which case the result is just q * m.
-    if (!EC_POINT_mul(ecgrp, Q, NULL, Q, bnEphem, bnCtx))
+    if (!EC_POINT_mul(ecgrp, Q, nullptr, Q, bnEphem, bnCtx))
     {
         LogPrintf("%s: eQ EC_POINT_mul failed.\n", __func__);
         rv = 1;
@@ -296,7 +297,7 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
         goto End;
     };
 
-    if (!EC_POINT_mul(ecgrp, C, bnc, NULL, NULL, bnCtx))
+    if (!EC_POINT_mul(ecgrp, C, bnc, nullptr, nullptr, bnCtx))
     {
         LogPrintf("%s: C EC_POINT_mul failed.\n", __func__);
         rv = 1;
@@ -311,14 +312,14 @@ int StealthSecret(ec_secret& secret, ec_point& pubkey, const ec_point& pkSpend, 
     };
 
 
-    if (!(R = EC_POINT_bn2point(ecgrp, bnR, NULL, bnCtx)))
+    if (!(R = EC_POINT_bn2point(ecgrp, bnR, nullptr, bnCtx)))
     {
         LogPrintf("%s: R EC_POINT_bn2point failed.\n", __func__);
         rv = 1;
         goto End;
     };
 
-    if (!EC_POINT_mul(ecgrp, C, bnc, NULL, NULL, bnCtx))
+    if (!EC_POINT_mul(ecgrp, C, bnc, nullptr, nullptr, bnCtx))
     {
         LogPrintf("%s: C EC_POINT_mul failed.\n", __func__);
         rv = 1;
@@ -387,14 +388,14 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     int rv = 0;
     std::vector<uint8_t> vchOutP;
 
-    BN_CTX* bnCtx           = NULL;
-    BIGNUM* bnScanSecret    = NULL;
-    BIGNUM* bnP             = NULL;
-    EC_POINT* P             = NULL;
-    BIGNUM* bnOutP          = NULL;
-    BIGNUM* bnc             = NULL;
-    BIGNUM* bnOrder         = NULL;
-    BIGNUM* bnSpend         = NULL;
+    BN_CTX* bnCtx           = nullptr;
+    BIGNUM* bnScanSecret    = nullptr;
+    BIGNUM* bnP             = nullptr;
+    EC_POINT* P             = nullptr;
+    BIGNUM* bnOutP          = nullptr;
+    BIGNUM* bnc             = nullptr;
+    BIGNUM* bnOrder         = nullptr;
+    BIGNUM* bnSpend         = nullptr;
 
     EC_GROUP* ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
@@ -422,7 +423,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
         goto End;
     };
 
-    if (!(P = EC_POINT_bn2point(ecgrp, bnP, NULL, bnCtx)))
+    if (!(P = EC_POINT_bn2point(ecgrp, bnP, nullptr, bnCtx)))
     {
         LogPrintf("%s: P EC_POINT_bn2point failed.\n", __func__);
         rv = 1;
@@ -430,7 +431,7 @@ int StealthSecretSpend(ec_secret& scanSecret, ec_point& ephemPubkey, ec_secret& 
     };
 
     // -- dP
-    if (!EC_POINT_mul(ecgrp, P, NULL, P, bnScanSecret, bnCtx))
+    if (!EC_POINT_mul(ecgrp, P, nullptr, P, bnScanSecret, bnCtx))
     {
         LogPrintf("%s: dP EC_POINT_mul failed.\n", __func__);
         rv = 1;
@@ -526,10 +527,10 @@ int StealthSharedToSecretSpend(const ec_secret& sharedS, const ec_secret& spendS
     int rv = 0;
     std::vector<uint8_t> vchOutP;
 
-    BN_CTX* bnCtx           = NULL;
-    BIGNUM* bnc             = NULL;
-    BIGNUM* bnOrder         = NULL;
-    BIGNUM* bnSpend         = NULL;
+    BN_CTX* bnCtx           = nullptr;
+    BIGNUM* bnc             = nullptr;
+    BIGNUM* bnOrder         = nullptr;
+    BIGNUM* bnSpend         = nullptr;
 
     EC_GROUP* ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
@@ -606,13 +607,13 @@ int StealthSharedToPublicKey(const ec_point& pkSpend, const ec_secret &sharedS, 
     int rv = 0;
     std::vector<uint8_t> vchOutQ;
 
-    BN_CTX *bnCtx   = NULL;
-    BIGNUM *bnc     = NULL;
-    EC_POINT *C     = NULL;
-    BIGNUM *bnR     = NULL;
-    EC_POINT *R     = NULL;
-    EC_POINT *Rout  = NULL;
-    BIGNUM *bnOutR  = NULL;
+    BN_CTX *bnCtx   = nullptr;
+    BIGNUM *bnc     = nullptr;
+    EC_POINT *C     = nullptr;
+    BIGNUM *bnR     = nullptr;
+    EC_POINT *R     = nullptr;
+    EC_POINT *Rout  = nullptr;
+    BIGNUM *bnOutR  = nullptr;
 
     EC_GROUP *ecgrp = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
@@ -641,7 +642,7 @@ int StealthSharedToPublicKey(const ec_point& pkSpend, const ec_secret &sharedS, 
         goto End;
     };
 
-    if (!EC_POINT_mul(ecgrp, C, bnc, NULL, NULL, bnCtx))
+    if (!EC_POINT_mul(ecgrp, C, bnc, nullptr, nullptr, bnCtx))
     {
         LogPrintf("%s: C EC_POINT_mul failed.\n", __func__);
         rv = 1;
@@ -656,14 +657,14 @@ int StealthSharedToPublicKey(const ec_point& pkSpend, const ec_secret &sharedS, 
     };
 
 
-    if (!(R = EC_POINT_bn2point(ecgrp, bnR, NULL, bnCtx)))
+    if (!(R = EC_POINT_bn2point(ecgrp, bnR, nullptr, bnCtx)))
     {
         LogPrintf("%s: R EC_POINT_bn2point failed.\n", __func__);
         rv = 1;
         goto End;
     };
 
-    if (!EC_POINT_mul(ecgrp, C, bnc, NULL, NULL, bnCtx))
+    if (!EC_POINT_mul(ecgrp, C, bnc, nullptr, nullptr, bnCtx))
     {
         LogPrintf("%s: C EC_POINT_mul failed.\n", __func__);
         rv = 1;

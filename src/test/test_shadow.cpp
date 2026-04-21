@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -5,7 +6,7 @@
 
 #define BOOST_TEST_MODULE Spectre Test Suite
 #include <boost/test/unit_test.hpp>
-#include <boost/filesystem.hpp>
+#include "util/fs.h"
 
 #include "state.h"
 #include "db.h"
@@ -19,7 +20,7 @@ CClientUIInterface uiInterface;
 extern bool fPrintToConsole;
 extern void noui_connect();
 
-boost::filesystem::path pathTemp;
+fs::path pathTemp;
 
 struct TestingSetup {
     TestingSetup() {
@@ -28,7 +29,7 @@ struct TestingSetup {
         //pathTemp = GetTempPath() / strprintf("test_spectre_%lu_%i", (unsigned long)GetTime(), (int)(GetRand(100000)));
         pathTemp = GetTempPath() / "test_spectre";
         //printf("pathTemp %s\n", pathTemp.string().c_str());
-        boost::filesystem::create_directories(pathTemp);
+        fs::create_directories(pathTemp);
         mapArgs["-datadir"] = pathTemp.string();
         
         fDebug = true;
@@ -48,7 +49,7 @@ struct TestingSetup {
     ~TestingSetup()
     {
         delete pwalletMain;
-        pwalletMain = NULL;
+        pwalletMain = nullptr;
         bitdb.Flush(true);
     }
 };

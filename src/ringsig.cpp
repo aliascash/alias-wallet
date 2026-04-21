@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -18,9 +19,9 @@
 #include <openssl/obj_mac.h>
 
 
-static EC_GROUP *ecGrp   = NULL;
-static BN_CTX   *bnCtx   = NULL;
-static BIGNUM   *bnOrder = NULL;
+static EC_GROUP *ecGrp   = nullptr;
+static BN_CTX   *bnCtx   = nullptr;
+static BIGNUM   *bnOrder = nullptr;
 
 
 int initialiseRingSigs()
@@ -57,9 +58,9 @@ int finaliseRingSigs()
     BN_CTX_free(bnCtx);
     EC_GROUP_clear_free(ecGrp);
 
-    ecGrp   = NULL;
-    bnCtx   = NULL;
-    bnOrder = NULL;
+    ecGrp   = nullptr;
+    bnCtx   = nullptr;
+    bnOrder = nullptr;
 
     return 0;
 }
@@ -126,7 +127,7 @@ int getOldKeyImage(const CPubKey &publicKey, ec_point &keyImage)
 
     BN_CTX_start(bnCtx);
     BIGNUM *bnTmp = BN_CTX_get(bnCtx);
-    EC_POINT *ptPk = NULL;
+    EC_POINT *ptPk = nullptr;
 
     // Hash to BIGNUM
     if (!BN_bin2bn(pkHash.begin(), EC_SECRET_SIZE, bnTmp)
@@ -143,7 +144,7 @@ int getOldKeyImage(const CPubKey &publicKey, ec_point &keyImage)
         goto End;
 
     // PublicKey * Hash(PublicKey)
-    if (!EC_POINT_mul(ecGrp, ptPk, NULL, ptPk, bnTmp, bnCtx)
+    if (!EC_POINT_mul(ecGrp, ptPk, nullptr, ptPk, bnTmp, bnCtx)
     && (rv = errorN(1, "%s: EC_POINT_mul failed.", __func__)))
         goto End;
 
@@ -188,7 +189,7 @@ static int hashToEC(const uint8_t *p, uint32_t len, BIGNUM *bnTmp, EC_POINT *ptR
             BN_add(bnTmp, bnTmp, bnOne);
         }
     else
-        if (!EC_POINT_mul(ecGrp, ptRet, bnTmp, NULL, NULL, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptRet, bnTmp, nullptr, nullptr, bnCtx))
             return errorN(1, "%s: EC_POINT_mul failed.", __func__);
 
     return 0;
@@ -206,7 +207,7 @@ int generateKeyImage(const ec_point &publicKey, ec_secret secret, ec_point &keyI
     int rv = 0;
     BIGNUM *bnTmp = BN_CTX_get(bnCtx);
     BIGNUM *bnSec = BN_CTX_get(bnCtx);
-    EC_POINT *hG  = NULL;
+    EC_POINT *hG  = nullptr;
 
     if (!(hG = EC_POINT_new(ecGrp))
     && (rv = errorN(1, "%s: EC_POINT_new failed.", __func__)))
@@ -220,7 +221,7 @@ int generateKeyImage(const ec_point &publicKey, ec_secret secret, ec_point &keyI
     && (rv = errorN(1, "%s: BN_bin2bn failed.", __func__)))
         goto End;
 
-    if (!EC_POINT_mul(ecGrp, hG, NULL, hG, bnSec, bnCtx)
+    if (!EC_POINT_mul(ecGrp, hG, nullptr, hG, bnSec, bnCtx)
     && (rv = errorN(1, "%s: kimg EC_POINT_mul failed.", __func__)))
         goto End;
 
@@ -263,13 +264,13 @@ int generateRingSignature(const data_chunk &keyImage, const uint256 &txnHash, in
     BIGNUM   *bnT   = BN_CTX_get(bnCtx);
     BIGNUM   *bnH   = BN_CTX_get(bnCtx);
     BIGNUM   *bnSum = BN_CTX_get(bnCtx);
-    EC_POINT *ptT1  = NULL;
-    EC_POINT *ptT2  = NULL;
-    EC_POINT *ptT3  = NULL;
-    EC_POINT *ptPk  = NULL;
-    EC_POINT *ptKi  = NULL;
-    EC_POINT *ptL   = NULL;
-    EC_POINT *ptR   = NULL;
+    EC_POINT *ptT1  = nullptr;
+    EC_POINT *ptT2  = nullptr;
+    EC_POINT *ptT3  = nullptr;
+    EC_POINT *ptPk  = nullptr;
+    EC_POINT *ptKi  = nullptr;
+    EC_POINT *ptL   = nullptr;
+    EC_POINT *ptR   = nullptr;
 
     uint8_t tempData[66]; // hold raw point data to hash
     uint256 commitHash;
@@ -323,7 +324,7 @@ int generateRingSignature(const data_chunk &keyImage, const uint256 &txnHash, in
             // L = k * G
             // R = k * HashToEC(PKi)
 
-            if (!EC_POINT_mul(ecGrp, ptL, bnKS, NULL, NULL, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptL, bnKS, nullptr, nullptr, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
@@ -335,7 +336,7 @@ int generateRingSignature(const data_chunk &keyImage, const uint256 &txnHash, in
                 rv = 1; goto End;
             }
 
-            if (!EC_POINT_mul(ecGrp, ptR, NULL, ptT1, bnKS, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptR, nullptr, ptT1, bnKS, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
@@ -368,14 +369,14 @@ int generateRingSignature(const data_chunk &keyImage, const uint256 &txnHash, in
             }
 
             // ptT1 = k1 * Pi
-            if (!EC_POINT_mul(ecGrp, ptT1, NULL, ptPk, bnK1, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptT1, nullptr, ptPk, bnK1, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
             }
 
             // ptT2 = k2 * G
-            if (!EC_POINT_mul(ecGrp, ptT2, bnK2, NULL, NULL, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptT2, bnK2, nullptr, nullptr, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
@@ -396,14 +397,14 @@ int generateRingSignature(const data_chunk &keyImage, const uint256 &txnHash, in
             }
 
             // ptT1 = k1 * I
-            if (!EC_POINT_mul(ecGrp, ptT1, NULL, ptKi, bnK1, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptT1, nullptr, ptKi, bnK1, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
             }
 
             // ptT2 = k2 * ptT3
-            if (!EC_POINT_mul(ecGrp, ptT2, NULL, ptT3, bnK2, bnCtx))
+            if (!EC_POINT_mul(ecGrp, ptT2, nullptr, ptT3, bnK2, bnCtx))
             {
                 LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
                 rv = 1; goto End;
@@ -520,13 +521,13 @@ int verifyRingSignature(const data_chunk &keyImage, const uint256 &txnHash, int 
     BIGNUM   *bnC   = BN_CTX_get(bnCtx);
     BIGNUM   *bnR   = BN_CTX_get(bnCtx);
     BIGNUM   *bnSum = BN_CTX_get(bnCtx);
-    EC_POINT *ptT1  = NULL;
-    EC_POINT *ptT2  = NULL;
-    EC_POINT *ptT3  = NULL;
-    EC_POINT *ptPk  = NULL;
-    EC_POINT *ptKi  = NULL;
-    EC_POINT *ptL   = NULL;
-    EC_POINT *ptR   = NULL;
+    EC_POINT *ptT1  = nullptr;
+    EC_POINT *ptT2  = nullptr;
+    EC_POINT *ptT3  = nullptr;
+    EC_POINT *ptPk  = nullptr;
+    EC_POINT *ptKi  = nullptr;
+    EC_POINT *ptL   = nullptr;
+    EC_POINT *ptR   = nullptr;
 
     uint8_t tempData[66]; // hold raw point data to hash
     uint256 commitHash;
@@ -575,14 +576,14 @@ int verifyRingSignature(const data_chunk &keyImage, const uint256 &txnHash, int 
         }
 
         // ptT1 = ci * Pi
-        if (!EC_POINT_mul(ecGrp, ptT1, NULL, ptPk, bnC, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT1, nullptr, ptPk, bnC, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
         }
 
         // ptT2 = ri * G
-        if (!EC_POINT_mul(ecGrp, ptT2, bnR, NULL, NULL, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT2, bnR, nullptr, nullptr, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
@@ -603,14 +604,14 @@ int verifyRingSignature(const data_chunk &keyImage, const uint256 &txnHash, int 
         }
 
         // ptT1 = k1 * I
-        if (!EC_POINT_mul(ecGrp, ptT1, NULL, ptKi, bnC, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT1, nullptr, ptKi, bnC, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
         }
 
         // ptT2 = k2 * ptT3
-        if (!EC_POINT_mul(ecGrp, ptT2, NULL, ptT3, bnR, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT2, nullptr, ptT3, bnR, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
@@ -746,12 +747,12 @@ int generateRingSignatureAB(const data_chunk &keyImage, int nRingSize, int nSecr
     BIGNUM   *bnC  = BN_CTX_get(bnCtx);
     BIGNUM   *bnCj = BN_CTX_get(bnCtx);
     BIGNUM   *bnA  = BN_CTX_get(bnCtx);
-    EC_POINT *ptKi = NULL;
-    EC_POINT *ptPk = NULL;
-    EC_POINT *ptT1 = NULL;
-    EC_POINT *ptT2 = NULL;
-    EC_POINT *ptT3 = NULL;
-    EC_POINT *ptT4 = NULL;
+    EC_POINT *ptKi = nullptr;
+    EC_POINT *ptPk = nullptr;
+    EC_POINT *ptT1 = nullptr;
+    EC_POINT *ptT2 = nullptr;
+    EC_POINT *ptT3 = nullptr;
+    EC_POINT *ptT4 = nullptr;
 
     if (!(ptKi = EC_POINT_new(ecGrp))
       ||!(ptPk = EC_POINT_new(ecGrp))
@@ -777,7 +778,7 @@ int generateRingSignatureAB(const data_chunk &keyImage, int nRingSize, int nSecr
     }
 
     // ptT1 = alpha * G
-    if (!EC_POINT_mul(ecGrp, ptT1, bnA, NULL, NULL, bnCtx))
+    if (!EC_POINT_mul(ecGrp, ptT1, bnA, nullptr, nullptr, bnCtx))
     {
         LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
         rv = 1; goto End;
@@ -795,7 +796,7 @@ int generateRingSignatureAB(const data_chunk &keyImage, int nRingSize, int nSecr
 
     // ptT2 = alpha * H(P_j)
     // ptT2 = alpha * ptT3
-    if (!EC_POINT_mul(ecGrp, ptT2, NULL, ptT3, bnA, bnCtx))
+    if (!EC_POINT_mul(ecGrp, ptT2, nullptr, ptT3, bnA, bnCtx))
     {
         LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
         rv = 1; goto End;
@@ -885,14 +886,14 @@ int generateRingSignatureAB(const data_chunk &keyImage, int nRingSize, int nSecr
         }
 
         // ptT3 = s_{j+1}*H(P_{j+1})
-        if (!EC_POINT_mul(ecGrp, ptT3, NULL, ptT2, bnS, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT3, nullptr, ptT2, bnS, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
         }
 
         // ptT4 = c_{j+1}*I_j
-        if (!EC_POINT_mul(ecGrp, ptT4, NULL, ptKi, bnC, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT4, nullptr, ptKi, bnC, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
@@ -994,12 +995,12 @@ int verifyRingSignatureAB(const data_chunk &keyImage, int nRingSize, const uint8
     BIGNUM   *bnC1 = BN_CTX_get(bnCtx);
     BIGNUM   *bnT  = BN_CTX_get(bnCtx);
     BIGNUM   *bnS  = BN_CTX_get(bnCtx);
-    EC_POINT *ptKi = NULL;
-    EC_POINT *ptT1 = NULL;
-    EC_POINT *ptT2 = NULL;
-    EC_POINT *ptT3 = NULL;
-    EC_POINT *ptT4 = NULL;
-    EC_POINT *ptPk = NULL;
+    EC_POINT *ptKi = nullptr;
+    EC_POINT *ptT1 = nullptr;
+    EC_POINT *ptT2 = nullptr;
+    EC_POINT *ptT3 = nullptr;
+    EC_POINT *ptT4 = nullptr;
+    EC_POINT *ptPk = nullptr;
 
     if (!(ptKi = EC_POINT_new(ecGrp))
       ||!(ptT1 = EC_POINT_new(ecGrp))
@@ -1018,7 +1019,7 @@ int verifyRingSignatureAB(const data_chunk &keyImage, int nRingSize, const uint8
         goto End;
 
     // test ECC validity with: keyimage * order == infinity/identity
-    if (!EC_POINT_mul(ecGrp, ptT4, NULL, ptKi, bnOrder, bnCtx)
+    if (!EC_POINT_mul(ecGrp, ptT4, nullptr, ptKi, bnOrder, bnCtx)
             &&(rv = errorN(1, "%s: EC_POINT_mul failed.\n", __func__)))
         goto End;
     if (!EC_POINT_is_at_infinity(ecGrp, ptT4)
@@ -1075,14 +1076,14 @@ int verifyRingSignatureAB(const data_chunk &keyImage, int nRingSize, const uint8
         }
 
         // ptT3 = s_i*ptT2
-        if (!EC_POINT_mul(ecGrp, ptT3, NULL, ptT2, bnS, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT3, nullptr, ptT2, bnS, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;
         }
 
         // ptT1 = c_i*I_j
-        if (!EC_POINT_mul(ecGrp, ptT1, NULL, ptKi, bnC, bnCtx))
+        if (!EC_POINT_mul(ecGrp, ptT1, nullptr, ptKi, bnC, bnCtx))
         {
             LogPrintf("%s: EC_POINT_mul failed.\n", __func__);
             rv = 1; goto End;

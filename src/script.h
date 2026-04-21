@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -14,7 +15,6 @@
 #include <stdint.h>
 
 #ifndef Q_MOC_RUN
-#include <boost/foreach.hpp>
 #include <boost/variant.hpp>
 #endif
 
@@ -292,7 +292,7 @@ inline std::string ValueString(const std::vector<unsigned char>& vch)
 inline std::string StackString(const std::vector<std::vector<unsigned char> >& vStack)
 {
     std::string str;
-    BOOST_FOREACH(const std::vector<unsigned char>& vch, vStack)
+    for (const std::vector<unsigned char>& vch : vStack)
     {
         if (!str.empty())
             str += " ";
@@ -474,7 +474,7 @@ public:
     bool GetOp(iterator& pc, opcodetype& opcodeRet)
     {
          const_iterator pc2 = pc;
-         bool fRet = GetOp2(pc2, opcodeRet, NULL);
+         bool fRet = GetOp2(pc2, opcodeRet, nullptr);
          pc = begin() + (pc2 - begin());
          return fRet;
     }
@@ -486,7 +486,7 @@ public:
 
     bool GetOp(const_iterator& pc, opcodetype& opcodeRet) const
     {
-        return GetOp2(pc, opcodeRet, NULL);
+        return GetOp2(pc, opcodeRet, nullptr);
     }
 
     bool GetOp2(const_iterator& pc, opcodetype& opcodeRet, std::vector<unsigned char>* pvchRet) const

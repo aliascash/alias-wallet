@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -38,20 +39,20 @@ public:
     CAutoBN_CTX()
     {
         pctx = BN_CTX_new();
-        if (pctx == NULL)
-            throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned NULL");
+        if (pctx == nullptr)
+            throw bignum_error("CAutoBN_CTX : BN_CTX_new() returned nullptr");
     }
 
     ~CAutoBN_CTX()
     {
-        if (pctx != NULL)
+        if (pctx != nullptr)
             BN_CTX_free(pctx);
     }
 
     operator BN_CTX*() { return pctx; }
     BN_CTX& operator*() { return *pctx; }
     BN_CTX** operator&() { return &pctx; }
-    bool operator!() { return (pctx == NULL); }
+    bool operator!() { return (pctx == nullptr); }
 };
 
 
@@ -218,7 +219,7 @@ public:
 
     uint64_t getuint64()
     {
-        unsigned int nSize = BN_bn2mpi(this->pbn, NULL);
+        unsigned int nSize = BN_bn2mpi(this->pbn, nullptr);
         if (nSize < 4)
             return 0;
         std::vector<unsigned char> vch(nSize);
@@ -288,7 +289,7 @@ public:
 
     uint256 getuint256() const
     {
-        unsigned int nSize = BN_bn2mpi(this->pbn, NULL);
+        unsigned int nSize = BN_bn2mpi(this->pbn, nullptr);
         if (nSize < 4)
             return 0;
         std::vector<unsigned char> vch(nSize);
@@ -318,7 +319,7 @@ public:
 
     std::vector<unsigned char> getvch() const
     {
-        unsigned int nSize = BN_bn2mpi(this->pbn, NULL);
+        unsigned int nSize = BN_bn2mpi(this->pbn, nullptr);
         if (nSize <= 4)
             return std::vector<unsigned char>();
         std::vector<unsigned char> vch(nSize);
@@ -342,7 +343,7 @@ public:
 
     unsigned int GetCompact() const
     {
-        unsigned int nSize = BN_bn2mpi(this->pbn, NULL);
+        unsigned int nSize = BN_bn2mpi(this->pbn, nullptr);
         std::vector<unsigned char> vch(nSize);
         nSize -= 4;
         BN_bn2mpi(this->pbn, &vch[0]);
@@ -514,7 +515,7 @@ public:
     static CBigNum generatePrime(const unsigned int numBits, bool safe = false)
     {
         CBigNum ret;
-        if(!BN_generate_prime_ex(ret.pbn, numBits, (safe == true), NULL, NULL, NULL))
+        if(!BN_generate_prime_ex(ret.pbn, numBits, (safe == true), nullptr, nullptr, nullptr))
             throw bignum_error("CBigNum::generatePrime*= :BN_generate_prime_ex");
         return ret;
     }
@@ -540,7 +541,7 @@ public:
     */
     bool isPrime(const int checks=BN_prime_checks) const {
         CAutoBN_CTX pctx;
-        int ret = BN_is_prime_ex(this->pbn, checks, pctx, NULL);
+        int ret = BN_is_prime_ex(this->pbn, checks, pctx, nullptr);
         if (ret < 0) {
             throw bignum_error("CBigNum::isPrime :BN_is_prime");
         }
@@ -695,7 +696,7 @@ inline const CBigNum operator/(const CBigNum& a, const CBigNum& b)
 {
     CAutoBN_CTX pctx;
     CBigNum r;
-    if (!BN_div(r.pbn, NULL, a.pbn, b.pbn, pctx))
+    if (!BN_div(r.pbn, nullptr, a.pbn, b.pbn, pctx))
         throw bignum_error("CBigNum::operator/ : BN_div failed");
     return r;
 }

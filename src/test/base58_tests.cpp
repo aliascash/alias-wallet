@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -13,7 +14,6 @@
 #include "state.h"
 #include "chainparams.h"
 
-#include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>
 #include "json/json_spirit_reader_template.h"
 #include "json/json_spirit_utils.h"
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_CASE(base58_EncodeBase58)
 {
     Array tests = read_json("base58_encode_decode.json");
 
-    BOOST_FOREACH(Value& tv, tests)
+    for (Value& tv : tests)
     {
         Array test = tv.get_array();
         std::string strTest = write_string(tv, false);
@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(base58_DecodeBase58)
     Array tests = read_json("base58_encode_decode.json");
     std::vector<unsigned char> result;
 
-    BOOST_FOREACH(Value& tv, tests)
+    for (Value& tv : tests)
     {
         Array test = tv.get_array();
         std::string strTest = write_string(tv, false);
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_parse)
     // Save global state
     bool fTestNet_stored = fTestNet;
 
-    BOOST_FOREACH(Value& tv, tests)
+    for (Value& tv : tests)
     {
         Array test = tv.get_array();
         std::string strTest = write_string(tv, false);
@@ -194,7 +194,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_valid_gen)
     // Save global state
     bool fTestNet_stored = fTestNet;
 
-    BOOST_FOREACH(Value& tv, tests)
+    for (Value& tv : tests)
     {
         Array test = tv.get_array();
         std::string strTest = write_string(tv, false);
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE(base58_keys_invalid)
     CBitcoinSecret secret;
     CBitcoinAddress addr;
 
-    BOOST_FOREACH(Value& tv, tests)
+    for (Value& tv : tests)
     {
         Array test = tv.get_array();
         std::string strTest = write_string(tv, false);
