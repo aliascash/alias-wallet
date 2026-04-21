@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developers
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2013 NovaCoin Developers
@@ -16,7 +17,7 @@
 void ThreadStakeMiner(CWallet *pwallet);
 
 /* Generate a new block, without valid proof-of-work */
-CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false, int64_t* pFees = 0);
+CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake=false, int64_t* pFees = nullptr);
 
 /** Modify the extranonce in a block */
 void IncrementExtraNonce(CBlock* pblock, CBlockIndex* pindexPrev, unsigned int& nExtraNonce);
