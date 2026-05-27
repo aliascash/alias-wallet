@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "netbase.h"
+#include "net/netbase.h"
 
 using namespace std;
 

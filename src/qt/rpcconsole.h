@@ -10,7 +10,7 @@
 #include "guiutil.h"
 #include "peertablemodel.h"
 
-#include "net.h"
+#include "net/net.h"
 
 #include <QDialog>
 

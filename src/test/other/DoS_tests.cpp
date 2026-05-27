@@ -13,9 +13,9 @@
 #include <boost/foreach.hpp>
 
 #include "main.h"
-#include "wallet.h"
-#include "net.h"
-#include "util.h"
+#include "wallet/wallet.h"
+#include "net/net.h"
+#include "util/util.h"
 
 #include <stdint.h>
 

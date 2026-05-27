@@ -6,16 +6,20 @@
 # SPDX-License-Identifier: MIT
 #
 # ===========================================================================
+#
+# Generates the autotools build files (./configure + Makefile.in's) from
+# configure.ac and src/Makefile.am. Required once after a fresh checkout
+# and after any change to configure.ac or *.am files.
+#
+# Run from the repository root:
+#   ./autogen.sh
+#   ./configure --enable-gui
+#   make
+#
+# The legacy CMake build under scripts/cmake-build*.{sh,bat} is being
+# retired in favor of this autotools flow.
 
 ownLocation="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${ownLocation}"
 
-echo
-echo "Nothing to prepare at this stage."
-echo
-echo "To build, just run one of the cmake-build* scripts on the scripts folder:"
-echo
-ls -1 scripts/cmake-build*
-echo
-echo "Use option -h to see their possibilities"
-echo
+autoreconf --install --force --warnings=all

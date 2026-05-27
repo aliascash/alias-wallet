@@ -3,12 +3,12 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "key.h"
-#include "keystore.h"
+#include "key/key.h"
+#include "key/keystore.h"
 #include "main.h"
-#include "script.h"
+#include "script/script.h"
 #include "uint256.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 #include <boost/assign/std/vector.hpp>
 #include <boost/foreach.hpp>

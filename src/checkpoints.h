@@ -8,8 +8,8 @@
 #define  BITCOIN_CHECKPOINT_H
 
 #include <map>
-#include "net.h"
-#include "util.h"
+#include "net/net.h"
+#include "util/util.h"
 
 class uint256;
 class CBlockIndex;

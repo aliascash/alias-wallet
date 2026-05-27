@@ -9,7 +9,7 @@
 
 #include "checkpoints.h"
 
-#include "txdb.h"
+#include "wallet/txdb.h"
 #include "main.h"
 #include "uint256.h"
 

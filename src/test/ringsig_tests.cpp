@@ -16,8 +16,8 @@
 
 #include <ctime>
 
-#include "ringsig.h"
-#include "chainparams.h"
+#include "anon/ringsig.h"
+#include "kernel/chainparams.h"
 
 using namespace boost::chrono;
 

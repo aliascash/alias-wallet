@@ -18,7 +18,7 @@
 #include "json/json_spirit_utils.h"
 
 #include "main.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 using namespace std;
 using namespace json_spirit;

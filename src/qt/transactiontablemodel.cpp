@@ -13,9 +13,9 @@
 #include "optionsmodel.h"
 #include "addresstablemodel.h"
 #include "bitcoinunits.h"
-#include "sync.h"
+#include "util/sync.h"
 
-#include "wallet.h"
+#include "wallet/wallet.h"
 #include "interface.h"
 #include "shutdown.h"
 

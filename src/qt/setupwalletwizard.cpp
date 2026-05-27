@@ -4,12 +4,12 @@
 // SPDX-License-Identifier: MIT
 
 #include "setupwalletwizard.h"
-#include "extkey.h"
-#include "util.h"
+#include "key/extkey.h"
+#include "util/util.h"
 #include "guiutil.h"
 #include "guiconstants.h"
 #include "base58.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 #include <QtWidgets>
 #include <QtConcurrent>

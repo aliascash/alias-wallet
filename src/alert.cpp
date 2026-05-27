@@ -12,10 +12,10 @@
 #include <map>
 
 #include "alert.h"
-#include "chainparams.h"
-#include "key.h"
-#include "net.h"
-#include "sync.h"
+#include "kernel/chainparams.h"
+#include "key/key.h"
+#include "net/net.h"
+#include "util/sync.h"
 #include "interface.h"
 
 

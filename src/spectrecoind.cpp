@@ -5,14 +5,14 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "rpcserver.h"
-#include "rpcclient.h"
-#include "init.h"
+#include "rpc/rpcserver.h"
+#include "rpc/rpcclient.h"
+#include "init/init.h"
 
 #include <boost/algorithm/string/predicate.hpp>
 #include <signal.h>
 
-#include "protocol.h"
+#include "net/protocol.h"
 #ifdef _MSC_BUILD
 #include "win/unistd.h"
 #endif

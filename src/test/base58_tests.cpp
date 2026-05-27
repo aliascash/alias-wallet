@@ -6,12 +6,12 @@
 
 #include "base58.h"
 
-#include "key.h"
-#include "script.h"
+#include "key/key.h"
+#include "script/script.h"
 #include "uint256.h"
-#include "util.h"
+#include "util/util.h"
 #include "state.h"
-#include "chainparams.h"
+#include "kernel/chainparams.h"
 
 #include <boost/foreach.hpp>
 #include <boost/test/unit_test.hpp>

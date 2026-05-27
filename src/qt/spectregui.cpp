@@ -18,11 +18,11 @@
 #include "askpassphrasedialog.h"
 #include "notificator.h"
 #include "guiutil.h"
-#include "wallet.h"
-#include "util.h"
-#include "init.h"
-#include "version.h"
-#include "stealth.h"
+#include "wallet/wallet.h"
+#include "util/util.h"
+#include "init/init.h"
+#include "util/version.h"
+#include "anon/stealth.h"
 
 #ifdef Q_OS_MACOS
 #include "macdockiconhandler.h"

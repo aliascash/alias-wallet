@@ -55,14 +55,14 @@ AC_CHECK_LIB([pthread], [pthread_self], , [AC_MSG_ERROR([libpthread not found])]
 AC_LANG_CPLUSPLUS
 # TODO investigate whether earlier Boost versions will still work.
 BOOST_REQUIRE([1.62])
-BOOST_SYSTEM([mt])
-BOOST_CHRONO([mt])
-BOOST_FILESYSTEM([mt])
-BOOST_PROGRAM_OPTIONS([mt])
-BOOST_THREAD([mt])
+BOOST_SYSTEM([])
+BOOST_CHRONO([])
+BOOST_FILESYSTEM([])
+BOOST_PROGRAM_OPTIONS([])
+BOOST_THREAD([])
 BOOST_ASIO
-BOOST_DATE_TIME([mt])
-BOOST_IOSTREAMS([mt])
+BOOST_DATE_TIME([])
+BOOST_IOSTREAMS([])
 MACOS_RPATH=""
 AC_ARG_ENABLE([gui], [AS_HELP_STRING([--enable-gui], [Build the Qt GUI wallet])])
 if test "x$enable_gui" = "xyes" ; then
@@ -94,7 +94,7 @@ if test "x$enable_gui" = "xyes" ; then
     AC_SUBST([LRELEASE])
     AC_MSG_NOTICE([Using Qt5 at $with_qt5])
   ], [
-    PKG_CHECK_MODULES(QT5, [Qt5Core Qt5Gui Qt5Widgets Qt5Network Qt5WebChannel Qt5Quick Qt5QuickWidgets Qt5WebView Qt5WebSockets Qt5Svg], [AC_MSG_NOTICE([Found Qt5 using pkg-config.])], [
+    PKG_CHECK_MODULES(QT5, [Qt5Core Qt5Gui Qt5Widgets Qt5Network Qt5WebChannel Qt5Quick Qt5QuickWidgets Qt5WebView Qt5WebSockets Qt5Svg Qt5Concurrent], [AC_MSG_NOTICE([Found Qt5 using pkg-config.])], [
       PKG_CHECK_MODULES(QT5, [QtCore >= 5 QtGui >= 5 QtWidgets >= 5 QtNetwork >= 5 QtWebChannel >= 5 QtQuick >= 5 QtQuickWidgets >= 5 QtWebView >= 5 QtWebSockets >= 5 QtSvg >= 5], [AC_MSG_NOTICE([Found Qt >= 5 using pkg-config.])], [
         AC_MSG_ERROR([Qt5 not found.])
       ])

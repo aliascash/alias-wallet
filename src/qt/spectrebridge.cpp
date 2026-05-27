@@ -25,18 +25,18 @@
 #include "optionsmodel.h"
 
 #include "bitcoinunits.h"
-#include "coincontrol.h"
+#include "wallet/coincontrol.h"
 #include "coincontroldialog.h"
-#include "ringsig.h"
+#include "anon/ringsig.h"
 
 #include "askpassphrasedialog.h"
 
-#include "txdb.h"
+#include "wallet/txdb.h"
 #include "state.h"
 
-#include "wallet.h"
+#include "wallet/wallet.h"
 
-#include "extkey.h"
+#include "key/extkey.h"
 
 #include "aliasbridgestrings.h"
 

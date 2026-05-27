@@ -12,7 +12,7 @@
 #include <string>
 
 #include "uint256.h"
-#include "util.h"
+#include "util/util.h"
 
 class CNode;
 

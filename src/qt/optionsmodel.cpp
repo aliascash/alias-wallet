@@ -8,10 +8,10 @@
 #include "bitcoinunits.h"
 #include <QSettings>
 
-#include "init.h"
-#include "walletdb.h"
+#include "init/init.h"
+#include "wallet/walletdb.h"
 #include "guiutil.h"
-#include "ringsig.h"
+#include "anon/ringsig.h"
 
 OptionsModel::OptionsModel(QObject *parent) :
     QAbstractListModel(parent)

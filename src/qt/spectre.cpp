@@ -17,7 +17,7 @@
 #include "websocketclientwrapper.h"
 #include "websockettransport.h"
 
-#include "init.h"
+#include "init/init.h"
 #include "interface.h"
 
 #include <QApplication>

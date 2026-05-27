@@ -12,13 +12,13 @@
 #define __PRETTY_FUNCTION__ BOOST_CURRENT_FUNCTION
 #endif
 
-#include "core.h"
+#include "primitives/core.h"
 #include "bignum.h"
-#include "sync.h"
-#include "txmempool.h"
-#include "net.h"
-#include "script.h"
-#include "scrypt.h"
+#include "util/sync.h"
+#include "wallet/txmempool.h"
+#include "net/net.h"
+#include "script/script.h"
+#include "crypto/scrypt.h"
 #include "state.h"
 
 #include <list>

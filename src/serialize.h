@@ -24,8 +24,8 @@
 #include <boost/tuple/tuple.hpp>
 #endif
 
-#include "allocators.h"
-#include "version.h"
+#include "support/allocators.h"
+#include "util/version.h"
 #include "types.h"
 
 class CAutoFile;

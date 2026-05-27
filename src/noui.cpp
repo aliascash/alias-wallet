@@ -6,8 +6,8 @@
 // SPDX-License-Identifier: MIT
 
 #include "interface.h"
-#include "init.h"
-#include "rpcserver.h"
+#include "init/init.h"
+#include "rpc/rpcserver.h"
 
 #include <string>
 

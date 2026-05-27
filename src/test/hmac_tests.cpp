@@ -3,8 +3,8 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "hash.h"
-#include "util.h"
+#include "crypto/hash.h"
+#include "util/util.h"
 
 #include <boost/test/unit_test.hpp>
 

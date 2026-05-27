@@ -7,7 +7,7 @@
 #ifndef TRANSACTIONRECORD_H
 #define TRANSACTIONRECORD_H
 
-#include "wallet.h"
+#include "wallet/wallet.h"
 #include "uint256.h"
 
 #include <QList>

@@ -8,9 +8,9 @@
 #include <boost/filesystem.hpp>
 
 #include "state.h"
-#include "db.h"
+#include "wallet/db.h"
 #include "main.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 
 CWallet *pwalletMain;

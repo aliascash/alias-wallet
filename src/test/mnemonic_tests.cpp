@@ -7,15 +7,15 @@
 #include <boost/test/unit_test.hpp>
 
 #include "base58.h"
-#include "key.h"
-#include "extkey.h"
+#include "key/key.h"
+#include "key/extkey.h"
 #include "uint256.h"
-#include "util.h"
-#include "chainparams.h"
+#include "util/util.h"
+#include "kernel/chainparams.h"
 #include "state.h"
 #include "serialize.h"
 
-#include "pbkdf2.h"
+#include "crypto/pbkdf2.h"
 
 #include <iostream>
 #include <fstream>

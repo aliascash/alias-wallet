@@ -8,8 +8,8 @@
 #include <boost/foreach.hpp>
 
 #include "main.h"
-#include "wallet.h"
-#include "util.h"
+#include "wallet/wallet.h"
+#include "util/util.h"
 
 using namespace std;
 

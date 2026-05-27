@@ -1,0 +1,10 @@
+SHARED_EXCLUDED_SUBTREES = ["src/leveldb/",
+                 "src/crc32c/",
+                 "src/secp256k1/",
+                 "src/minisketch/",
+                 "src/lz4/",
+                 "src/unilib/",
+                 "src/xxhash/",
+                 "src/key/wordlists/",
+                 "src/usbdevice/ledger/",
+                ]

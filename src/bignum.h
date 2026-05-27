@@ -10,7 +10,7 @@
 
 #include "serialize.h"
 #include "uint256.h"
-#include "version.h"
+#include "util/version.h"
 
 #include <openssl/bn.h>
 

@@ -10,8 +10,8 @@
 #include "bitcoinunits.h"
 
 #include "main.h"
-#include "wallet.h"
-#include "txdb.h"
+#include "wallet/wallet.h"
+#include "wallet/txdb.h"
 #include "interface.h"
 #include "base58.h"
 

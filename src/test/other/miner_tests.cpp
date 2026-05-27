@@ -5,12 +5,12 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "init.h"
+#include "init/init.h"
 #include "main.h"
 #include "uint256.h"
-#include "util.h"
-#include "wallet.h"
-#include "miner.h"
+#include "util/util.h"
+#include "wallet/wallet.h"
+#include "pos/miner.h"
 
 extern void SHA256Transform(void* pstate, void* pinput, const void* pinit);
 

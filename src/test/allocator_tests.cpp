@@ -5,9 +5,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "init.h"
+#include "init/init.h"
 #include "main.h"
-#include "util.h"
+#include "util/util.h"
 
 BOOST_AUTO_TEST_SUITE(allocator_tests)
 

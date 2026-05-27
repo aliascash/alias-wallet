@@ -8,10 +8,10 @@
 #include <string>
 #include <vector>
 
-#include "key.h"
+#include "key/key.h"
 #include "base58.h"
 #include "uint256.h"
-#include "util.h"
+#include "util/util.h"
 
 using namespace std;
 

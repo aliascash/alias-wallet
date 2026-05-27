@@ -10,7 +10,7 @@
 
 #include "guiconstants.h"
 #include "interface.h"
-#include "util.h"
+#include "util/util.h"
 
 #include <QByteArray>
 #include <QDataStream>

@@ -1,0 +1,38 @@
+# ==============================================================================
+#                          Alias Wallet CODEOWNERS
+# ==============================================================================
+#
+# Configuration of code ownership and review approvals for the
+# alias-wallet repository.
+#
+# Order is not important; if a modified file or directory matches a
+# fnmatch, the listed reviewer will be mentioned in a PR comment
+# requesting a review.
+#
+# Regular contributors are free to add their names to specific
+# directories or files provided that they are willing to provide a
+# review.
+#
+# Absence from this list should not be interpreted as a discouragement
+# to review a pull request. Peer review is always welcome and is a
+# critical component of the progress of the codebase. Information on
+# peer review guidelines can be found in .github/CONTRIBUTING.md.
+
+
+# Maintainers
+#   TODO: list current maintainer GitHub handles here, e.g.
+#   *  @maintainer-handle
+
+
+# Subsystem owners
+#
+#   Once the modernization lands the subdir layout described in the
+#   migration plan, add per-subsystem ownership here. For example:
+#
+#   /src/kernel/                @consensus-reviewer
+#   /src/pos/                   @pos-reviewer
+#   /src/qt/                    @ui-reviewer
+#   /src/ringsig.cpp            @privacy-reviewer
+#   /src/anonymize.cpp          @privacy-reviewer
+#   /src/stealth.cpp            @privacy-reviewer
+#   /src/smessage.cpp           @smessage-reviewer

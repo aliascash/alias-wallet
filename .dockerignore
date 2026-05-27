@@ -3,8 +3,36 @@
 #
 # SPDX-License-Identifier: MIT
 
-# Ignore git submodules as they produce an error
-# if the clone is copied to the intermediate docker build container!
+# Submodules that the Dockerfile clones fresh inside the container.
 db4.8
 leveldb
 tor
+
+# Modernization scaffolding:
+#   - external.deprecated/ is the old CMake-based dep glue
+#   - test/ is the lifted Particl functional test framework, not needed
+#     to compile the wallet itself
+# (depends/ IS included because Dockerfile.win cross-compiles via it.)
+.git
+.github
+external.deprecated
+test
+out
+dist
+
+# Build artifacts
+*.o
+*.lo
+*.la
+*.a
+*.so
+.deps
+.libs
+obj
+src/obj
+src/obj-test
+src/qt/moc_*
+src/qt/qrc_*
+src/qt/ui_*
+src/qt/locale/*.qm
+*.log

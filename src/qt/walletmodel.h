@@ -11,8 +11,8 @@
 #include <vector>
 #include <map>
 
-#include "allocators.h" /* for SecureString */
-#include "stealth.h"
+#include "support/allocators.h" /* for SecureString */
+#include "anon/stealth.h"
 
 class OptionsModel;
 class AddressTableModel;

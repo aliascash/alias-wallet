@@ -11,12 +11,12 @@
 
 #include "alert.h"
 #include "checkpoints.h"
-#include "db.h"
-#include "txdb.h"
-#include "net.h"
-#include "init.h"
+#include "wallet/db.h"
+#include "wallet/txdb.h"
+#include "net/net.h"
+#include "init/init.h"
 #include "interface.h"
-#include "kernel.h"
+#include "pos/kernel.h"
 
 
 using namespace std;

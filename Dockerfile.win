@@ -1,0 +1,136 @@
+# syntax=docker/dockerfile:1.4
+# Cross-compile the modernized Alias wallet to Windows (x86_64) using
+# mingw-w64. Produces aliaswalletd.exe and aliaswallet.exe.
+#
+# Build:    docker build -t alias-modernized-win -f Dockerfile.win .
+# Extract:  docker run --rm -v "$PWD/dist/windows-x86_64:/host-out" alias-modernized-win sh -c "cp /build-out/* /host-out/"
+#
+# Time:
+#   - apt install     ~5 min
+#   - depends build   ~60-90 min  (Qt5 for mingw is the slow one)
+#   - leveldb mingw   ~2 min
+#   - db4.8 mingw     ~3 min
+#   - wallet build    ~30 min
+#   total first build ~100-130 min
+
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG JOBS=4
+ENV HOST=x86_64-w64-mingw32
+
+# Native toolchain + mingw cross-compiler + autotools.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        autoconf \
+        automake \
+        libtool \
+        autoconf-archive \
+        autotools-dev \
+        bsdmainutils \
+        pkg-config \
+        python3 \
+        git \
+        ca-certificates \
+        curl \
+        wget \
+        bison \
+        flex \
+        cmake \
+        nsis \
+        g++-mingw-w64-x86-64 \
+        gcc-mingw-w64-x86-64 \
+        binutils-mingw-w64-x86-64 \
+        zip \
+        unzip \
+        ccache \
+    && rm -rf /var/lib/apt/lists/*
+
+# Use the POSIX threading model — required by Qt and modern C++.
+RUN update-alternatives --set x86_64-w64-mingw32-g++ /usr/bin/x86_64-w64-mingw32-g++-posix \
+    && update-alternatives --set x86_64-w64-mingw32-gcc /usr/bin/x86_64-w64-mingw32-gcc-posix
+
+WORKDIR /build/alias-modernized
+
+# Layer A: COPY depends/ ONLY first, so the multi-hour mingw deps build
+# stays cached when only wallet source changes.
+COPY depends ./depends
+
+# Layer B: Build all mingw dependencies. Qt is the slow one (~45 min).
+# NO_QT=0 means Qt IS built. NO_USB=1, NO_ZMQ=1, NO_UPNP=1, NO_NATPMP=1,
+# NO_USDT=1, NO_MULTIPROCESS=1: Alias doesn't use these subsystems.
+RUN --mount=type=cache,target=/build/alias-modernized/depends/sources,sharing=locked \
+    cd depends && make -j${JOBS} HOST=${HOST} CXX_STANDARD=c++17 \
+        NO_USB=1 NO_ZMQ=1 NO_UPNP=1 NO_NATPMP=1 NO_USDT=1 NO_MULTIPROCESS=1
+
+# Layer C: Clone + build Alias-patched leveldb with mingw cross.
+RUN git clone --depth 1 https://github.com/aliascash/leveldb.git
+RUN cd leveldb && make -j${JOBS} \
+        CC=${HOST}-gcc \
+        CXX=${HOST}-g++ \
+        TARGET_OS=OS_WINDOWS_CROSSCOMPILE \
+        OPT="-O2 -fPIC -DNDEBUG"
+
+# Layer D: Clone + build BDB 4.8 with mingw cross.
+RUN git clone --depth 1 https://github.com/aliascash/db4.8.git
+RUN cd db4.8/build_unix && \
+        ../dist/configure \
+            --host=${HOST} \
+            --disable-shared \
+            --enable-static \
+            --enable-cxx \
+            --disable-replication \
+            --disable-compression \
+            --enable-mingw \
+            --with-pic \
+        && make -j${JOBS} libdb_cxx-4.8.a \
+        && ln -sf libdb_cxx-4.8.a libdb_cxx.a
+
+# Layer E: COPY the rest of the wallet source AFTER deps are built.
+# This is the layer that invalidates per code change; everything above
+# stays cached.
+COPY . .
+
+# Layer F: Configure + build the wallet for mingw.
+# Supplementary mingw cross libs discovered during the iterative wallet
+# build (placed here so it does NOT invalidate the depends/ layer above
+# when we add more).
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libz-mingw-w64-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# libz-mingw-w64-dev ships the lib + header but no pkg-config .pc file,
+# so PKG_CHECK_MODULES(ZLIB,...) in configure.ac fails. Write one.
+RUN mkdir -p /usr/x86_64-w64-mingw32/lib/pkgconfig && \
+    printf 'prefix=/usr/x86_64-w64-mingw32\nexec_prefix=${prefix}\nlibdir=${exec_prefix}/lib\nincludedir=${prefix}/include\n\nName: zlib\nDescription: zlib compression library\nVersion: 1.2.11\n\nLibs: -L${libdir} -lz\nCflags: -I${includedir}\n' \
+        > /usr/x86_64-w64-mingw32/lib/pkgconfig/zlib.pc
+
+# The depends/-generated config.site has a syntax error in our build
+# (line 156 unexpected end), so we bypass it and feed configure the
+# depends/ paths directly via PKG_CONFIG_PATH and explicit flags.
+ENV PKG_CONFIG_PATH=/build/alias-modernized/depends/${HOST}/lib/pkgconfig:/usr/x86_64-w64-mingw32/lib/pkgconfig
+ENV PKG_CONFIG_LIBDIR=/build/alias-modernized/depends/${HOST}/lib/pkgconfig:/usr/x86_64-w64-mingw32/lib/pkgconfig
+RUN ./autogen.sh
+RUN ./configure \
+        --prefix=/ \
+        --host=${HOST} \
+        --with-boost=/build/alias-modernized/depends/${HOST} \
+        OPENSSL_LIBS="-L/build/alias-modernized/depends/${HOST}/lib -lssl -lcrypto" \
+        OPENSSL_CFLAGS="-I/build/alias-modernized/depends/${HOST}/include" \
+        LIBEVENT_LIBS="-L/build/alias-modernized/depends/${HOST}/lib -levent" \
+        LIBEVENT_CFLAGS="-I/build/alias-modernized/depends/${HOST}/include" \
+        ZLIB_LIBS="-lz" \
+        ZLIB_CFLAGS="" \
+        CPPFLAGS="-I/build/alias-modernized/depends/${HOST}/include" \
+        LDFLAGS="-L/build/alias-modernized/depends/${HOST}/lib -Wl,--allow-multiple-definition"
+RUN make -j${JOBS}
+
+# Layer G: stage the .exe outputs for extraction.
+# libtool puts the real static-linked .exe at src/.libs/<name>.exe; the
+# file in src/ itself is a tiny shell-script wrapper. Pull from .libs.
+RUN mkdir -p /build-out \
+    && cp -v src/.libs/aliaswalletd.exe /build-out/ 2>/dev/null || true \
+    && cp -v src/.libs/aliaswallet.exe /build-out/ 2>/dev/null || true \
+    && ls -la /build-out/
+
+CMD ["ls", "-la", "/build-out"]

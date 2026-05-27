@@ -8,8 +8,8 @@
 #include "bitcoinaddressvalidator.h"
 #include "walletmodel.h"
 #include "bitcoinunits.h"
-#include "util.h"
-#include "init.h"
+#include "util/util.h"
+#include "init/init.h"
 
 #include <QString>
 #include <QDateTime>

@@ -9,9 +9,9 @@
 
 #include <inttypes.h>
 
-#include "init.h"
-#include "wallet.h"
-#include "walletdb.h"
+#include "init/init.h"
+#include "wallet/wallet.h"
+#include "wallet/walletdb.h"
 
 BOOST_AUTO_TEST_SUITE(accounting_tests)
 

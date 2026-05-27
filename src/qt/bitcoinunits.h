@@ -7,7 +7,7 @@
 #ifndef BITCOINUNITS_H
 #define BITCOINUNITS_H
 
-#include "currency.h"
+#include "wallet/currency.h"
 
 #include <QString>
 #include <QAbstractListModel>

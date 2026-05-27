@@ -4,11 +4,11 @@
 //
 // SPDX-License-Identifier: MIT
 
-#include "rpcserver.h"
-#include "rpcclient.h"
+#include "rpc/rpcserver.h"
+#include "rpc/rpcclient.h"
 
 #include "base58.h"
-#include "netbase.h"
+#include "net/netbase.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/test/unit_test.hpp>

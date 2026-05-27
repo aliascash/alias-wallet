@@ -9,7 +9,7 @@
 
 #include <string>
 #include <limits>
-#include "sync.h"
+#include "util/sync.h"
 
 enum eNodeType
 {

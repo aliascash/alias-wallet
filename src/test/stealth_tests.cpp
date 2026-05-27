@@ -7,7 +7,7 @@
 
 #include <boost/atomic.hpp>
 
-#include "stealth.h"
+#include "anon/stealth.h"
 
 // test_spectre --log_level=all  --run_test=stealth_tests
 

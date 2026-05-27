@@ -26,57 +26,57 @@ if OS_MACOS
 AM_CPPFLAGS += -std=c++17 -mmacosx-version-min=10.10
 endif
 
-common_SOURCES = anonymize.cpp \
+common_SOURCES = anon/anonymize.cpp \
 		 json/json_spirit_reader.cpp \
 		 json/json_spirit_writer.cpp \
 		 alert.cpp \
-		 version.cpp \
+		 util/version.cpp \
 		 checkpoints.cpp \
-		 netbase.cpp \
-		 addrman.cpp \
-		 crypter.cpp \
-		 key.cpp \
-		 eckey.cpp \
-		 extkey.cpp \
-		 db.cpp \
-		 init.cpp \
-		 keystore.cpp \
-		 miner.cpp \
+		 net/netbase.cpp \
+		 net/addrman.cpp \
+		 wallet/crypter.cpp \
+		 key/key.cpp \
+		 key/eckey.cpp \
+		 key/extkey.cpp \
+		 wallet/db.cpp \
+		 init/init.cpp \
+		 key/keystore.cpp \
+		 pos/miner.cpp \
 		 main.cpp \
-		 net.cpp \
-		 protocol.cpp \
-		 rpcprotocol.cpp \
-		 rpcserver.cpp \
-		 rpcclient.cpp \
-		 rpcdump.cpp \
-		 rpcnet.cpp \
-		 rpcmining.cpp \
-		 rpcwallet.cpp \
-		 rpcblockchain.cpp \
-		 rpcrawtransaction.cpp \
-		 rpcextkey.cpp \
-		 rpcmnemonic.cpp \
-		 script.cpp \
-		 sync.cpp \
-		 util.cpp \
-		 hash.cpp \
-		 wallet.cpp \
-		 walletdb.cpp \
-		 kernel.cpp \
-		 pbkdf2.cpp \
-		 scrypt.cpp \
-		 scrypt-arm.S \
-		 scrypt-x86.S \
-		 scrypt-x86_64.S \
-		 smessage.cpp \
-		 stealth.cpp \
-		 ringsig.cpp \
-		 core.cpp \
-		 txdb-leveldb.cpp \
-		 txmempool.cpp \
-		 chainparams.cpp \
+		 net/net.cpp \
+		 net/protocol.cpp \
+		 rpc/rpcprotocol.cpp \
+		 rpc/rpcserver.cpp \
+		 rpc/rpcclient.cpp \
+		 rpc/rpcdump.cpp \
+		 rpc/rpcnet.cpp \
+		 rpc/rpcmining.cpp \
+		 rpc/rpcwallet.cpp \
+		 rpc/rpcblockchain.cpp \
+		 rpc/rpcrawtransaction.cpp \
+		 rpc/rpcextkey.cpp \
+		 rpc/rpcmnemonic.cpp \
+		 script/script.cpp \
+		 util/sync.cpp \
+		 util/util.cpp \
+		 crypto/hash.cpp \
+		 wallet/wallet.cpp \
+		 wallet/walletdb.cpp \
+		 pos/kernel.cpp \
+		 crypto/pbkdf2.cpp \
+		 crypto/scrypt.cpp \
+		 crypto/scrypt-arm.S \
+		 crypto/scrypt-x86.S \
+		 crypto/scrypt-x86_64.S \
+		 smsg/smessage.cpp \
+		 anon/stealth.cpp \
+		 anon/ringsig.cpp \
+		 primitives/core.cpp \
+		 wallet/txdb-leveldb.cpp \
+		 wallet/txmempool.cpp \
+		 kernel/chainparams.cpp \
 		 state.cpp \
-		 bloom.cpp \
+		 net/bloom.cpp \
 		 shutdown.cpp
 
 bin_PROGRAMS = aliaswalletd
@@ -148,73 +148,67 @@ BUILT_SOURCES = qt/ui_aboutdialog.h \
 		qt/ui_editaddressdialog.h \
 		qt/ui_rpcconsole.h \
 		qt/ui_transactiondescdialog.h \
-		qt/locale/spectrecoin_af_ZA.qm \
-		qt/locale/spectrecoin_ar.qm \
-		qt/locale/spectrecoin_be_BY.qm \
-		qt/locale/spectrecoin_bg.qm \
-		qt/locale/spectrecoin_bs.qm \
-		qt/locale/spectrecoin_ca_ES.qm \
-		qt/locale/spectrecoin_ca.qm \
-		qt/locale/spectrecoin_ca@valencia.qm \
-		qt/locale/spectrecoin_cs.qm \
-		qt/locale/spectrecoin_cy.qm \
-		qt/locale/spectrecoin_da.qm \
-		qt/locale/spectrecoin_de.qm \
-		qt/locale/spectrecoin_el_GR.qm \
-		qt/locale/spectrecoin_el.qm \
-		qt/locale/spectrecoin_en.qm \
-		qt/locale/spectrecoin_eo.qm \
-		qt/locale/spectrecoin_es_CL.qm \
-		qt/locale/spectrecoin_es_DO.qm \
-		qt/locale/spectrecoin_es_MX.qm \
-		qt/locale/spectrecoin_es.qm \
-		qt/locale/spectrecoin_es_UY.qm \
-		qt/locale/spectrecoin_et.qm \
-		qt/locale/spectrecoin_eu_ES.qm \
-		qt/locale/spectrecoin_fa_IR.qm \
-		qt/locale/spectrecoin_fa.qm \
-		qt/locale/spectrecoin_fi.qm \
-		qt/locale/spectrecoin_fr_CA.qm \
-		qt/locale/spectrecoin_fr.qm \
-		qt/locale/spectrecoin_gl.qm \
-		qt/locale/spectrecoin_he.qm \
-		qt/locale/spectrecoin_hi_IN.qm \
-		qt/locale/spectrecoin_hr.qm \
-		qt/locale/spectrecoin_hu.qm \
-		qt/locale/spectrecoin_id_ID.qm \
-		qt/locale/spectrecoin_it.qm \
-		qt/locale/spectrecoin_ja.qm \
-		qt/locale/spectrecoin_ka.qm \
-		qt/locale/spectrecoin_kk_KZ.qm \
-		qt/locale/spectrecoin_ko_KR.qm \
-		qt/locale/spectrecoin_ky.qm \
-		qt/locale/spectrecoin_la.qm \
-		qt/locale/spectrecoin_lt.qm \
-		qt/locale/spectrecoin_lv_LV.qm \
-		qt/locale/spectrecoin_ms_MY.qm \
-		qt/locale/spectrecoin_nb.qm \
-		qt/locale/spectrecoin_nl.qm \
-		qt/locale/spectrecoin_pam.qm \
-		qt/locale/spectrecoin_pl.qm \
-		qt/locale/spectrecoin_pt_BR.qm \
-		qt/locale/spectrecoin_pt_PT.qm \
-		qt/locale/spectrecoin_ro_RO.qm \
-		qt/locale/spectrecoin_ru.qm \
-		qt/locale/spectrecoin_sah.qm \
-		qt/locale/spectrecoin_sk.qm \
-		qt/locale/spectrecoin_sl_SI.qm \
-		qt/locale/spectrecoin_sq.qm \
-		qt/locale/spectrecoin_sr.qm \
-		qt/locale/spectrecoin_sv.qm \
-		qt/locale/spectrecoin_th_TH.qm \
-		qt/locale/spectrecoin_tr.qm \
-		qt/locale/spectrecoin_uk.qm \
-		qt/locale/spectrecoin_ur_PK.qm \
-		qt/locale/spectrecoin_vi.qm \
-		qt/locale/spectrecoin_vi_VN.qm \
-		qt/locale/spectrecoin_zh_CN.qm \
-		qt/locale/spectrecoin_zh_HK.qm \
-		qt/locale/spectrecoin_zh_TW.qm
+		qt/locale/alias_af_ZA.qm \
+		qt/locale/alias_ar.qm \
+		qt/locale/alias_be.qm \
+		qt/locale/alias_bg.qm \
+		qt/locale/alias_bs.qm \
+		qt/locale/alias_ca_ES.qm \
+		qt/locale/alias_ca.qm \
+		qt/locale/alias_cs.qm \
+		qt/locale/alias_cy.qm \
+		qt/locale/alias_da.qm \
+		qt/locale/alias_de.qm \
+		qt/locale/alias_el_GR.qm \
+		qt/locale/alias_el.qm \
+		qt/locale/alias_en.qm \
+		qt/locale/alias_eo.qm \
+		qt/locale/alias_es_MX.qm \
+		qt/locale/alias_es.qm \
+		qt/locale/alias_et.qm \
+		qt/locale/alias_eu_ES.qm \
+		qt/locale/alias_fa_IR.qm \
+		qt/locale/alias_fa.qm \
+		qt/locale/alias_fi.qm \
+		qt/locale/alias_fr_CA.qm \
+		qt/locale/alias_fr.qm \
+		qt/locale/alias_gl.qm \
+		qt/locale/alias_he.qm \
+		qt/locale/alias_hi_IN.qm \
+		qt/locale/alias_hr.qm \
+		qt/locale/alias_hu.qm \
+		qt/locale/alias_id_ID.qm \
+		qt/locale/alias_it.qm \
+		qt/locale/alias_ja.qm \
+		qt/locale/alias_ka.qm \
+		qt/locale/alias_kk.qm \
+		qt/locale/alias_ko_KR.qm \
+		qt/locale/alias_ky.qm \
+		qt/locale/alias_la.qm \
+		qt/locale/alias_lt.qm \
+		qt/locale/alias_lv_LV.qm \
+		qt/locale/alias_ms_MY.qm \
+		qt/locale/alias_nb.qm \
+		qt/locale/alias_nl.qm \
+		qt/locale/alias_pl.qm \
+		qt/locale/alias_pt_BR.qm \
+		qt/locale/alias_pt_PT.qm \
+		qt/locale/alias_ro_RO.qm \
+		qt/locale/alias_ru.qm \
+		qt/locale/alias_sk.qm \
+		qt/locale/alias_sl_SI.qm \
+		qt/locale/alias_sq.qm \
+		qt/locale/alias_sr.qm \
+		qt/locale/alias_sv.qm \
+		qt/locale/alias_th.qm \
+		qt/locale/alias_tr.qm \
+		qt/locale/alias_uk.qm \
+		qt/locale/alias_ur_PK.qm \
+		qt/locale/alias_vi.qm \
+		qt/locale/alias_vi_VN.qm \
+		qt/locale/alias_zh_CN.qm \
+		qt/locale/alias_zh_HK.qm \
+		qt/locale/alias_zh_TW.qm
 
 bin_PROGRAMS += aliaswallet
 
@@ -261,7 +255,6 @@ aliaswallet_SOURCES = $(common_SOURCES) \
 		  qt/optionsmodel.cpp \
 		  qt/monitoreddatamapper.cpp \
 		  qt/transactiondesc.cpp \
-		  qt/bitcoinstrings.cpp \
 		  qt/bitcoinamountfield.cpp \
 		  qt/walletmodel.cpp \
 		  qt/csvmodelwriter.cpp \

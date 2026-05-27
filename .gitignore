@@ -3,6 +3,13 @@
 #
 # SPDX-License-Identifier: MIT
 
+# Build outputs (per-OS, populated by the docker build scripts).
+dist/
+out/
+
+# Internal dev notes, planning docs, debug helpers — not for distribution.
+dev-notes/
+
 src/*.exe
 src/spectrecoin
 src/spectrecoind
