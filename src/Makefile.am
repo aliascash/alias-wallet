@@ -9,7 +9,9 @@ if OS_LINUX
 AM_LDFLAGS += -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack -Wl,-z,noexecheap -Wl,-z,nodlopen -Wl,-z,nodump
 else
 if OS_WINDOWS_CROSSCOMPILE
-AM_LDFLAGS += -Wl,--dynamicbase -Wl,--nxcompat -Wl,--subsystem,windows
+# Default to console subsystem so the daemon's stdout/stderr work in
+# cmd.exe. The Qt GUI binary overrides to --subsystem,windows below.
+AM_LDFLAGS += -Wl,--dynamicbase -Wl,--nxcompat -Wl,--subsystem,console
 else
 if OS_MACOS
 AM_LDFLAGS += $(MACOS_RPATH)
@@ -116,6 +118,9 @@ aliaswalletd_LIBTOOLFLAGS = --tag CXX
 if OS_WINDOWS_CROSSCOMPILE
 aliaswalletd_LDADD += -lmswsock -lshlwapi -luuid -lole32 -lgdi32
 aliaswalletd_CPPFLAGS += -DWIN32 -D_WIN32
+# Force a fully-static .exe (no libwinpthread-1.dll runtime dep).
+# -all-static is a libtool flag; only libtool sees it here.
+aliaswalletd_LDFLAGS += -all-static
 else
 if OS_MACOS
 aliaswalletd_CPPFLAGS += -DMAC_OSX

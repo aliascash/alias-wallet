@@ -17,7 +17,8 @@ src/aliaswallet
 src/aliaswalletd
 src/test_spectre
 src/build.h
-src/clientversion.h
+# src/clientversion.h is now a hand-maintained static file in the autotools
+# path (the old .h.in templating was orphaned). Keep it tracked.
 src/.libs
 .*.swp
 *.*~*

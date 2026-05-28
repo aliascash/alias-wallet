@@ -99,6 +99,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libz-mingw-w64-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Force fully-static link of libwinpthread and libssp by removing every
+# variant the linker could pick:
+#   - import libs (.dll.a)
+#   - the DLL itself (so even auto-import can't find it)
+#   - copies under GCC's per-toolchain runtime dir (9.3-posix + 9.3-win32)
+# Leaves the static .a archives in place.
+RUN rm -f /usr/x86_64-w64-mingw32/lib/libwinpthread.dll.a \
+          /usr/x86_64-w64-mingw32/lib/libwinpthread-1.dll \
+          /usr/x86_64-w64-mingw32/lib/libssp.dll.a \
+          /usr/lib/gcc/x86_64-w64-mingw32/9.3-posix/libssp.dll.a \
+          /usr/lib/gcc/x86_64-w64-mingw32/9.3-posix/libssp-0.dll \
+          /usr/lib/gcc/x86_64-w64-mingw32/9.3-win32/libssp.dll.a \
+          /usr/lib/gcc/x86_64-w64-mingw32/9.3-win32/libssp-0.dll
+
 # libz-mingw-w64-dev ships the lib + header but no pkg-config .pc file,
 # so PKG_CHECK_MODULES(ZLIB,...) in configure.ac fails. Write one.
 RUN mkdir -p /usr/x86_64-w64-mingw32/lib/pkgconfig && \
@@ -122,15 +136,21 @@ RUN ./configure \
         ZLIB_LIBS="-lz" \
         ZLIB_CFLAGS="" \
         CPPFLAGS="-I/build/alias-modernized/depends/${HOST}/include" \
-        LDFLAGS="-L/build/alias-modernized/depends/${HOST}/lib -Wl,--allow-multiple-definition"
+        LDFLAGS="-L/build/alias-modernized/depends/${HOST}/lib -Wl,--allow-multiple-definition -static-libgcc -static-libstdc++"
 RUN make -j${JOBS}
 
 # Layer G: stage the .exe outputs for extraction.
-# libtool puts the real static-linked .exe at src/.libs/<name>.exe; the
-# file in src/ itself is a tiny shell-script wrapper. Pull from .libs.
+# Pick up the .exe wherever libtool put it: with -all-static the real
+# binary lives at src/<name>.exe; with partial linkage it's at
+# src/.libs/<name>.exe (and src/<name>.exe is a wrapper script).
 RUN mkdir -p /build-out \
-    && cp -v src/.libs/aliaswalletd.exe /build-out/ 2>/dev/null || true \
-    && cp -v src/.libs/aliaswallet.exe /build-out/ 2>/dev/null || true \
+    && for name in aliaswalletd aliaswallet; do \
+         for p in src/$name.exe src/.libs/$name.exe; do \
+             if [ -f "$p" ] && file "$p" | grep -q "PE32"; then \
+                 cp -v "$p" /build-out/$name.exe && break ; \
+             fi ; \
+         done ; \
+       done \
     && ls -la /build-out/
 
 CMD ["ls", "-la", "/build-out"]
