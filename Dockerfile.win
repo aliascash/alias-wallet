@@ -59,6 +59,13 @@ COPY depends ./depends
 # Layer B: Build all mingw dependencies. Qt is the slow one (~45 min).
 # NO_QT=0 means Qt IS built. NO_USB=1, NO_ZMQ=1, NO_UPNP=1, NO_NATPMP=1,
 # NO_USDT=1, NO_MULTIPROCESS=1: Alias doesn't use these subsystems.
+# When qt.mk gains additional source files (e.g. extra Qt submodules),
+# depends/'s fetch-cache stamps for qt become stale and prevent re-fetch.
+# Nuke them so depends/ refetches fresh; existing already-correct files
+# in the cache mount survive (they pass their hash verify).
+RUN --mount=type=cache,target=/build/alias-modernized/depends/sources,sharing=locked \
+    rm -f /build/alias-modernized/depends/sources/download-stamps/.stamp_fetched-qt-* || true
+
 RUN --mount=type=cache,target=/build/alias-modernized/depends/sources,sharing=locked \
     cd depends && make -j${JOBS} HOST=${HOST} CXX_STANDARD=c++17 \
         NO_USB=1 NO_ZMQ=1 NO_UPNP=1 NO_NATPMP=1 NO_USDT=1 NO_MULTIPROCESS=1
@@ -124,11 +131,22 @@ RUN mkdir -p /usr/x86_64-w64-mingw32/lib/pkgconfig && \
 # depends/ paths directly via PKG_CONFIG_PATH and explicit flags.
 ENV PKG_CONFIG_PATH=/build/alias-modernized/depends/${HOST}/lib/pkgconfig:/usr/x86_64-w64-mingw32/lib/pkgconfig
 ENV PKG_CONFIG_LIBDIR=/build/alias-modernized/depends/${HOST}/lib/pkgconfig:/usr/x86_64-w64-mingw32/lib/pkgconfig
+# Qt host tools (moc, uic, rcc, lrelease) for cross-compile live under
+# depends/<host>/native/bin (the -hostprefix passed in qt.mk). Alias's
+# configure.ac hardcodes ${with_qt5}/bin/<tool>, so symlink there too.
+ENV PATH=/build/alias-modernized/depends/x86_64-w64-mingw32/native/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+RUN mkdir -p /build/alias-modernized/depends/x86_64-w64-mingw32/bin && \
+    for t in moc uic rcc lrelease lupdate lconvert; do \
+        ln -sf /build/alias-modernized/depends/x86_64-w64-mingw32/native/bin/$t \
+               /build/alias-modernized/depends/x86_64-w64-mingw32/bin/$t ; \
+    done
 RUN ./autogen.sh
 RUN ./configure \
         --prefix=/ \
+        --enable-gui \
         --host=${HOST} \
         --with-boost=/build/alias-modernized/depends/${HOST} \
+        --with-qt5=/build/alias-modernized/depends/${HOST} \
         OPENSSL_LIBS="-L/build/alias-modernized/depends/${HOST}/lib -lssl -lcrypto" \
         OPENSSL_CFLAGS="-I/build/alias-modernized/depends/${HOST}/include" \
         LIBEVENT_LIBS="-L/build/alias-modernized/depends/${HOST}/lib -levent" \

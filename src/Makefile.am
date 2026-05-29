@@ -286,6 +286,13 @@ aliaswallet_CPPFLAGS = $(aliaswalletd_CPPFLAGS) $(QT5_CFLAGS) $(QT5WEBKIT_CFLAGS
 aliaswallet_LDFLAGS = $(aliaswalletd_LDFLAGS) $(QT5_LDFLAGS) $(QT5WEBKIT_LDFLAGS)
 aliaswallet_LIBTOOLFLAGS = $(aliaswalletd_LIBTOOLFLAGS)
 
+if OS_WINDOWS_CROSSCOMPILE
+# The GUI binary needs windows (GUI) subsystem so no console window pops
+# up when the user double-clicks it. Daemon uses console subsystem from
+# AM_LDFLAGS above; we override here for the GUI.
+aliaswallet_LDFLAGS += -Wl,--subsystem,windows -all-static
+endif
+
 if OS_MACOS
   aliaswallet_SOURCES += qt/moc_macnotificationhandler.cpp \
 		     qt/macnotificationhandler.mm \

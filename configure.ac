@@ -77,9 +77,9 @@ if test "x$enable_gui" = "xyes" ; then
       MACDEPLOYQT="$with_qt5/bin/macdeployqt"
       AC_SUBST([MACDEPLOYQT])
     else
-      QT5_CFLAGS="-I$with_qt5 -I$with_qt5/QtGui -I$with_qt5/QtWidgets -I$with_qt5/QtCore -I$with_qt5/QtWebChannel -I$with_qt5/QtNetwork -I$with_qt5/QtQuick -I$with_qt5/QtQuickWidgets -I$with_qt5/QtWebView -I$with_qt5/QtWebSockets -I$with_qt5/QtSvg"
+      QT5_CFLAGS="-I$with_qt5/include -I$with_qt5/include/QtGui -I$with_qt5/include/QtWidgets -I$with_qt5/include/QtCore -I$with_qt5/include/QtWebChannel -I$with_qt5/include/QtNetwork -I$with_qt5/include/QtQuick -I$with_qt5/include/QtQuickWidgets -I$with_qt5/include/QtWebSockets -I$with_qt5/include/QtSvg"
       QT5_LDFLAGS="-L$with_qt5/lib"
-      QT5_LIBS="-lQt5Core -lQt5Gui -lQt5Widgets -lQt5Network -lQt5WebChannel -lQt5Quick -lQt5QuickWidgets -lQt5WebView -lQt5WebSockets -lQt5Svg"
+      QT5_LIBS="-lQt5Core -lQt5Gui -lQt5Widgets -lQt5Network -lQt5WebChannel -lQt5Quick -lQt5QuickWidgets -lQt5WebSockets -lQt5Svg"
     fi
     AC_SUBST([QT5_CFLAGS])
     AC_SUBST([QT5_LDFLAGS])
@@ -94,7 +94,7 @@ if test "x$enable_gui" = "xyes" ; then
     AC_SUBST([LRELEASE])
     AC_MSG_NOTICE([Using Qt5 at $with_qt5])
   ], [
-    PKG_CHECK_MODULES(QT5, [Qt5Core Qt5Gui Qt5Widgets Qt5Network Qt5WebChannel Qt5Quick Qt5QuickWidgets Qt5WebView Qt5WebSockets Qt5Svg Qt5Concurrent], [AC_MSG_NOTICE([Found Qt5 using pkg-config.])], [
+    PKG_CHECK_MODULES(QT5, [Qt5Core Qt5Gui Qt5Widgets Qt5Network Qt5WebChannel Qt5Quick Qt5QuickWidgets Qt5WebSockets Qt5Svg Qt5Concurrent], [AC_MSG_NOTICE([Found Qt5 using pkg-config.])], [
       PKG_CHECK_MODULES(QT5, [QtCore >= 5 QtGui >= 5 QtWidgets >= 5 QtNetwork >= 5 QtWebChannel >= 5 QtQuick >= 5 QtQuickWidgets >= 5 QtWebView >= 5 QtWebSockets >= 5 QtSvg >= 5], [AC_MSG_NOTICE([Found Qt >= 5 using pkg-config.])], [
         AC_MSG_ERROR([Qt5 not found.])
       ])

@@ -31,8 +31,24 @@ $(package)_qttranslations_sha256_hash=5b94d1a11b566908622fcca2f8b799744d2f8a68da
 $(package)_qttools_file_name=qttools-$($(package)_suffix)
 $(package)_qttools_sha256_hash=12061a85baf5f4de8fbc795e1d3872b706f340211b9e70962caeffc6f5e89563
 
+# Additional Qt submodules needed by Alias's GUI (QQuickWidget,
+# QWebChannel, QWebSocket, QSvgRenderer). The official_releases path
+# is gone; use the archive/ mirror.
+$(package)_qtdeclarative_file_name=qtdeclarative-everywhere-opensource-src-$($(package)_version).tar.xz
+$(package)_qtdeclarative_sha256_hash=25d9ae3e27efb814f3ca933b6f5acdc754fdefbc714a297040932f133ad1e652
+$(package)_qtsvg_file_name=qtsvg-everywhere-opensource-src-$($(package)_version).tar.xz
+$(package)_qtsvg_sha256_hash=a99e87dbebd2621ea62fb4f8448b978a660d781fd91bb8f02fc636073035f145
+$(package)_qtwebchannel_file_name=qtwebchannel-everywhere-opensource-src-$($(package)_version).tar.xz
+$(package)_qtwebchannel_sha256_hash=e33416aab97486b73de99e325a30f5e5bcce25f0cb7dfc472ed0ea25aa25d949
+$(package)_qtwebsockets_file_name=qtwebsockets-everywhere-opensource-src-$($(package)_version).tar.xz
+$(package)_qtwebsockets_sha256_hash=4bf4c0b699852111fcbea96c122f0cee3a04df9e4da60c5324ad1e18223a78c5
+
 $(package)_extra_sources  = $($(package)_qttranslations_file_name)
 $(package)_extra_sources += $($(package)_qttools_file_name)
+$(package)_extra_sources += $($(package)_qtdeclarative_file_name)
+$(package)_extra_sources += $($(package)_qtsvg_file_name)
+$(package)_extra_sources += $($(package)_qtwebchannel_file_name)
+$(package)_extra_sources += $($(package)_qtwebsockets_file_name)
 
 define $(package)_set_vars
 $(package)_config_env = QT_MAC_SDK_NO_VERSION_CHECK=1
@@ -94,7 +110,9 @@ $(package)_config_opts += -v
 $(package)_config_opts += -no-feature-bearermanagement
 $(package)_config_opts += -no-feature-colordialog
 $(package)_config_opts += -no-feature-commandlineparser
-$(package)_config_opts += -no-feature-concurrent
+# Qt5Concurrent is needed by Alias's qt/setupwalletwizard.cpp.
+# (Bitcoin Core's GUI didn't need it.)
+# $(package)_config_opts += -no-feature-concurrent
 $(package)_config_opts += -no-feature-dial
 $(package)_config_opts += -no-feature-fontcombobox
 $(package)_config_opts += -no-feature-ftp
@@ -127,6 +145,12 @@ $(package)_config_opts += -no-feature-undoview
 $(package)_config_opts += -no-feature-vnc
 $(package)_config_opts += -no-feature-wizard
 $(package)_config_opts += -no-feature-xml
+# qtdeclarative's host tools (qmllint, qmlimportscanner, qmlplugindump etc.)
+# aren't usable in cross-compile. Skip them.
+$(package)_config_opts += -no-feature-qml-devtools
+# QML debugger and profiler also pull in host tools we don't want.
+$(package)_config_opts += -no-feature-qml-debug
+$(package)_config_opts += -no-feature-qml-profiler
 
 $(package)_config_opts_darwin = -no-dbus
 $(package)_config_opts_darwin += -no-opengl
@@ -174,6 +198,9 @@ endif
 $(package)_config_opts_mingw32 = -no-opengl
 $(package)_config_opts_mingw32 += -no-dbus
 $(package)_config_opts_mingw32 += -no-freetype
+# Ubuntu 20.04 mingw-w64 9.x has the "AVX support is broken in 64-bit
+# MinGW" issue. Disable AVX features so Qt's SIMD test doesn't trip.
+$(package)_config_opts_mingw32 += -no-avx -no-avx2 -no-avx512
 $(package)_config_opts_mingw32 += -xplatform win32-g++
 $(package)_config_opts_mingw32 += "QMAKE_CFLAGS = '$($(package)_cflags) $($(package)_cppflags)'"
 $(package)_config_opts_mingw32 += "QMAKE_CXX = '$($(package)_cxx)'"
@@ -190,7 +217,11 @@ endef
 define $(package)_fetch_cmds
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_download_file),$($(package)_file_name),$($(package)_sha256_hash)) && \
 $(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttranslations_file_name),$($(package)_qttranslations_file_name),$($(package)_qttranslations_sha256_hash)) && \
-$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttools_file_name),$($(package)_qttools_file_name),$($(package)_qttools_sha256_hash))
+$(call fetch_file,$(package),$($(package)_download_path),$($(package)_qttools_file_name),$($(package)_qttools_file_name),$($(package)_qttools_sha256_hash)) && \
+$(call fetch_file,$(package),https://download.qt.io/archive/qt/5.15/$($(package)_version)/submodules,$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_file_name),$($(package)_qtdeclarative_sha256_hash)) && \
+$(call fetch_file,$(package),https://download.qt.io/archive/qt/5.15/$($(package)_version)/submodules,$($(package)_qtsvg_file_name),$($(package)_qtsvg_file_name),$($(package)_qtsvg_sha256_hash)) && \
+$(call fetch_file,$(package),https://download.qt.io/archive/qt/5.15/$($(package)_version)/submodules,$($(package)_qtwebchannel_file_name),$($(package)_qtwebchannel_file_name),$($(package)_qtwebchannel_sha256_hash)) && \
+$(call fetch_file,$(package),https://download.qt.io/archive/qt/5.15/$($(package)_version)/submodules,$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_file_name),$($(package)_qtwebsockets_sha256_hash))
 endef
 
 define $(package)_extract_cmds
@@ -198,13 +229,25 @@ define $(package)_extract_cmds
   echo "$($(package)_sha256_hash)  $($(package)_source)" > $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qttranslations_sha256_hash)  $($(package)_source_dir)/$($(package)_qttranslations_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   echo "$($(package)_qttools_sha256_hash)  $($(package)_source_dir)/$($(package)_qttools_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtdeclarative_sha256_hash)  $($(package)_source_dir)/$($(package)_qtdeclarative_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtsvg_sha256_hash)  $($(package)_source_dir)/$($(package)_qtsvg_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtwebchannel_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebchannel_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
+  echo "$($(package)_qtwebsockets_sha256_hash)  $($(package)_source_dir)/$($(package)_qtwebsockets_file_name)" >> $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   $(build_SHA256SUM) -c $($(package)_extract_dir)/.$($(package)_file_name).hash && \
   mkdir qtbase && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source) -C qtbase && \
   mkdir qttranslations && \
   $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttranslations_file_name) -C qttranslations && \
   mkdir qttools && \
-  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qttools_file_name) -C qttools && \
+  mkdir qtdeclarative && \
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtdeclarative_file_name) -C qtdeclarative && \
+  mkdir qtsvg && \
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtsvg_file_name) -C qtsvg && \
+  mkdir qtwebchannel && \
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebchannel_file_name) -C qtwebchannel && \
+  mkdir qtwebsockets && \
+  $(build_TAR) --no-same-owner --strip-components=1 -xf $($(package)_source_dir)/$($(package)_qtwebsockets_file_name) -C qtwebsockets
 endef
 
 # Preprocessing steps work as follows:
@@ -222,6 +265,8 @@ endef
 define $(package)_preprocess_cmds
   cp $($(package)_patch_dir)/qt.pro qt.pro && \
   cp $($(package)_patch_dir)/qttools_src.pro qttools/src/src.pro && \
+  printf 'TEMPLATE = subdirs\nSUBDIRS =\n' > qtdeclarative/tools/tools.pro && \
+  printf 'TEMPLATE = subdirs\nSUBDIRS =\n' > qtwebsockets/tools/tools.pro 2>/dev/null || true && \
   patch -p1 -i $($(package)_patch_dir)/fix-macos-linker.patch && \
   patch -p1 -i $($(package)_patch_dir)/dont_hardcode_pwd.patch && \
   patch -p1 -i $($(package)_patch_dir)/fix_qt_pkgconfig.patch && \
@@ -265,7 +310,11 @@ endef
 define $(package)_stage_cmds
   $(MAKE) -C qtbase/src INSTALL_ROOT=$($(package)_staging_dir) $(addsuffix -install_subtargets,$(addprefix sub-,$($(package)_qt_libs))) && \
   $(MAKE) -C qttools/src/linguist INSTALL_ROOT=$($(package)_staging_dir) $(addsuffix -install_subtargets,$(addprefix sub-,$($(package)_linguist_tools))) && \
-  $(MAKE) -C qttranslations INSTALL_ROOT=$($(package)_staging_dir) install_subtargets
+  $(MAKE) -C qttranslations INSTALL_ROOT=$($(package)_staging_dir) install_subtargets && \
+  $(MAKE) -C qtdeclarative INSTALL_ROOT=$($(package)_staging_dir) install && \
+  $(MAKE) -C qtsvg INSTALL_ROOT=$($(package)_staging_dir) install && \
+  $(MAKE) -C qtwebchannel INSTALL_ROOT=$($(package)_staging_dir) install && \
+  $(MAKE) -C qtwebsockets INSTALL_ROOT=$($(package)_staging_dir) install
 endef
 
 define $(package)_postprocess_cmds
