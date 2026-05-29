@@ -270,10 +270,12 @@ bool CECKey::Recover(const uint256 &hash, const unsigned char *p64, int rec)
     if (rec<0 || rec>=3)
         return false;
     ECDSA_SIG *sig = ECDSA_SIG_new();
-    BIGNUM *pr = NULL;
-    BIGNUM *ps = NULL;
-    BN_bin2bn(&p64[0],  32, pr);
-    BN_bin2bn(&p64[32], 32, ps);
+    // BN_bin2bn(p, len, NULL) allocates a fresh BIGNUM and returns it.
+    // Passing a NULL local without capturing the return left both BIGNUMs
+    // NULL and crashed inside ECDSA_SIG_recover_key_GFp — must capture
+    // the returned pointer here.
+    BIGNUM *pr = BN_bin2bn(&p64[0],  32, NULL);
+    BIGNUM *ps = BN_bin2bn(&p64[32], 32, NULL);
     ECDSA_SIG_set0(sig, pr, ps);
     bool ret = ECDSA_SIG_recover_key_GFp(pkey, sig, (unsigned char*)&hash, sizeof(hash), rec, 0) == 1;
     ECDSA_SIG_free(sig);
