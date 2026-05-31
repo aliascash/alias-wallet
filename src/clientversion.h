@@ -13,9 +13,9 @@
 // delete this file.
 //
 
-#define CLIENT_VERSION_MAJOR       4
-#define CLIENT_VERSION_MINOR       4
-#define CLIENT_VERSION_REVISION    1
+#define CLIENT_VERSION_MAJOR       5
+#define CLIENT_VERSION_MINOR       1
+#define CLIENT_VERSION_REVISION    0
 #define CLIENT_VERSION_BUILD       0
 #define GIT_HASH                   "modernized-main"
 

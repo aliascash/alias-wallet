@@ -143,7 +143,6 @@ RUN mkdir -p /build/alias-modernized/depends/x86_64-w64-mingw32/bin && \
 RUN ./autogen.sh
 RUN ./configure \
         --prefix=/ \
-        --enable-gui \
         --host=${HOST} \
         --with-boost=/build/alias-modernized/depends/${HOST} \
         --with-qt5=/build/alias-modernized/depends/${HOST} \

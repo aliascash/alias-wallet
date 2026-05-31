@@ -51,7 +51,6 @@
 #include <QTextStream>
 #include <QTextDocument>
 #include <QDesktopWidget>
-#include <QtWebView>
 #include <QQuickWidget>
 #include <QQuickItem>
 #include <iostream>

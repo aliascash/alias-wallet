@@ -8,7 +8,6 @@
 #define SPECTREGUI_H
 
 #include <QMainWindow>
-#include <QtWebView>
 #include <QWebChannel>
 #include <QSystemTrayIcon>
 #include <QLabel>
