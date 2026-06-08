@@ -57,6 +57,12 @@ static const int64_t CENT = 1000000;
 static const int64_t COIN_YEAR_REWARD = 5 * CENT; // 5% per year
 
 static const int64_t MBLK_RECEIVE_TIMEOUT = 60; // seconds
+// IBD stall watchdog: if no block has been ACCEPTED for this many
+// seconds while the chain is still well behind peers, force a fresh
+// getblocks. Without this, the daemon can sit in a "orphans keep
+// arriving so MBLK_RECEIVE_TIMEOUT never fires, but nothing connects"
+// loop indefinitely.
+static const int64_t BLOCK_ACCEPT_STALL_TIMEOUT = 5 * 60; // seconds
 
 static const int UNSPENT_ANON_BALANCE_MIN = 100;
 static const int UNSPENT_ANON_BALANCE_MAX = 200;
@@ -131,6 +137,10 @@ extern int64_t nMaxAnonStakeOutput;
 
 extern uint32_t nExtKeyLookAhead;
 extern int64_t nTimeLastMblkRecv;
+// Updated in SetBestChain() when the chain genuinely advances. Distinct
+// from nTimeLastMblkRecv so the IBD stall watchdog can detect the
+// "orphans arriving but nothing connecting" case.
+extern int64_t nTimeLastBlockAccepted;
 
 
 #endif /* COIN_STATE_H */

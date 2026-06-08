@@ -69,4 +69,5 @@ int64_t nMaxAnonStakeOutput = nMaxAnonOutput;
 uint32_t nExtKeyLookAhead = 10;
 
 int64_t nTimeLastMblkRecv = 0;
+int64_t nTimeLastBlockAccepted = 0;
 

@@ -3111,6 +3111,12 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
       nBestBlockTrust.Get64(),
       DateTimeStrFormat("%x %H:%M:%S", pindexBest->GetBlockTime()));
 
+    // Stamp the IBD-stall watchdog clock — we ACTUALLY connected a
+    // block, not just received one as an orphan. SendMessages() reads
+    // this to decide whether to force a getblocks retry against a
+    // different peer when the chain stops advancing.
+    nTimeLastBlockAccepted = GetTime();
+
     // Check the version of the last 100 blocks to see if we need to upgrade:
     if (!fIsInitialDownload)
     {
@@ -5851,6 +5857,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
 
         LogPrintf("Received mblk %d\n", nBlocks);
         nTimeLastMblkRecv = GetTime();
+        // Bootstrap the orphan-stall watchdog clock on the very first
+        // mblk arrival of this session. After this, the watchdog only
+        // resets when SetBestChain actually advances the chain — so if
+        // every subsequent mblk is an orphan, BLOCK_ACCEPT_STALL_TIMEOUT
+        // eventually fires and SendMessages() forces a fresh getblocks.
+        if (nTimeLastBlockAccepted == 0)
+            nTimeLastBlockAccepted = GetTime();
 
         {
             for (uint32_t i = 0; i < nBlocks; ++i)
@@ -6773,16 +6786,32 @@ bool SendMessages(CNode* pto, std::vector<CNode*> &vNodesCopy, bool fSendTrickle
     if (!vGetData.empty())
         pto->PushMessage("getdata", vGetData);
 
-    // - If syncing and !get mblk in MBLK_RECEIVE_TIMEOUT send another getblocks to random peer
+    // IBD stall watchdog. Two trigger conditions:
+    //   (a) No mblk message received for MBLK_RECEIVE_TIMEOUT (60 s).
+    //       The "peer went silent" case.
+    //   (b) No block ACCEPTED for BLOCK_ACCEPT_STALL_TIMEOUT (5 min)
+    //       even though mblks may still be flowing. This catches the
+    //       "every received block is an orphan, mapOrphanBlocks grows
+    //       without bound, MBLK_RECEIVE_TIMEOUT never fires because
+    //       nTimeLastMblkRecv keeps getting refreshed" stall pattern.
+    //
+    // Either way the fix is the same: send a fresh getblocks from our
+    // current best to a (possibly different) peer so we start pulling
+    // the in-order range we actually need.
+    bool fMblkSilent     = nTimeLastMblkRecv > 0
+                        && nTimeNow - nTimeLastMblkRecv > MBLK_RECEIVE_TIMEOUT;
+    bool fAcceptStalled  = nTimeLastBlockAccepted > 0
+                        && nTimeNow - nTimeLastBlockAccepted > BLOCK_ACCEPT_STALL_TIMEOUT;
     if (nNodeMode == NT_FULL
-        && nTimeLastMblkRecv > 0
         && pto->nChainHeight - nBestHeight > 256
-        && nTimeNow - nTimeLastMblkRecv > MBLK_RECEIVE_TIMEOUT)
+        && (fMblkSilent || fAcceptStalled))
     {
         pto->PushGetBlocks(pindexBest, uint256(0));
-        if (fDebug)
-            LogPrintf("Sync timeout, getblocks to %s, from %d\n", pto->addr.ToString().c_str(), pindexBest->nHeight);
-        nTimeLastMblkRecv = nTimeNow; // reset timeout
+        LogPrintf("Sync %s, getblocks to %s, from %d\n",
+                  fAcceptStalled ? "stall (orphans accumulating)" : "timeout",
+                  pto->addr.ToString().c_str(), pindexBest->nHeight);
+        nTimeLastMblkRecv     = nTimeNow; // reset both watchdogs
+        nTimeLastBlockAccepted = nTimeNow;
     }
 
     return true;
