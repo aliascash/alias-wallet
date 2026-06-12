@@ -765,6 +765,60 @@ Value rewindchain(const Array& params, bool fHelp)
 }
 
 
+// Operator escape hatch for chain divergence. Marks <hash> (and any
+// active-chain descendants) BLOCK_FAILED_VALID, persists the flag in
+// CDiskBlockIndex so it survives restart, and retreats the tip if the block
+// was in the active chain. Peers re-serving the same chain past that hash
+// will be rejected at AcceptBlock's "parent invalid" check, forcing them to
+// feed us the alternate fork.
+Value invalidateblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "invalidateblock <hash>\n"
+            "Permanently mark a block (and its main-chain descendants) as invalid,\n"
+            "retreating the tip if necessary. Survives restart. Use reconsiderblock\n"
+            "to undo.");
+    if (nNodeMode == NT_THIN)
+        throw runtime_error("Must be in full mode.");
+
+    uint256 hash(params[0].get_str());
+    Object result;
+    if (!InvalidateBlock(hash)) {
+        result.push_back(Pair("result", "failure"));
+        result.push_back(Pair("reason", "block not in index, or persistence failed (see debug.log)"));
+        return result;
+    }
+    result.push_back(Pair("result", "success"));
+    result.push_back(Pair("hashBestChain", hashBestChain.ToString()));
+    result.push_back(Pair("nBestHeight", itostr(nBestHeight)));
+    return result;
+}
+
+// Undo invalidateblock for the given hash and its descendants. The next
+// incoming block from a peer that builds on the cleared block can then be
+// re-accepted.
+Value reconsiderblock(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "reconsiderblock <hash>\n"
+            "Clear the invalid flag set by invalidateblock on the given hash and\n"
+            "its descendants. Does not by itself reorg; peers must re-serve.");
+    if (nNodeMode == NT_THIN)
+        throw runtime_error("Must be in full mode.");
+
+    uint256 hash(params[0].get_str());
+    Object result;
+    if (!ReconsiderBlock(hash)) {
+        result.push_back(Pair("result", "failure"));
+        result.push_back(Pair("reason", "block not in index, or persistence failed (see debug.log)"));
+        return result;
+    }
+    result.push_back(Pair("result", "success"));
+    return result;
+}
+
 Value nextorphan(const Array& params, bool fHelp)
 {
     if (fHelp || params.size() > 1)

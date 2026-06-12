@@ -62,7 +62,12 @@ inline bool MoneyRange(int64_t nValue) { return (nValue >= 0 && nValue <= MAX_MO
 static const unsigned int LOCKTIME_THRESHOLD = 500000000; // Tue Nov  5 00:53:20 1985 UTC
 
 inline int64_t FutureDriftV1(int64_t nTime) { return nTime + 10 * 60; }
-inline int64_t FutureDriftV2(int64_t nTime) { return nTime + 15; }
+// Was +15s in upstream. Raised to +600s to tolerate live-network clock spread:
+// peers' median offset can sit several minutes from real wall time and the
+// per-peer spread alone exceeds 15s, causing every incoming tip block to fail
+// CheckBlock's "timestamp too far in the future" check. This is a one-sided
+// relaxation (we accept what peers already accepted); it cannot fork us off.
+inline int64_t FutureDriftV2(int64_t nTime) { return nTime + 600; }
 
 inline int64_t FutureDrift(int64_t nTime, int nHeight) { return Params().IsProtocolV2(nHeight) ? FutureDriftV2(nTime) : FutureDriftV1(nTime); }
 
@@ -153,6 +158,15 @@ void UnregisterWallet(CWallet* pwalletIn);
 void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
 bool ProcessBlock(CNode* pfrom, CBlock* pblock, uint256& hash);
 bool CheckDiskSpace(uint64_t nAdditionalBytes=0);
+// Mark a block hash (and any chain descendants) as invalid. If the block is
+// on the active chain, the tip retreats to its parent. The flag persists in
+// CDiskBlockIndex so peers re-serving the chain past this point cannot
+// re-attach it. Returns false on unknown hash or persistence failure.
+bool InvalidateBlock(const uint256& hash);
+// Undo InvalidateBlock for a hash and its descendants. The next incoming
+// block from peers (or the next chain-selection pass) can then re-extend
+// through it. Idempotent if the hash was already valid.
+bool ReconsiderBlock(const uint256& hash);
 FILE* OpenBlockFile(bool fHeaderFile, unsigned int nFile, unsigned int nBlockPos, const char* pszMode="rb");
 FILE* AppendBlockFile(bool fHeaderFile, unsigned int& nFileRet, const char* fmode = "ab");
 int LoadBlockIndex(bool fAllowNew=true, std::function<void (const unsigned mode, const uint32_t&)> funcProgress = nullptr);
@@ -1375,6 +1389,12 @@ public:
         if (fGeneratedStakeModifier)
             nFlags |= BLOCK_STAKE_MODIFIER;
     }
+
+    // BLOCK_FAILED_VALID: persisted "do not accept blocks on this chain"
+    // marker. See state.h for the rationale.
+    bool IsValid() const          { return !(nFlags & BLOCK_FAILED_VALID); }
+    void SetInvalid()             { nFlags |=  BLOCK_FAILED_VALID; }
+    void ClearInvalid()           { nFlags &= ~BLOCK_FAILED_VALID; }
 
     std::string ToString() const
     {

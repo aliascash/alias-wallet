@@ -8,6 +8,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <functional>
 
 #include "alert.h"
 #include "checkpoints.h"
@@ -3683,6 +3684,12 @@ bool CBlock::AcceptBlock()
     if (mi == mapBlockIndex.end())
         return DoS(10, error("AcceptBlock() : prev block not found"));
     CBlockIndex* pindexPrev = (*mi).second;
+    // Refuse to build on a chain operator or auto-recovery has flagged. The
+    // ProcessBlock entry check covers the normal incoming-block path; this
+    // mirrors it for callers that reach AcceptBlock directly (e.g. orphan
+    // reconnect loop).
+    if (!pindexPrev->IsValid())
+        return error("AcceptBlock() : prev block %s is in invalid set", hashPrevBlock.ToString());
     int nHeight = pindexPrev->nHeight+1;
 
     if (Params().IsProtocolV2(nHeight) && nVersion < 7)
@@ -3865,6 +3872,88 @@ void CChain::SetTip(CBlockIndex *pindex) {
 }
 
 
+// Walk a block's chain descendants via pnext and apply fn to each. Used by
+// InvalidateBlock to flag descendants on the active chain and by
+// ReconsiderBlock to clear them. Note we only follow pnext (active chain)
+// because off-chain descendants don't extend the tip; if a peer later
+// re-serves them, the parent check in AcceptBlock catches it.
+static void WalkActiveDescendants(CBlockIndex* pstart, std::function<void(CBlockIndex*)> fn)
+{
+    for (CBlockIndex* p = pstart ? pstart->pnext : NULL; p != NULL; p = p->pnext)
+        fn(p);
+}
+
+bool InvalidateBlock(const uint256& hash)
+{
+    LOCK(cs_main);
+
+    auto mi = mapBlockIndex.find(hash);
+    if (mi == mapBlockIndex.end())
+        return error("InvalidateBlock: block %s not in index", hash.ToString());
+    CBlockIndex* pindex = mi->second;
+
+    // Flag the block and any on-chain descendants. Collect descendants first
+    // so a single batched txdb write commits the lot.
+    std::vector<CBlockIndex*> vTouched;
+    pindex->SetInvalid();
+    vTouched.push_back(pindex);
+    WalkActiveDescendants(pindex, [&](CBlockIndex* p) {
+        p->SetInvalid();
+        vTouched.push_back(p);
+    });
+
+    CTxDB txdb;
+    for (CBlockIndex* p : vTouched) {
+        if (!txdb.WriteBlockIndex(CDiskBlockIndex(p)))
+            return error("InvalidateBlock: WriteBlockIndex failed for %s", p->GetBlockHash().ToString());
+    }
+
+    // If the invalidated block is on the active chain, retreat the tip to
+    // its parent. We use the existing SetBestChain machinery so all the
+    // reorg-aware accounting (stake-modifier rewind, money supply, wallet
+    // notifications) runs as it would for a normal reorg.
+    if (pindex->IsInMainChain() && pindex->pprev) {
+        CBlock blockPrev;
+        if (!blockPrev.ReadFromDisk(pindex->pprev))
+            return error("InvalidateBlock: ReadFromDisk(parent) failed");
+        if (!blockPrev.SetBestChain(txdb, pindex->pprev))
+            return error("InvalidateBlock: SetBestChain(parent) failed");
+        pindex->pprev->pnext = NULL;
+    }
+
+    LogPrintf("InvalidateBlock: %s at height %d marked invalid (+%d descendants); chain tip now %d\n",
+              hash.ToString(), pindex->nHeight, (int)vTouched.size() - 1, nBestHeight);
+    return true;
+}
+
+bool ReconsiderBlock(const uint256& hash)
+{
+    LOCK(cs_main);
+
+    auto mi = mapBlockIndex.find(hash);
+    if (mi == mapBlockIndex.end())
+        return error("ReconsiderBlock: block %s not in index", hash.ToString());
+    CBlockIndex* pindex = mi->second;
+
+    std::vector<CBlockIndex*> vTouched;
+    pindex->ClearInvalid();
+    vTouched.push_back(pindex);
+    WalkActiveDescendants(pindex, [&](CBlockIndex* p) {
+        p->ClearInvalid();
+        vTouched.push_back(p);
+    });
+
+    CTxDB txdb;
+    for (CBlockIndex* p : vTouched) {
+        if (!txdb.WriteBlockIndex(CDiskBlockIndex(p)))
+            return error("ReconsiderBlock: WriteBlockIndex failed for %s", p->GetBlockHash().ToString());
+    }
+
+    LogPrintf("ReconsiderBlock: %s at height %d cleared (+%d descendants)\n",
+              hash.ToString(), pindex->nHeight, (int)vTouched.size() - 1);
+    return true;
+}
+
 bool ProcessBlock(CNode* pfrom, CBlock* pblock, uint256& hash)
 {
     AssertLockHeld(cs_main);
@@ -3877,6 +3966,13 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, uint256& hash)
         return error("ProcessBlock() : already have block %d %s", mapBlockIndex[hash]->nHeight, strHash.c_str());
     if (mapOrphanBlocks.count(hash))
         return error("ProcessBlock() : already have block (orphan) %s", strHash.c_str());
+
+    // Refuse blocks whose parent has been marked invalid (operator action or
+    // auto-detected divergence). Without this, peers could re-feed us the
+    // same wrong-fork chain after a manual invalidateblock.
+    auto miPrev = mapBlockIndex.find(pblock->hashPrevBlock);
+    if (miPrev != mapBlockIndex.end() && !miPrev->second->IsValid())
+        return error("ProcessBlock() : parent %s is in invalid set", pblock->hashPrevBlock.ToString());
 
     // ppcoin: check proof-of-stake
     // Limited duplicity on stake: prevents block flood attack
@@ -6812,6 +6908,39 @@ bool SendMessages(CNode* pto, std::vector<CNode*> &vNodesCopy, bool fSendTrickle
                   pto->addr.ToString().c_str(), pindexBest->nHeight);
         nTimeLastMblkRecv     = nTimeNow; // reset both watchdogs
         nTimeLastBlockAccepted = nTimeNow;
+
+        // Auto-reorg: if the "orphans accumulating" watchdog has fired
+        // AUTOREORG_STALL_FIRINGS times in a row without our chain advancing
+        // a single block, the orphans are almost certainly the canonical
+        // chain that orphan-resolution can't walk back through (>500-block
+        // walk limit). Mark our current tip BLOCK_FAILED_VALID so the
+        // retreat-to-parent + parent-is-invalid check forces peers to feed
+        // us the alternate fork. Conservative gating below avoids triggering
+        // on healthy nodes that just hit a brief network hiccup.
+        static int     nAutoReorgFirings = 0;
+        static int     nLastBestAtFiring = -1;
+        if (fAcceptStalled)
+        {
+            if (nBestHeight == nLastBestAtFiring) {
+                nAutoReorgFirings++;
+            } else {
+                nAutoReorgFirings = 1;
+                nLastBestAtFiring = nBestHeight;
+            }
+            if (nAutoReorgFirings >= AUTOREORG_STALL_FIRINGS
+                && mapOrphanBlocks.size() >= AUTOREORG_MIN_ORPHANS
+                && pindexBest && pindexBest->pprev)
+            {
+                uint256 stuckHash = pindexBest->GetBlockHash();
+                LogPrintf("Auto-reorg: tip %s height=%d stalled across %d watchdog firings "
+                          "with %d orphans; invalidating to force alternate-chain pull.\n",
+                          stuckHash.ToString(), nBestHeight,
+                          nAutoReorgFirings, (int)mapOrphanBlocks.size());
+                InvalidateBlock(stuckHash);
+                nAutoReorgFirings = 0;
+                nLastBestAtFiring = -1;
+            }
+        }
     }
 
     return true;

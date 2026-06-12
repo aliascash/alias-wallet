@@ -33,7 +33,23 @@ enum eBlockFlags
     BLOCK_PROOF_OF_STAKE = (1 << 0), // is proof-of-stake block
     BLOCK_STAKE_ENTROPY  = (1 << 1), // entropy bit for stake modifier
     BLOCK_STAKE_MODIFIER = (1 << 2), // regenerated stake modifier
+    // Operator-set or auto-detected: the node will never accept a block built
+    // on a parent carrying this flag and will not re-extend its main chain
+    // through a tip carrying this flag. Persisted in nFlags via
+    // CDiskBlockIndex so the marker survives restarts and peers re-serving
+    // the same chain. Set/cleared via invalidateblock / reconsiderblock RPCs
+    // or auto-set by the deep-divergence detector in SendMessages.
+    BLOCK_FAILED_VALID   = (1 << 3),
 };
+
+// Auto-recovery: if the IBD stall watchdog fires this many times in a row
+// (BLOCK_ACCEPT_STALL_TIMEOUT each), with no chain advance and a large
+// orphan backlog, treat it as evidence we are on a wrong fork that orphan
+// resolution cannot reach back through, and auto-invalidate the current tip.
+static const int AUTOREORG_STALL_FIRINGS = 3;
+// Minimum orphan count required before auto-invalidate fires. Cheap blocks
+// drop in steadily during normal operation; we only act on a real pile-up.
+static const size_t AUTOREORG_MIN_ORPHANS = 200;
 
 
 /*  nServices flags

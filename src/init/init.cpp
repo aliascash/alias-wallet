@@ -236,6 +236,7 @@ std::string HelpMessage()
     strUsage += "  -pid=<file>            " + _("Specify pid file (default: alias.pid)") + "\n";
     strUsage += "  -datadir=<dir>         " + _("Specify data directory") + "\n";
     strUsage += "  -wallet=<dir>          " + _("Specify wallet file (within data directory)") + "\n";
+    strUsage += "  -disablewallet         " + _("Skip wallet registration to make IBD faster (wallet still loads, but per-block scan is a no-op; next normal startup rescans forward)") + "\n";
     strUsage += "  -dbcache=<n>           " + _("Set database cache size in megabytes (default: 25)") + "\n";
     strUsage += "  -dblogsize=<n>         " + _("Set database disk log size in megabytes (default: 100)") + "\n";
     strUsage += "  -timeout=<n>           " + _("Specify connection timeout in milliseconds (default: 5000)") + "\n";
@@ -947,37 +948,49 @@ bool AppInit2(boost::thread_group& threadGroup)
     LogPrintf("%s", strErrors.str().c_str());
     LogPrintf(" wallet      %15dms\n", GetTimeMillis() - nStart);
 
-    RegisterWallet(pwalletMain);
-
-    CBlockIndex *pindexRescan = pindexBest;
-    if (GetBoolArg("-rescan") || (oltWalletVersion > 0 && oltWalletVersion < 2020009)) // Wallets prior to V2.2 must be rescanned
+    // -disablewallet: leave pwalletMain loaded (RPC keeps working) but skip
+    // RegisterWallet + rescan. With no wallet in setpwalletRegistered,
+    // SyncWithWallets/SyncWithWalletsThin become no-ops, so per-block wallet
+    // scanning cost during IBD drops to zero. Wallet's best-block pointer will
+    // not advance while this is set; the next normal startup will rescan
+    // forward from where we left off.
+    bool fDisableWallet = GetBoolArg("-disablewallet", false);
+    if (fDisableWallet)
     {
-        pindexRescan = pindexGenesisBlock;
-    } else
-    {
-        CWalletDB walletdb(strWalletFileName);
-        CBlockLocator locator;
-        if (walletdb.ReadBestBlock(locator))
-            pindexRescan = locator.GetBlockIndex();
-    };
+        LogPrintf("-disablewallet set: skipping RegisterWallet and rescan (faster IBD).\n");
+    } else {
+        RegisterWallet(pwalletMain);
 
-    if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
-    {
-        LogPrintf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
-        nStart = GetTimeMillis();
-
+        CBlockIndex *pindexRescan = pindexBest;
+        if (GetBoolArg("-rescan") || (oltWalletVersion > 0 && oltWalletVersion < 2020009)) // Wallets prior to V2.2 must be rescanned
         {
-            LOCK2(cs_main, pwalletMain->cs_wallet);
-            pwalletMain->MarkDirty();
-            pwalletMain->ScanForWalletTransactions(pindexRescan, true, [] (const int& nCurrentHeight, const int& nBestHeight, const int& foundOwned) -> bool {
-                uiInterface.InitMessage(strprintf("Rescanning... %d / %d (%d txns)", nCurrentHeight, nBestHeight, foundOwned));
-                return true;
-            },100);
-            pwalletMain->ReacceptWalletTransactions();
-        }
+            pindexRescan = pindexGenesisBlock;
+        } else
+        {
+            CWalletDB walletdb(strWalletFileName);
+            CBlockLocator locator;
+            if (walletdb.ReadBestBlock(locator))
+                pindexRescan = locator.GetBlockIndex();
+        };
 
-        LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
-    };
+        if (pindexBest != pindexRescan && pindexBest && pindexRescan && pindexBest->nHeight > pindexRescan->nHeight)
+        {
+            LogPrintf("Rescanning last %i blocks (from block %i)...\n", pindexBest->nHeight - pindexRescan->nHeight, pindexRescan->nHeight);
+            nStart = GetTimeMillis();
+
+            {
+                LOCK2(cs_main, pwalletMain->cs_wallet);
+                pwalletMain->MarkDirty();
+                pwalletMain->ScanForWalletTransactions(pindexRescan, true, [] (const int& nCurrentHeight, const int& nBestHeight, const int& foundOwned) -> bool {
+                    uiInterface.InitMessage(strprintf("Rescanning... %d / %d (%d txns)", nCurrentHeight, nBestHeight, foundOwned));
+                    return true;
+                },100);
+                pwalletMain->ReacceptWalletTransactions();
+            }
+
+            LogPrintf(" rescan      %15dms\n", GetTimeMillis() - nStart);
+        };
+    }
 
     // ********************************************************* Step 9: import blocks
 
