@@ -26,6 +26,9 @@ set SRC_DIR=%cd%
 set BUILD_DIR=%cd%\build-x86
 
 :: "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars64.bat"
+IF NOT EXIST "%VSDIR%\VC\Auxiliary\Build\vcvars32.bat" (
+    FOR /F "usebackq tokens=*" %%i IN (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath`) DO SET VSDIR=%%i
+)
 call "%VSDIR%\VC\Auxiliary\Build\vcvars32.bat"
 cd
 cd %SRC_DIR%

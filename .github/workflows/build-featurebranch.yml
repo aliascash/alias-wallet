@@ -100,12 +100,12 @@ jobs:
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
+          vcpkgGitCommitId: e8709ee8703328fe121eab33cda73a406a7626b7
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows
-          QTDIR: ${{ env.Qt5_Dir }}
+          QTDIR: ${{ env.QT_ROOT_DIR }}
           VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
           CMAKEDIR: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
@@ -128,12 +128,12 @@ jobs:
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v11
         with:
-          vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
+          vcpkgGitCommitId: e8709ee8703328fe121eab33cda73a406a7626b7
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
         env:
           VCPKG_DEFAULT_TRIPLET: x86-windows
-          QTDIR_x86: ${{ env.Qt5_Dir }}
+          QTDIR_x86: ${{ env.QT_ROOT_DIR }}
           VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
           CMAKEDIR_x86: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
