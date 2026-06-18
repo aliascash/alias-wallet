@@ -286,6 +286,7 @@ jobs:
 
       - name: Create zip archive and sha256 checksum
         run: |
+          powershell "Copy-Item (Get-ChildItem -Recurse build/src -Filter aliaswalletd.exe | Select-Object -First 1).FullName build/delivery/Alias/"
           powershell Compress-Archive build/delivery/Alias Alias.zip
           powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
           powershell "(Get-Content Alias.sha256) | Out-File Alias.sha256 -Encoding ascii"

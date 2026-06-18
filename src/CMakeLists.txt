@@ -178,7 +178,24 @@ endif ()
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "No daemon build on Mac")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    message(STATUS "No daemon build on Windows")
+    # Headless daemon (aliaswalletd.exe) — required by the Electron desktop app.
+    # aliaswallet_lib already compiles on Windows (the GUI links it) and
+    # spectrecoind.cpp guards its POSIX bits behind WIN32 / win/unistd.h.
+    # No -static on MSVC; pull the Windows socket libs the core uses directly.
+    add_executable(Aliaswalletd ${CMAKE_CURRENT_LIST_DIR}/spectrecoind.cpp)
+    target_link_libraries(Aliaswalletd
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            Oracle::BerkeleyDB
+            leveldb::leveldb
+            aliaswallet_lib
+            Shlwapi
+            ws2_32
+            mswsock
+            )
+    set_target_properties(Aliaswalletd PROPERTIES
+            OUTPUT_NAME aliaswalletd
+            )
 else()
     # The daemon
     add_executable(Aliaswalletd ${CMAKE_CURRENT_LIST_DIR}/spectrecoind.cpp)
