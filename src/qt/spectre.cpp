@@ -32,6 +32,7 @@
 #include <QWebChannel>
 #include <QWebSocketServer>
 #include <QUuid>
+#include <QtWebView>
 
 
 

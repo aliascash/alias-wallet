@@ -53,111 +53,111 @@ target_include_directories(aliaswallet_lib
 # Common sources
 target_sources(aliaswallet_lib
         PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/addrman.h
+        ${CMAKE_CURRENT_LIST_DIR}/net/addrman.h
         ${CMAKE_CURRENT_LIST_DIR}/alert.h
-        ${CMAKE_CURRENT_LIST_DIR}/allocators.h
-        ${CMAKE_CURRENT_LIST_DIR}/anonymize.h
+        ${CMAKE_CURRENT_LIST_DIR}/support/allocators.h
+        ${CMAKE_CURRENT_LIST_DIR}/anon/anonymize.h
         ${CMAKE_CURRENT_LIST_DIR}/base58.h
         ${CMAKE_CURRENT_LIST_DIR}/bignum.h
-        ${CMAKE_CURRENT_LIST_DIR}/bloom.h
-        ${CMAKE_CURRENT_LIST_DIR}/chainparams.h
-        ${CMAKE_CURRENT_LIST_DIR}/chainparamsseeds.h
+        ${CMAKE_CURRENT_LIST_DIR}/net/bloom.h
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/chainparams.h
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/chainparamsseeds.h
         ${CMAKE_CURRENT_LIST_DIR}/checkpoints.h
         ${CMAKE_CURRENT_LIST_DIR}/clientversion.h
-        ${CMAKE_CURRENT_LIST_DIR}/coincontrol.h
-        ${CMAKE_CURRENT_LIST_DIR}/compat.h
-        ${CMAKE_CURRENT_LIST_DIR}/core.h
-        ${CMAKE_CURRENT_LIST_DIR}/crypter.h
-        ${CMAKE_CURRENT_LIST_DIR}/db.h
-        ${CMAKE_CURRENT_LIST_DIR}/eckey.h
-        ${CMAKE_CURRENT_LIST_DIR}/extkey.h
-        ${CMAKE_CURRENT_LIST_DIR}/hash.h
-        ${CMAKE_CURRENT_LIST_DIR}/init.h
-        ${CMAKE_CURRENT_LIST_DIR}/kernel.h
-        ${CMAKE_CURRENT_LIST_DIR}/key.h
-        ${CMAKE_CURRENT_LIST_DIR}/keystore.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/coincontrol.h
+        ${CMAKE_CURRENT_LIST_DIR}/compat/compat.h
+        ${CMAKE_CURRENT_LIST_DIR}/primitives/core.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/crypter.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/db.h
+        ${CMAKE_CURRENT_LIST_DIR}/key/eckey.h
+        ${CMAKE_CURRENT_LIST_DIR}/key/extkey.h
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/hash.h
+        ${CMAKE_CURRENT_LIST_DIR}/init/init.h
+        ${CMAKE_CURRENT_LIST_DIR}/pos/kernel.h
+        ${CMAKE_CURRENT_LIST_DIR}/key/key.h
+        ${CMAKE_CURRENT_LIST_DIR}/key/keystore.h
         ${CMAKE_CURRENT_LIST_DIR}/main.h
-        ${CMAKE_CURRENT_LIST_DIR}/miner.h
-        ${CMAKE_CURRENT_LIST_DIR}/mruset.h
-        ${CMAKE_CURRENT_LIST_DIR}/netbase.h
-        ${CMAKE_CURRENT_LIST_DIR}/net.h
-        ${CMAKE_CURRENT_LIST_DIR}/pbkdf2.h
-        ${CMAKE_CURRENT_LIST_DIR}/protocol.h
+        ${CMAKE_CURRENT_LIST_DIR}/pos/miner.h
+        ${CMAKE_CURRENT_LIST_DIR}/support/mruset.h
+        ${CMAKE_CURRENT_LIST_DIR}/net/netbase.h
+        ${CMAKE_CURRENT_LIST_DIR}/net/net.h
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/pbkdf2.h
+        ${CMAKE_CURRENT_LIST_DIR}/net/protocol.h
         ${CMAKE_CURRENT_LIST_DIR}/resource.h
-        ${CMAKE_CURRENT_LIST_DIR}/ringsig.h
-        ${CMAKE_CURRENT_LIST_DIR}/rpcclient.h
-        ${CMAKE_CURRENT_LIST_DIR}/rpcprotocol.h
-        ${CMAKE_CURRENT_LIST_DIR}/rpcserver.h
-        ${CMAKE_CURRENT_LIST_DIR}/script.h
-        ${CMAKE_CURRENT_LIST_DIR}/scrypt.h
+        ${CMAKE_CURRENT_LIST_DIR}/anon/ringsig.h
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcclient.h
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcprotocol.h
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcserver.h
+        ${CMAKE_CURRENT_LIST_DIR}/script/script.h
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/scrypt.h
         ${CMAKE_CURRENT_LIST_DIR}/serialize.h
-        ${CMAKE_CURRENT_LIST_DIR}/smessage.h
+        ${CMAKE_CURRENT_LIST_DIR}/smsg/smessage.h
         ${CMAKE_CURRENT_LIST_DIR}/state.h
-        ${CMAKE_CURRENT_LIST_DIR}/stealth.h
-        ${CMAKE_CURRENT_LIST_DIR}/strlcpy.h
-        ${CMAKE_CURRENT_LIST_DIR}/sync.h
-        ${CMAKE_CURRENT_LIST_DIR}/threadsafety.h
-        ${CMAKE_CURRENT_LIST_DIR}/tinyformat.h
-        ${CMAKE_CURRENT_LIST_DIR}/txdb.h
-        ${CMAKE_CURRENT_LIST_DIR}/txdb-leveldb.h
-        ${CMAKE_CURRENT_LIST_DIR}/txmempool.h
+        ${CMAKE_CURRENT_LIST_DIR}/anon/stealth.h
+        ${CMAKE_CURRENT_LIST_DIR}/compat/strlcpy.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/sync.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/threadsafety.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/tinyformat.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/txdb.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/txdb-leveldb.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/txmempool.h
         ${CMAKE_CURRENT_LIST_DIR}/types.h
         ${CMAKE_CURRENT_LIST_DIR}/interface.h
         ${CMAKE_CURRENT_LIST_DIR}/uint256.h
-        ${CMAKE_CURRENT_LIST_DIR}/util.h
-        ${CMAKE_CURRENT_LIST_DIR}/version.h
-        ${CMAKE_CURRENT_LIST_DIR}/walletdb.h
-        ${CMAKE_CURRENT_LIST_DIR}/wallet.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/util.h
+        ${CMAKE_CURRENT_LIST_DIR}/util/version.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/walletdb.h
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/wallet.h
         ${CMAKE_CURRENT_LIST_DIR}/shutdown.h
 
         PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}/addrman.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net/addrman.cpp
         ${CMAKE_CURRENT_LIST_DIR}/alert.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/anonymize.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/bloom.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/chainparams.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/anon/anonymize.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net/bloom.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/kernel/chainparams.cpp
         ${CMAKE_CURRENT_LIST_DIR}/checkpoints.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/core.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/crypter.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/db.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/eckey.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/extkey.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/hash.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/init.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/kernel.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/key.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/keystore.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/primitives/core.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/crypter.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/db.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/key/eckey.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/key/extkey.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/hash.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/init/init.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/pos/kernel.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/key/key.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/key/keystore.cpp
         ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/miner.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/netbase.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/net.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/pos/miner.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net/netbase.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net/net.cpp
         ${CMAKE_CURRENT_LIST_DIR}/noui.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/pbkdf2.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/protocol.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/ringsig.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcblockchain.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcclient.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcdump.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcextkey.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcmining.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcmnemonic.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcnet.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcprotocol.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcrawtransaction.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcserver.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/rpcwallet.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/script.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/scrypt.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/smessage.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/pbkdf2.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/net/protocol.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/anon/ringsig.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcblockchain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcclient.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcdump.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcextkey.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcmining.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcmnemonic.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcnet.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcprotocol.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcrawtransaction.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcserver.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcwallet.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/script/script.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/crypto/scrypt.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/smsg/smessage.cpp
         ${CMAKE_CURRENT_LIST_DIR}/state.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/stealth.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/sync.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/txdb-leveldb.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/txmempool.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/util.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/version.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/wallet.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/walletdb.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/anon/stealth.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/util/sync.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/txdb-leveldb.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/txmempool.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/util/util.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/util/version.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/wallet.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/wallet/walletdb.cpp
         ${CMAKE_CURRENT_LIST_DIR}/shutdown.cpp
         )
 
@@ -283,12 +283,12 @@ if (ENABLE_GUI)
             ${CMAKE_CURRENT_LIST_DIR}/qt/walletmodel.cpp
             ${CMAKE_CURRENT_LIST_DIR}/qt/websocketclientwrapper.cpp
             ${CMAKE_CURRENT_LIST_DIR}/qt/websockettransport.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/init.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/util.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/init/init.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/util/util.cpp
             ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/net.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/rpcserver.cpp
-            ${CMAKE_CURRENT_LIST_DIR}/wallet.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/net/net.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/rpc/rpcserver.cpp
+            ${CMAKE_CURRENT_LIST_DIR}/wallet/wallet.cpp
 
             ${CMAKE_CURRENT_LIST_DIR}/qt/locale/alias_en.ts
             )

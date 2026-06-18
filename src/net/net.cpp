@@ -1888,16 +1888,32 @@ void StartTor(void *nothing)
     // Make this thread recognisable as the tor thread
     RenameThread("onion");
 
-    try
+    // Keep tor alive for the lifetime of the wallet. run_tor() blocks on the
+    // tor process and returns when it exits. Previously any tor exit (crash,
+    // network blip, OOM, killed circuit) called StartShutdown() and terminated
+    // the whole wallet -- so a long IBD that outlived tor's stability could be
+    // closed mid-sync and never complete. Instead, restart tor whenever it
+    // exits unexpectedly; only stop the thread when the wallet itself is
+    // shutting down.
+    int nRestarts = 0;
+    while (!ShutdownRequested())
     {
-      run_tor();
-    }
-    catch (std::exception& e) {
-      PrintException(&e, "StartTor()");
-    }
+        try
+        {
+            run_tor();   // blocks until the tor process exits
+        }
+        catch (std::exception& e) {
+            PrintException(&e, "StartTor()");
+        }
 
-    // If tor could not be started or exits for any reason, shutdown the application
-    StartShutdown();
+        if (ShutdownRequested() || tor_killed_from_here)
+            break;       // tor was stopped as part of a normal wallet shutdown
+
+        nRestarts++;
+        LogPrintf("Onion: tor exited unexpectedly (restart #%d), restarting in 5s...\n", nRestarts);
+        for (int i = 0; i < 50 && !ShutdownRequested(); i++)
+            MilliSleep(100);
+    }
 
     LogPrintf("Onion thread exited.\n");
 }

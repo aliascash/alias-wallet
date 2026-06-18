@@ -2,7 +2,7 @@ name: Develop
 on:
   push:
     branches:
-      - develop
+      - dev
 
 jobs:
   # ==========================================================================
@@ -29,7 +29,7 @@ jobs:
       # First create the plain release, so the upload URL could be exported
       - name: Create release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.determine_release.outputs.alias_release }}
           draft: false
@@ -40,7 +40,7 @@ jobs:
 
       - name: Releasenotes from Develop
         id: create_release_develop
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.determine_release.outputs.alias_release }}
           name: "Continuous build #${{ github.run_number }}"
@@ -62,7 +62,7 @@ jobs:
       matrix:
         distro: [ CentOS/Dockerfile, Debian/Dockerfile_Buster, Debian/Dockerfile_Stretch, Fedora/Dockerfile, OpenSUSE/Dockerfile, Ubuntu/Dockerfile_18_04 ]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Build binaries
@@ -90,7 +90,7 @@ jobs:
       github_sha_short: ${{ needs.prepareRelease.outputs.github_sha_short }}
       alias_release: ${{ needs.prepareRelease.outputs.alias_release }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Build binaries
@@ -137,12 +137,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: prepareRelease
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Set up QEMU
         id: qemu
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
         with:
           image: tonistiigi/binfmt:latest
           platforms: arm64
@@ -163,19 +163,19 @@ jobs:
   # ==========================================================================
   # Build MacOS version
   buildMacOS:
-    runs-on: macos-11
+    runs-on: macos-13
     needs: prepareRelease
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '12.5.1'
+          xcode-version: '15.2'
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v4
         with:
           version: '5.12.10'
           modules: 'qtwebengine'
@@ -186,7 +186,7 @@ jobs:
           brew install berkeley-db@4 boost openssl
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         env:
           cache-name: cache-build-dependencies-mac-v3
         with:
@@ -259,23 +259,21 @@ jobs:
       github_sha_short: ${{ needs.prepareRelease.outputs.github_sha_short }}
       alias_release: ${{ needs.prepareRelease.outputs.alias_release }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v4
         with:
           version: '5.12.9'
           setup-python: 'false'
           modules: 'qtwebengine'
 
       - name: Install vcpkg and packages with cache
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v11
         with:
-          vcpkgArguments: 'berkeleydb boost leveldb openssl'
           vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
-          vcpkgTriplet: x64-windows
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
@@ -323,12 +321,12 @@ jobs:
       github_sha_short: ${{ needs.prepareRelease.outputs.github_sha_short }}
       alias_release: ${{ needs.prepareRelease.outputs.alias_release }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
 
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v4
         with:
           version: '5.12.9'
           setup-python: 'false'
@@ -336,11 +334,9 @@ jobs:
           arch: 'win32_msvc2017'
 
       - name: Install vcpkg and packages with cache
-        uses: lukka/run-vcpkg@v6
+        uses: lukka/run-vcpkg@v11
         with:
-          vcpkgArguments: 'berkeleydb boost leveldb openssl'
           vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
-          vcpkgTriplet: x86-windows
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
@@ -386,23 +382,23 @@ jobs:
     needs: buildLinuxBinariesAlsoForDockerImage
     steps:
       # Get installer repo content
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           persist-credentials: false
           repository: oxmmty/docker-aliaswalletd # TODO(oxmmty): confirm fork location
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }} #use username, not email
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push
         id: docker_build
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: .

@@ -1,0 +1,12 @@
+{
+  "name": "alias-wallet",
+  "version-string": "5.1.0",
+  "description": "Build dependencies for the Alias wallet Windows build (vcpkg manifest mode).",
+  "dependencies": [
+    "berkeleydb",
+    "boost",
+    "leveldb",
+    "openssl"
+  ],
+  "builtin-baseline": "a037d826492039db9d58af47a1e1248037d15f40"
+}
