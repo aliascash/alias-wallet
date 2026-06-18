@@ -5,6 +5,9 @@ on:
       - master
       - main
 
+permissions:
+  contents: write
+
 jobs:
   # ==========================================================================
   # Create Github tag/release and export short SHA of current HEAD

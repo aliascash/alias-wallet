@@ -4,6 +4,9 @@ on:
     branches:
       - dev
 
+permissions:
+  contents: write
+
 jobs:
   # ==========================================================================
   # Create Github tag/release and export short SHA of current HEAD
