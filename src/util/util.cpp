@@ -1174,7 +1174,7 @@ boost::filesystem::path GetConfigFile()
         fs::rename(oldConfigFile, newConfigFile);
 
     fs::path pathConfigFile(GetArg("-conf", "alias.conf"));
-    if (!pathConfigFile.is_complete()) pathConfigFile = dataDir / pathConfigFile;
+    if (!pathConfigFile.is_absolute()) pathConfigFile = dataDir / pathConfigFile;
     return pathConfigFile;
 }
 
@@ -1207,7 +1207,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 boost::filesystem::path GetPidFile()
 {
     boost::filesystem::path pathPidFile(GetArg("-pid", "alias.pid"));
-    if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
+    if (!pathPidFile.is_absolute()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }
 
