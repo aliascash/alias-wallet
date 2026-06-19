@@ -8,5 +8,5 @@
     "leveldb",
     "openssl"
   ],
-  "builtin-baseline": "e8709ee8703328fe121eab33cda73a406a7626b7"
+  "builtin-baseline": "6f29f12e82a8293156836ad81cc9bf5af41fe836"
 }

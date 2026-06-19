@@ -110,17 +110,16 @@ jobs:
         env:
           GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Stage aliaswalletd from the build image layer.
-      # The Ubuntu Dockerfile_20_04 build stage copies aliaswalletd to
-      # /alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd.
-      # Tor is not bundled separately on Linux (the daemon loads system Tor);
-      # only the daemon binary is required by the desktop app downloader.
-      # TODO(#73): confirm aliaswalletd output path inside the Ubuntu build image
+      # Stage aliaswalletd from the final image. `local` is the stage-1 image
+      # (FROM github-uploader); Dockerfile_20_04 COPYs the daemon there to
+      # /filesToUpload/usr/local/bin/aliaswalletd (the build-stage path does not
+      # exist in this image). Tor is not bundled separately on Linux (the daemon
+      # loads system Tor); only the daemon binary is needed by the desktop app.
       - name: Stage Linux raw binary archive
         run: |
           mkdir -p /tmp/linux-raw/aliaswalletd-linux
           docker create --name alias-extract local
-          docker cp alias-extract:/alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd /tmp/linux-raw/aliaswalletd-linux/aliaswalletd
+          docker cp alias-extract:/filesToUpload/usr/local/bin/aliaswalletd /tmp/linux-raw/aliaswalletd-linux/aliaswalletd
           docker rm alias-extract
           cd /tmp/linux-raw
           zip -r Alias.zip aliaswalletd-linux/

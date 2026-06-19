@@ -27,7 +27,6 @@ boost::process::group gTor;
 #include <unistd.h>     // fork()
 #include <sys/wait.h>   // waitpid()
 pid_t tor_process_pid = 0;
-bool tor_killed_from_here = false;
 #endif
 
 #ifdef USE_UPNP
@@ -61,6 +60,11 @@ bool OpenNetworkConnection(const CAddress& addrConnect, CSemaphoreGrant *grantOu
 //
 // Global state variables
 //
+// Set true when the wallet itself stops tor (see StopNode), so the onion
+// thread can tell an intentional shutdown from an unexpected tor exit. Lives
+// outside the platform guards because StartTor()'s restart loop reads it on
+// every platform; only Linux ever sets it true.
+bool tor_killed_from_here = false;
 bool fDiscover = true;
 bool fUseUPnP = false;
 
