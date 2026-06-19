@@ -8,7 +8,7 @@
 
 #if defined(Q_OS_WIN)
 #include <shutdown.h>
-#include <util.h>
+#include <util/util.h>
 
 #include <Windows.h>
 
