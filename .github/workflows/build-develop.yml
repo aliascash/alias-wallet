@@ -78,6 +78,8 @@ jobs:
           --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
           --build-arg ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}
           --build-arg REPLACE_EXISTING_ARCHIVE=--replace
+          --build-arg ALIAS_USER=${{ github.repository_owner }}
+          --build-arg ALIAS_REPOSITORY=${{ github.event.repository.name }}
           .
         env:
           GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -106,6 +108,8 @@ jobs:
           --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
           --build-arg ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}
           --build-arg REPLACE_EXISTING_ARCHIVE=--replace
+          --build-arg ALIAS_USER=${{ github.repository_owner }}
+          --build-arg ALIAS_REPOSITORY=${{ github.event.repository.name }}
           .
         env:
           GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -158,6 +162,8 @@ jobs:
           --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
           --build-arg ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}
           --build-arg REPLACE_EXISTING_ARCHIVE=--replace
+          --build-arg ALIAS_USER=${{ github.repository_owner }}
+          --build-arg ALIAS_REPOSITORY=${{ github.event.repository.name }}
           .
         env:
           GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}

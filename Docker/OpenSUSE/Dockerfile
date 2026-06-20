@@ -25,6 +25,7 @@ MAINTAINER HLXEasy <hlxeasy@gmail.com>
 
 ARG GITHUB_CI_TOKEN=1234567
 ARG ALIAS_RELEASE=latest
+ARG ALIAS_USER=oxmmty
 ARG ALIAS_REPOSITORY=ALIAS-wallet-dev
 ARG GIT_COMMIT=unknown
 ARG REPLACE_EXISTING_ARCHIVE=''
@@ -42,7 +43,7 @@ COPY --from=build /alias-wallet/scripts/createChecksums.sh /tmp/
 RUN cd /filesToUpload \
  && tar czf ${ARCHIVE} . \
  && github-release upload \
-        --user oxmmty \
+        --user ${ALIAS_USER} \
         --security-token "${GITHUB_CI_TOKEN}" \
         --repo "${ALIAS_REPOSITORY}" \
         --tag "${ALIAS_RELEASE}" \
@@ -52,7 +53,7 @@ RUN cd /filesToUpload \
  && sha256sum /filesToUpload/${ARCHIVE} | awk '{ print $1 }' > /filesToUpload/${ARCHIVE_CHKSUM} \
  && cat /filesToUpload/${ARCHIVE_CHKSUM} \
  && github-release upload \
-        --user oxmmty \
+        --user ${ALIAS_USER} \
         --security-token "${GITHUB_CI_TOKEN}" \
         --repo "${ALIAS_REPOSITORY}" \
         --tag "${ALIAS_RELEASE}" \
