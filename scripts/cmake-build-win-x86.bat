@@ -40,7 +40,7 @@ rmdir /S /Q "%BUILD_DIR%\delivery"
 mkdir "%BUILD_DIR%"
 cd %BUILD_DIR%
 
-"%CMAKEDIR_x86%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH=%QTDIR_x86%\lib\cmake -D CMAKE_BUILD_TYPE=Release -G "Visual Studio 16 2019" -A Win32 .. || goto :ERROR
+"%CMAKEDIR_x86%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH=%QTDIR_x86%\lib\cmake -D CMAKE_BUILD_TYPE=Release -A Win32 .. || goto :ERROR
 
 "%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswallet --config Release || goto :ERROR
 
