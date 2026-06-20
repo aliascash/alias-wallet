@@ -1,8 +1,8 @@
-# Building the modernized Alias wallet in Docker
+# Building the modernized ALIAS wallet in Docker
 
 The cleanest way to compile the modernized tree without fighting your
 system's dependency versions. Docker provides Ubuntu 20.04 which ships
-exactly the stack Alias was built against in 2020.
+exactly the stack ALIAS was built against in 2020.
 
 ## Prerequisites
 
@@ -39,11 +39,11 @@ Output binaries land in `./out/`:
 ## What the Dockerfile actually does
 
 1. Starts from `ubuntu:20.04`.
-2. `apt install`s the exact build chain Alias needs: gcc, autoconf,
+2. `apt install`s the exact build chain ALIAS needs: gcc, autoconf,
    pkg-config, libssl-dev (1.1.1), libevent-dev, Boost 1.71, Qt 5.12.8,
    libsnappy, libzstd, liblzma.
 3. Clones `aliascash/leveldb` and `aliascash/db4.8` and builds them in
-   the layout Alias's `src/Makefile.am` expects (sibling directories
+   the layout ALIAS's `src/Makefile.am` expects (sibling directories
    to the wallet source).
 4. Copies the modernized source into `/build/alias-modernized` (the
    `.dockerignore` excludes the `depends/`, `external.deprecated/`,
@@ -87,6 +87,6 @@ MinGW-cross static libraries), and configure with the mingw triplet.
 This is on the Phase 1 wiring follow-up.
 
 For now, the produced Linux ELF binaries run inside the container; to
-get a `.exe` you currently still need Alias's existing windows builder
+get a `.exe` you currently still need ALIAS's existing windows builder
 infrastructure under [external.deprecated/](../external.deprecated/) —
 those scripts cross-compile via the same mingw toolchain.

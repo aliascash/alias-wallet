@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -4986,7 +4987,7 @@ bool CWallet::SendSpecToAnon(CStealthAddress& sxAddress, int64_t nValue, std::st
 
     if (vNodes.empty())
     {
-        sError = _("Error: Alias is not connected!");
+        sError = _("Error: ALIAS is not connected!");
         return false;
     };
 
@@ -5089,7 +5090,7 @@ bool CWallet::SendAnonToAnon(CStealthAddress& sxAddress, int64_t nValue, int nRi
 
     if (vNodes.empty())
     {
-        sError = _("Error: Alias is not connected!");
+        sError = _("Error: ALIAS is not connected!");
         return false;
     };
 
@@ -5179,7 +5180,7 @@ bool CWallet::SendAnonToSpec(CStealthAddress& sxAddress, int64_t nValue, int nRi
 
     if (vNodes.empty())
     {
-        sError = _("Error: Alias is not connected!");
+        sError = _("Error: ALIAS is not connected!");
         return false;
     };
 
@@ -8668,7 +8669,7 @@ int CWallet::ExtKeyCreateInitial(CWalletDB *pwdb, std::string sBip44Key)
             if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY_BTC))
             {
                 pwdb->TxnAbort();
-                return errorN(1, "-bip44key defines invalid key. Key must begin with Alias prefix.");
+                return errorN(1, "-bip44key defines invalid key. Key must begin with ALIAS prefix.");
             }
             ekBip44 = eKey58.GetKey().GetExtKey();
             LogPrintf("Using given -bip44key for initial master key.\n");

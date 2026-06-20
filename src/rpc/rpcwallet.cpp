@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -245,7 +246,7 @@ Value getnewaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "getnewaddress [account]\n"
-            "Returns a new Alias address for receiving payments.  "
+            "Returns a new ALIAS address for receiving payments.  "
             "If [account] is specified, it is added to the address book "
             "so payments received with the address will be credited to [account].");
 
@@ -271,7 +272,7 @@ Value getnewextaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "getnewextaddress [label]\n"
-            "Returns a new Alias ext address for receiving payments."
+            "Returns a new ALIAS ext address for receiving payments."
             "If [label] is specified, it is added to the address book. ");
 
     std::string strLabel;
@@ -342,7 +343,7 @@ Value getaccountaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() != 1)
         throw std::runtime_error(
             "getaccountaddress <account>\n"
-            "Returns the current Alias address for receiving payments to this account.");
+            "Returns the current ALIAS address for receiving payments to this account.");
 
     // Parse the account first so we don't generate a key if there's an error
     std::string strAccount = AccountFromValue(params[0]);
@@ -365,7 +366,7 @@ Value setaccount(const Array& params, bool fHelp)
 
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
 
 
     std::string strAccount;
@@ -395,7 +396,7 @@ Value getaccount(const Array& params, bool fHelp)
 
     CBitcoinAddress address(params[0].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
 
     std::string strAccount;
     std::map<CTxDestination, std::string>::iterator mi = pwalletMain->mapAddressBook.find(address.Get());
@@ -439,12 +440,12 @@ Value sendtoaddress(const Array& params, bool fHelp)
 
     if (params[0].get_str().length() > 75
         && IsStealthAddress(params[0].get_str()))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Only private Alias can be send to a private address, use sendprivate instead");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Only private ALIAS can be send to a private address, use sendprivate instead");
 
     std::string sAddrIn = params[0].get_str();
     CBitcoinAddress address(sAddrIn);
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
 
     // Amount
     int64_t nAmount = AmountFromValue(params[1]);
@@ -584,7 +585,7 @@ Value getreceivedbyaddress(const Array& params, bool fHelp)
     CBitcoinAddress address = CBitcoinAddress(params[0].get_str());
     CScript scriptPubKey;
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
     scriptPubKey.SetDestination(address.Get());
     if (!IsMine(*pwalletMain,scriptPubKey))
         return (double)0.0;
@@ -815,7 +816,7 @@ Value sendfrom(const Array& params, bool fHelp)
     std::string strAccount = AccountFromValue(params[0]);
     CBitcoinAddress address(params[1].get_str());
     if (!address.IsValid())
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
     int64_t nAmount = AmountFromValue(params[2]);
 
     int nMinDepth = 1;
@@ -878,7 +879,7 @@ Value sendmany(const Array& params, bool fHelp)
     {
         CBitcoinAddress address(s.name_);
         if (!address.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid Alias address: ")+s.name_);
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, std::string("Invalid ALIAS address: ")+s.name_);
 
         if (setAddress.count(address))
             throw JSONRPCError(RPC_INVALID_PARAMETER, std::string("Invalid parameter, duplicated address: ")+s.name_);
@@ -984,7 +985,7 @@ Value addmultisigaddress(const Array& params, bool fHelp)
     {
         std::string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
             "Add a nrequired-to-sign multisignature address to the wallet\"\n"
-            "each key is a Alias address or hex-encoded public key\n"
+            "each key is a ALIAS address or hex-encoded public key\n"
             "If [account] is specified, assign address to [account].";
         throw std::runtime_error(msg);
     };
@@ -1013,7 +1014,7 @@ Value createmultisig(const Array& params, bool fHelp)
         std::string msg = "addmultisigaddress <nrequired> <'[\"key\",\"key\"]'> [account]\n"
             "\nCreates a multi-signature address with n signature of m keys required.\n"
             "Returns a json object with the address and redeemScript.\n"
-            "Each key is a Alias address or hex-encoded public key.\n"
+            "Each key is a ALIAS address or hex-encoded public key.\n"
             "\nArguments:\n"
             "1. nrequired      (numeric, required) The number of required signatures out of the n keys or addresses.\n"
             "2. \"keys\"       (string, required) A json array of keys which are bitcoin addresses or hex-encoded public keys\n"
@@ -1776,7 +1777,7 @@ Value encryptwallet(const Array& params, bool fHelp)
     // slack space in .dat files; that is bad if the old data is
     // unencrypted private keys. So:
     StartShutdown();
-    return "wallet encrypted; Alias server stopping, restart to run with encrypted wallet.  The keypool has been flushed, you need to make a new backup.";
+    return "wallet encrypted; ALIAS server stopping, restart to run with encrypted wallet.  The keypool has been flushed, you need to make a new backup.";
 }
 
 class DescribeAddressVisitor : public boost::static_visitor<Object>
@@ -2025,7 +2026,7 @@ Value getnewprivateaddress(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "getnewprivateaddress [label]\n"
-            "Returns a new Alias private address for receiving payments anonymously."
+            "Returns a new ALIAS private address for receiving payments anonymously."
             + HelpRequiringPassphrase());
 
     if (pwalletMain->IsLocked())
@@ -2351,7 +2352,7 @@ Value sendpublictoprivate(const Array& params, bool fHelp)
     CStealthAddress sxAddr;
 
     if (!sxAddr.SetEncoded(sEncoded))
-        throw std::runtime_error("Invalid Alias private address.");
+        throw std::runtime_error("Invalid ALIAS private address.");
 
     // -- Check that we own the recipient address (XSPEC to SPECTRE only allowed for transformation)
     if (!pwalletMain->IsMine(sxAddr)) {
@@ -2414,7 +2415,7 @@ Value sendprivate(const Array& params, bool fHelp)
     CStealthAddress sxAddr;
 
     if (!sxAddr.SetEncoded(sEncoded))
-        throw std::runtime_error("Invalid Alias private address.");
+        throw std::runtime_error("Invalid ALIAS private address.");
 
     CWalletTx wtx;
     if (params.size() > 4 && params[4].type() != null_type && !params[4].get_str().empty())
@@ -2477,7 +2478,7 @@ Value sendprivatetopublic(const Array& params, bool fHelp)
     CStealthAddress sxAddr;
 
     if (!sxAddr.SetEncoded(sEncoded))
-        throw std::runtime_error("Invalid Alias private address.");
+        throw std::runtime_error("Invalid ALIAS private address.");
 
     // -- Check that we own the recipient address (SPECTRE to XSPEC only allowed for transformation)
     if (!pwalletMain->IsMine(sxAddr)) {

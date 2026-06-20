@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help improve Alias
+about: Create a report to help improve ALIAS
 title: ''
 labels: ''
 assignees: ''

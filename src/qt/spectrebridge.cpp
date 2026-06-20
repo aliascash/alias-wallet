@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -643,7 +644,7 @@ void SpectreBridge::sendCoins(bool fUseCoinControl, QString sChangeAddr)
             emit sendCoinsResult(false);
             return;
         case WalletModel::SCR_StealthAddressFailAnonToSpec:
-            QMessageBox::warning(window, tr("Convert Alias from Private to Public"),
+            QMessageBox::warning(window, tr("Convert ALIAS from Private to Public"),
                 tr("Error: Invalid Stealth Address. Private to public conversion requires a stealth address."),
                 QMessageBox::Ok, QMessageBox::Ok);
             emit sendCoinsResult(false);
@@ -1870,7 +1871,7 @@ void SpectreBridge::extKeyImport(QString inKey, QString inLabel, bool fBip44, qu
         if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
          && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC))
         {
-            result.insert("error_msg", "Import failed - Key must begin with Alias prefix.");
+            result.insert("error_msg", "Import failed - Key must begin with ALIAS prefix.");
             emit extKeyImportResult(result);
             return;
         }

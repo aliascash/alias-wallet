@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -755,7 +756,7 @@ Value rewindchain(const Array& params, bool fHelp)
 
     // -- need restart, setStakeSeen etc
     if (nRemoved > 0)
-        result.push_back(Pair("Please restart Alias", ""));
+        result.push_back(Pair("Please restart ALIAS", ""));
 
     if (nRemoved == nNumber)
         result.push_back(Pair("result", "success"));

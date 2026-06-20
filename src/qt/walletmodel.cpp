@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2011 Bitcoin Developers
@@ -486,7 +487,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoinsAnon(const QList<SendCoinsRec
         return SendCoinsReturn(SCR_ErrorWithMsg, 0, QString::fromStdString("Block chain must be fully synced first."));
 
     if (vNodes.empty())
-        return SendCoinsReturn(SCR_ErrorWithMsg, 0, QString::fromStdString("Alias is not connected!"));
+        return SendCoinsReturn(SCR_ErrorWithMsg, 0, QString::fromStdString("ALIAS is not connected!"));
 
 
     // -- verify input type and ringsize

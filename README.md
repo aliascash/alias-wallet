@@ -1,4 +1,4 @@
-# Alias
+# ALIAS
 [![Latest release](https://img.shields.io/github/v/release/aliascash/alias-wallet?label=Release&color=%2300bf00)](https://github.com/aliascash/alias-wallet/releases/latest)
 [![Latest develop build](https://img.shields.io/github/v/release/aliascash/alias-wallet?include_prereleases&label=Develop-Build)](https://github.com/aliascash/alias-wallet/releases)
 [![Discord](https://img.shields.io/discord/426769724018524161?logo=discord)](https://discord.gg/ckkrb8m)
@@ -6,14 +6,15 @@
 [![Build Status Master](https://github.com/aliascash/alias-wallet/actions/workflows/build-master.yml/badge.svg)](https://github.com/aliascash/alias-wallet/actions)
 [![Build Status Develop](https://github.com/aliascash/alias-wallet/actions/workflows/build-develop.yml/badge.svg)](https://github.com/aliascash/alias-wallet/actions)
 
-Alias is a Secure Proof-of-Stake (PoSv3) Network with Anonymous Transaction Capability.
+ALIAS is a Secure Proof-of-Stake (PoSv3) Network with Anonymous Transaction Capability.
 
-Alias utilizes a range of proven cryptographic techniques to achieve un-linkable,
+ALIAS utilizes a range of proven cryptographic techniques to achieve un-linkable,
 un-traceable and anonymous transactions on its underlaying blockchain and also protects
 the users identity by running all the network nodes as Tor hidden services.
 
 # Licensing
 
+- SPDX-FileCopyrightText: © 2025 ALIAS Developer
 - SPDX-FileCopyrightText: © 2020 Alias Developers
 - SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 - SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -25,22 +26,22 @@ the users identity by running all the network nodes as Tor hidden services.
 SPDX-License-Identifier: MIT
 
 # Social
-- Visit our website [Alias](https://alias.cash/) (ALIAS)
+- Visit our website [ALIAS](https://alias.cash/) (ALIAS)
 - Please join us on our [Discord](https://discord.gg/ckkrb8m) server
 - Read the latest [News](https://alias.cash/news/)
 - Visit our thread at [BitcoinTalk](https://bitcointalk.org/index.php?topic=2103301.0)
 
 ## Key Privacy Technology
 
-Anonymous token creation: Through the use of dual key stealth technology, Alias provides
+Anonymous token creation: Through the use of dual key stealth technology, ALIAS provides
 the ability to generate ‘private coins’ by consuming 'public coins'. Private coins can then be
 sent through an implementation of ring signatures based on the Cryptonote protocol
 to eliminate any transaction history. The wallet offers the opportunity to transfer your
 balance between public coins and private coins. We are currently working
 on improving this technology for better functionality and privacy.
 
-Built in Tor: The Alias software offers a full integration of [Tor](https://www.torproject.org/)
-so that the Alias client runs exclusively as a Tor hidden service using a .onion
+Built in Tor: The ALIAS software offers a full integration of [Tor](https://www.torproject.org/)
+so that the ALIAS client runs exclusively as a Tor hidden service using a .onion
 address to connect to other clients in the network. Your real IP address is
 therefore protected at all times.
 
@@ -67,6 +68,9 @@ For detailed description and further documentation have a look at our [Wiki](htt
 * Build on and for [Windows](https://github.com/aliascash/documentation/wiki/Build-Windows)
 * Build on and for [Mac](https://github.com/aliascash/documentation/wiki/Build-Mac)
 * Separate pages for different flavours of Linux are also available there
+
+CI/CD: the GitHub Actions secrets and variables required by the build workflows are
+documented in [doc/CI-SECRETS.md](doc/CI-SECRETS.md).
 
 #### UI development
 

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -199,13 +200,13 @@ void ThreadSignalHandler(void *nothing)
 
 bool static InitError(const std::string &str)
 {
-    uiInterface.ThreadSafeMessageBox(str, _("Alias"), CClientUIInterface::BTN_OK | CClientUIInterface::MODAL);
+    uiInterface.ThreadSafeMessageBox(str, _("ALIAS"), CClientUIInterface::BTN_OK | CClientUIInterface::MODAL);
     return false;
 }
 
 bool static InitWarning(const std::string &str)
 {
-    uiInterface.ThreadSafeMessageBox(str, _("Alias"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
+    uiInterface.ThreadSafeMessageBox(str, _("ALIAS"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
     return true;
 }
 
@@ -549,7 +550,7 @@ bool AppInit2(boost::thread_group& threadGroup)
     // ********************************************************* Step 4: application initialization: dir lock, daemonize, pidfile, debug log
     // Sanity check
     if (!InitSanityCheck())
-        return InitError(_("Initialization sanity check failed. Alias is shutting down."));
+        return InitError(_("Initialization sanity check failed. ALIAS is shutting down."));
 
     std::string strDataDir = GetDataDir().string();
     std::string strWalletFileName = GetArg("-wallet", "wallet.dat");
@@ -569,13 +570,13 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     static boost::interprocess::file_lock lock(pathLockFile.string().c_str());
     if (!lock.try_lock())
-        return InitError(strprintf(_("Cannot obtain a lock on data directory %s.  Alias is probably already running."), strDataDir.c_str()));
+        return InitError(strprintf(_("Cannot obtain a lock on data directory %s.  ALIAS is probably already running."), strDataDir.c_str()));
 
     if (GetBoolArg("-shrinkdebugfile", !fDebug))
         ShrinkDebugFile();
 
     LogPrintf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-    LogPrintf("Alias version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
+    LogPrintf("ALIAS version %s (%s)\n", FormatFullVersion().c_str(), CLIENT_DATE.c_str());
     LogPrintf("Operating in %s mode.\n", GetNodeModeName(nNodeMode));
 #if (OPENSSL_VERSION_NUMBER < 0x10100000L)
     LogPrintf("Using OpenSSL version %s\n", SSLeay_version(SSLEAY_VERSION));
@@ -593,7 +594,7 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     if (fDaemon)
     {
-        fprintf(stdout, "Alias server starting\n");
+        fprintf(stdout, "ALIAS server starting\n");
         fflush(stdout);
     };
 
@@ -692,7 +693,7 @@ bool AppInit2(boost::thread_group& threadGroup)
                 " Original wallet.dat saved as wallet.{timestamp}.bak in %s; if"
                 " your balance or transactions are incorrect you should"
                 " restore from a backup."), strDataDir.c_str());
-            uiInterface.ThreadSafeMessageBox(msg, _("Alias"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
+            uiInterface.ThreadSafeMessageBox(msg, _("ALIAS"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
         };
 
         if (r == CDBEnv::RECOVER_FAIL)
@@ -922,15 +923,15 @@ bool AppInit2(boost::thread_group& threadGroup)
         {
             std::string msg(_("Warning: error reading wallet.dat! All keys read correctly, but transaction data"
                          " or address book entries might be missing or incorrect."));
-            uiInterface.ThreadSafeMessageBox(msg, _("Alias"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
+            uiInterface.ThreadSafeMessageBox(msg, _("ALIAS"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING | CClientUIInterface::MODAL);
         } else
         if (nLoadWalletRet == DB_TOO_NEW)
         {
-            strErrors << _("Error loading wallet.dat: Wallet requires newer version of Alias") << "\n";
+            strErrors << _("Error loading wallet.dat: Wallet requires newer version of ALIAS") << "\n";
         } else
         if (nLoadWalletRet == DB_NEED_REWRITE)
         {
-            strErrors << _("Wallet needed to be rewritten: restart Alias to complete") << "\n";
+            strErrors << _("Wallet needed to be rewritten: restart ALIAS to complete") << "\n";
             LogPrintf("%s", strErrors.str().c_str());
             return InitError(strErrors.str());
         } else

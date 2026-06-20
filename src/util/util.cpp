@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -1394,10 +1395,10 @@ void AddTimeData(const CNetAddr& ip, int64_t nTime)
                 if (!fMatch)
                 {
                     fDone = true;
-                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong Alias will not work properly.");
+                    string strMessage = _("Warning: Please check that your computer's date and time are correct! If your clock is wrong ALIAS will not work properly.");
                     strMiscWarning = strMessage;
                     LogPrintf("*** %s\n", strMessage.c_str());
-                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("Alias"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING);
+                    uiInterface.ThreadSafeMessageBox(strMessage+" ", string("ALIAS"), CClientUIInterface::BTN_OK | CClientUIInterface::ICON_WARNING);
                 }
             }
         }

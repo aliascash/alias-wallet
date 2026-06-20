@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2014 ShadowCoin Developers
@@ -114,7 +115,7 @@ static std::string Translate(const char* psz)
 static void handleRunawayException(std::exception *e)
 {
     PrintExceptionContinue(e, "Runaway exception");
-    QMessageBox::critical(0, "Runaway exception", SpectreGUI::tr("A fatal error occurred. Alias can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
+    QMessageBox::critical(0, "Runaway exception", SpectreGUI::tr("A fatal error occurred. ALIAS can no longer continue safely and will quit.") + QString("\n\n") + QString::fromStdString(strMiscWarning));
     exit(1);
 }
 
@@ -150,7 +151,7 @@ int main(int argc, char *argv[])
     fTestNet = GetBoolArg("-testnet", false);
     if (!SelectParamsFromCommandLine())
     {
-        QMessageBox::critical(0, "Alias", QString("Error: Invalid combination of -testnet and -regtest."));
+        QMessageBox::critical(0, "ALIAS", QString("Error: Invalid combination of -testnet and -regtest."));
         return 1;
     }
 
@@ -184,7 +185,7 @@ int main(int argc, char *argv[])
     {
         // This message can not be translated, as translation is not initialized yet
         // (which not yet possible because lang=XX can be overridden in bitcoin.conf in the data directory)
-        QMessageBox::critical(0, "Alias",
+        QMessageBox::critical(0, "ALIAS",
                               QString("Error: Specified data directory \"%1\" does not exist.").arg(QString::fromStdString(mapArgs["-datadir"])));
         return 1;
     }
@@ -192,12 +193,12 @@ int main(int argc, char *argv[])
 
     // Application identification (must be set before OptionsModel is initialized,
     // as it is used to locate QSettings)
-    app.setOrganizationName("The Alias Foundation");
+    app.setOrganizationName("The ALIAS Foundation");
     app.setOrganizationDomain("alias.cash");
     if(GetBoolArg("-testnet")) // Separate UI settings for testnet
-        app.setApplicationName("Alias-testnet");
+        app.setApplicationName("ALIAS-testnet");
     else
-        app.setApplicationName("Alias");
+        app.setApplicationName("ALIAS");
 
     // ... then GUI settings:
     OptionsModel optionsModel;
@@ -273,7 +274,7 @@ int main(int argc, char *argv[])
 
     //---- Create webSocket server for JavaScript client
     QWebSocketServer server(
-        QStringLiteral("Alias Websocket Server"),
+        QStringLiteral("ALIAS Websocket Server"),
         QWebSocketServer::NonSecureMode
     );
     if (!server.listen(QHostAddress::LocalHost, fTestNet ? WEBSOCKETPORT_TESTNET : WEBSOCKETPORT)) {
@@ -306,7 +307,7 @@ int main(int argc, char *argv[])
 
         // Periodically check if shutdown was requested to properly quit the Qt application
         #if defined(Q_OS_WIN) && QT_VERSION >= 0x050000
-            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("Alias Core did't yet exit safely..."), (HWND)window.winId());
+            WinShutdownMonitor::registerShutdownBlockReason(QObject::tr("ALIAS Core did't yet exit safely..."), (HWND)window.winId());
         #endif
         QTimer* pollShutdownTimer = new QTimer(guiref);
         QObject::connect(pollShutdownTimer, SIGNAL(timeout()), guiref, SLOT(detectShutdown()));
@@ -372,7 +373,7 @@ int main(int argc, char *argv[])
                 guiref = 0;
             }
             // Shutdown the core and its threads, but don't exit Qt here
-            LogPrintf("Alias shutdown.\n\n");
+            LogPrintf("ALIAS shutdown.\n\n");
             std::cout << "interrupt_all\n";
             threadGroup.interrupt_all();
             std::cout << "join_all\n";

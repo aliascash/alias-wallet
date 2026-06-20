@@ -1,21 +1,22 @@
 # Licensing
 
+* SPDX-FileCopyrightText: © 2025 ALIAS Developer
 * SPDX-FileCopyrightText: © 2020 Alias Developers
 * SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 * SPDX-License-Identifier: MIT
 
-# How to contribute to Alias
+# How to contribute to ALIAS
 
-The Alias project operates with an open contributor model where anyone is welcome to contribute towards development. This can be contributions in the form of peer reviews, testing and patches via pull requests. We will actively encourage community involvement and reward good work. This document explains the practical process and guidelines for contributing to Alias.
+The ALIAS project operates with an open contributor model where anyone is welcome to contribute towards development. This can be contributions in the form of peer reviews, testing and patches via pull requests. We will actively encourage community involvement and reward good work. This document explains the practical process and guidelines for contributing to ALIAS.
 
-In terms of Alias code governance structure, there are no privileged individuals or developers. Alias as most open source projects naturally revolves around meritocracy where longer term contributors gain more trust from the developer community. However, a certain hierarchy is necessary for practical purposes.
+In terms of ALIAS code governance structure, there are no privileged individuals or developers. ALIAS as most open source projects naturally revolves around meritocracy where longer term contributors gain more trust from the developer community. However, a certain hierarchy is necessary for practical purposes.
 
-Therefore, there will be repository “curators” who are responsible for merging pull requests as well as the Alias Core Team who are responsible for the release cycle, moderation and appointment of "curators".
+Therefore, there will be repository “curators” who are responsible for merging pull requests as well as the ALIAS Core Team who are responsible for the release cycle, moderation and appointment of "curators".
 
 
 # Contributor Workflow
 
-The Alias codebase is maintained using the “contributor workflow” where everyone contributes patch proposals using “pull requests”. This facilitates social contribution, easy testing and peer review. There may be circumstances where the Alias Core Team will update the code if needed.
+The ALIAS codebase is maintained using the “contributor workflow” where everyone contributes patch proposals using “pull requests”. This facilitates social contribution, easy testing and peer review. There may be circumstances where the ALIAS Core Team will update the code if needed.
 
 To contribute a patch, the workflow is as follows:
 
@@ -71,9 +72,9 @@ Project curators aim for a quick turnaround on refactoring pull requests, so whe
 
 # "Decision Making" Process
 
-The following applies to code changes to the Alias Core project (and related projects such as libsecp256k1), and is not to be confused with overall Alias Network Protocol consensus changes.
+The following applies to code changes to the ALIAS Core project (and related projects such as libsecp256k1), and is not to be confused with overall ALIAS Network Protocol consensus changes.
 
-Whether a pull request is merged into the Alias Core rests with the project merge curators and ultimately the Alias Core Team.
+Whether a pull request is merged into the ALIAS Core rests with the project merge curators and ultimately the ALIAS Core Team.
 
 Curators will take into consideration if a patch is in line with the general principles of the project; meets the minimum standards for inclusion; and will judge the general consensus of contributors.
 
@@ -86,7 +87,7 @@ In general, all pull requests must:
   - not break the existing test suite;
   - where bugs are fixed, where possible, there should be unit tests demonstrating the bug and also proving the fix. This helps prevent regression.
 
-Patches that change Alias consensus rules are considerably more involved than normal because they affect the entire ecosystem and so must be preceded by extensive discussions. While each case will be different, one should be prepared to expend more time and effort than for other kinds of patches because of increased peer review and consensus building requirements.
+Patches that change ALIAS consensus rules are considerably more involved than normal because they affect the entire ecosystem and so must be preceded by extensive discussions. While each case will be different, one should be prepared to expend more time and effort than for other kinds of patches because of increased peer review and consensus building requirements.
 
 
 ### Peer Review
@@ -105,11 +106,11 @@ Project curators reserve the right to weigh the opinions of peer reviewers using
 
 Where a patch set affects consensus critical code, the bar will be set much higher in terms of discussion and peer review requirements, keeping in mind that mistakes could be very costly to the wider community. This includes refactoring of consensus critical code.
 
-Where a patch set proposes to change the Alias consensus, it must have been discussed extensively on the appropriate Discord channel, and have a generally widely perceived technical consensus of being a worthwhile change based on the judgement of the curators and the Alias Core Team.
+Where a patch set proposes to change the ALIAS consensus, it must have been discussed extensively on the appropriate Discord channel, and have a generally widely perceived technical consensus of being a worthwhile change based on the judgement of the curators and the ALIAS Core Team.
 
 
 # Release Policy
 
-The Alias Core Team is the release manager for each Alias Core release.
+The ALIAS Core Team is the release manager for each ALIAS Core release.
 
 This document is subject to change and will be updated.

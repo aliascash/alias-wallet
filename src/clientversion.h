@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -8,7 +9,7 @@
 
 //
 // Client versioning. Hand-maintained for the autotools build path; the
-// upstream `clientversion.h.in` template was orphaned when Alias switched
+// upstream `clientversion.h.in` template was orphaned when ALIAS switched
 // to CMake. When configure.ac is rewired to consume the .in template,
 // delete this file.
 //

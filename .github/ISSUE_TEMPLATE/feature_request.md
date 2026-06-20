@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for Alias
+about: Suggest an idea for ALIAS
 title: ''
 labels: ''
 assignees: ''

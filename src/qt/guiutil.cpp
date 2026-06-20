@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -523,7 +524,7 @@ bool SetStartOnSystemStartup(bool fAutoStart)
         optionFile << "[Desktop Entry]\n" \
                    << "Version=" << FormatFullVersion() << "\n" \
                    << "Type=Application\n" \
-                   << "Name=Alias\n" \
+                   << "Name=ALIAS\n" \
                    << "Exec=" << pszExePath << "%u -min\n" \
                    << "Icon=" <<  QFileInfo(":/icons/spectre").absoluteFilePath().toStdString() << "\n" \
                    << "Terminal=false\n" \
@@ -547,7 +548,7 @@ bool SetStartOnSystemStartup(bool fAutoStart) { return false; }
 HelpMessageBox::HelpMessageBox(QWidget *parent) :
     QMessageBox(parent)
 {
-    header = tr("Alias") + " " + tr("version") + " " +
+    header = tr("ALIAS") + " " + tr("version") + " " +
         QString::fromStdString(FormatFullVersion()) + "\n\n" +
         tr("Usage:") + "\n" +
         "  aliaswallet [" + tr("command-line options") + "]                     " + "\n";
@@ -559,7 +560,7 @@ HelpMessageBox::HelpMessageBox(QWidget *parent) :
         "  -min                   " + tr("Start minimized") + "\n" +
         "  -splash                " + tr("Show splash screen on startup (default: 1)") + "\n";
 
-    setWindowTitle(tr("Alias"));
+    setWindowTitle(tr("ALIAS"));
     setTextFormat(Qt::PlainText);
     // setMinimumWidth is ignored for QMessageBox so put in non-breaking spaces to make it wider.
     setText(header + QString(QChar(0x2003)).repeated(50));

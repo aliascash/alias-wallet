@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -282,7 +283,7 @@ Value dumpprivkey(const Array& params, bool fHelp)
     } else
     {
         if (!address.SetString(strAddress))
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Alias address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid ALIAS address");
         if (!address.GetKeyID(keyID))
             throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
     };
@@ -324,7 +325,7 @@ Value dumpwallet(const Array& params, bool fHelp)
     std::sort(vKeyBirth.begin(), vKeyBirth.end());
 
     // produce output
-    file << strprintf("# Wallet dump created by Alias %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
+    file << strprintf("# Wallet dump created by ALIAS %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
     file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n", nBestHeight, hashBestChain.ToString());
     file << strprintf("#   mined on %s\n", EncodeDumpTime(pindexBest->nTime));

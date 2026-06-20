@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2010 Satoshi Nakamoto
@@ -253,10 +254,10 @@ Value stop(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "stop\n"
-            "Stop Alias server.");
+            "Stop ALIAS server.");
     // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "Alias server stopping";
+    return "ALIAS server stopping";
 }
 
 
@@ -606,7 +607,7 @@ void StartRPCThreads()
               "The username and password MUST NOT be the same.\n"
               "If the file does not exist, create it with owner-readable-only file permissions.\n"
               "It is also recommended to set alertnotify so you are notified of problems;\n"
-              "for example: alertnotify=echo %%s | mail -s \"Alias Alert\" admin@foo.com\n"),
+              "for example: alertnotify=echo %%s | mail -s \"ALIAS Alert\" admin@foo.com\n"),
                 strWhatAmI,
                 GetConfigFile().string(),
                 EncodeBase58(&rand_pwd[0],&rand_pwd[0]+32)),

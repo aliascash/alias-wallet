@@ -1,26 +1,26 @@
-## Alias V4
+## ALIAS V4
 
 > By downloading and using this software, you agree that 1/6 of the staking
 > rewards are contributed to a development fund. The development fund aims
-> to support the long term development and value of Alias. The fund is managed
-> by the Alias core team.
+> to support the long term development and value of ALIAS. The fund is managed
+> by the ALIAS core team.
 
-This is a major release and a **MANDATORY** update to the Alias software!
+This is a major release and a **MANDATORY** update to the ALIAS software!
 This update involves consensus changes (_details below_) and **you MUST
 update** your wallet software before:
 
 2019-09-27 (_27th September 2019_) @ 2000 hours (GMT)
 
 If you do not update your wallet software you will no longer be able to connect
-to the Alias network and you will no longer be able to conduct transactions on
+to the ALIAS network and you will no longer be able to conduct transactions on
 the network and you will no longer be able to deposit or withdraw your funds
 (public a/o private ALIAS) from the exchanges.
 
 ### Development Contribution Blocks (DCB)
 After 21/08/2018 @ 2200 hours (GMT) one in six (1 in 6) block rewards will be
-a designated DCB and will be sent to the Alias team development fund wallet.
-This fund will ensure a future for Alias and will enable us to pay for certain
-services, to hire contractors and to pay Alias core team members in ALIAS
+a designated DCB and will be sent to the ALIAS team development fund wallet.
+This fund will ensure a future for ALIAS and will enable us to pay for certain
+services, to hire contractors and to pay ALIAS core team members in ALIAS
 to enable them to work full time on the project. The further development
 depend on a source of steady funding. We believe this will give us the opportunity
 to produce better software and will create value for investors. We currently
@@ -29,10 +29,11 @@ have some very skilled developers working for us and we want to keep it that way
 ### Replay Protection
 We have implemented a check for DCBs and we have implemented a replay protection
 mechanism. This means that after 17/05/2019 @ 2000 hours (GMT) any wallets not
-updated will not be able to create transactions on the Alias V3 network.
+updated will not be able to create transactions on the ALIAS V3 network.
 
 ### Licensing
 
+- SPDX-FileCopyrightText: © 2025 ALIAS Developer
 - SPDX-FileCopyrightText: © 2020 Alias Developers
 - SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 - SPDX-FileCopyrightText: © 2014 ShadowCoin Developers

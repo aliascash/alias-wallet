@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -133,7 +134,7 @@ void WaitForShutdown(boost::thread_group* threadGroup)
         fShutdown = ShutdownRequested();
     };
 
-    LogPrintf("Alias shutdown.\n\n");
+    LogPrintf("ALIAS shutdown.\n\n");
 
     if (threadGroup)
     {
@@ -169,7 +170,7 @@ bool AppInit(int argc, char* argv[])
         if (mapArgs.count("-?") || mapArgs.count("-h") || mapArgs.count("-help"))
         {
             // First part of help message is specific to bitcoind / RPC client
-            std::string strUsage = _("Alias version") + " " + FormatFullVersion() + "\n\n" +
+            std::string strUsage = _("ALIAS version") + " " + FormatFullVersion() + "\n\n" +
                 _("Usage:") + "\n" +
                   "  aliaswalletd [options]                     " + "\n" +
                   "  aliaswalletd [options] <command> [params]  " + _("Send command to -server or aliaswalletd") + "\n" +

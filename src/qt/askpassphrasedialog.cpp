@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -59,7 +60,7 @@ AskPassphraseDialog::AskPassphraseDialog(Mode mode, QWidget *parent) :
             if (mode==UnlockRescan)
                 ui->warningLabel->setText(tr("Your wallet contains locked ATXOs for which its spending state can only be determinate with your private key. Your <b>private ALIAS balance might be shown wrong</b>."));
             else if (mode==UnlockLogin)
-                ui->warningLabel->setText(tr("<b>Alias Wallet Login</b>"));
+                ui->warningLabel->setText(tr("<b>ALIAS Wallet Login</b>"));
             else
                 ui->warningLabel->setText(tr("This operation needs your wallet passphrase to unlock the wallet."));
             setWindowTitle(tr("Unlock wallet"));
@@ -131,7 +132,7 @@ void AskPassphraseDialog::accept()
                 {
                     QMessageBox::warning(this, tr("Wallet encrypted"),
                                          "<qt>" +
-                                         tr("Alias will close now to finish the encryption process. "
+                                         tr("ALIAS will close now to finish the encryption process. "
                                          "Remember that encrypting your wallet cannot fully protect "
                                          "your coins from being stolen by malware infecting your computer.") +
                                          "<br><br><b>" +

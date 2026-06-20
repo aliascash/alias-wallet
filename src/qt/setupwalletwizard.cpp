@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -38,7 +39,7 @@ SetupWalletWizard::SetupWalletWizard(QWidget *parent)
 
     connect(this, &QWizard::helpRequested, this, &SetupWalletWizard::showHelp);
 
-    setWindowTitle(tr("Alias Wallet Setup"));
+    setWindowTitle(tr("ALIAS Wallet Setup"));
     setWindowIcon(QIcon(":icons/alias-app"));
 }
 
@@ -75,7 +76,7 @@ void SetupWalletWizard::showHelp()
         message = tr("This help is likely not to be of any help.");
     }
 
-    QMessageBox::information(this, tr("Alias Wallet Setup Help"), message);
+    QMessageBox::information(this, tr("ALIAS Wallet Setup Help"), message);
 
     lastHelpMessage = message;
 }

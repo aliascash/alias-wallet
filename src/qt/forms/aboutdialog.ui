@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>About Alias</string>
+   <string>About ALIAS</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_2">
    <property name="spacing">
@@ -124,7 +124,7 @@
           <cursorShape>IBeamCursor</cursorShape>
          </property>
          <property name="text">
-          <string>&lt;b&gt;Alias&lt;/b&gt; version</string>
+          <string>&lt;b&gt;ALIAS&lt;/b&gt; version</string>
          </property>
          <property name="textInteractionFlags">
           <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
@@ -213,7 +213,8 @@
             <cursorShape>IBeamCursor</cursorShape>
            </property>
            <property name="text">
-            <string>© 2020 Alias developers
+            <string>© 2025 ALIAS developer
+© 2020 Alias developers
 © 2016 Spectrecoin developers
 © 2014 ShadowCash developers
 © 2014 BlackCoin developers

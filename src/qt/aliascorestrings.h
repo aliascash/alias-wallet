@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2009 Bitcoin Developers
@@ -24,7 +25,7 @@ QT_TRANSLATE_NOOP("alias-core", ""
 "If the file does not exist, create it with owner-readable-only file "
 "permissions.\n"
 "It is also recommended to set alertnotify so you are notified of problems;\n"
-"for example: alertnotify=echo %%s | mail -s \"Alias Alert\" admin@foo."
+"for example: alertnotify=echo %%s | mail -s \"ALIAS Alert\" admin@foo."
 "com\n"),
 QT_TRANSLATE_NOOP("alias-core", "Error"),
 QT_TRANSLATE_NOOP("alias-core", ""
@@ -37,12 +38,12 @@ QT_TRANSLATE_NOOP("alias-core", ""
 "%s\n"
 "If the file does not exist, create it with owner-readable-only file "
 "permissions."),
-QT_TRANSLATE_NOOP("alias-core", "Alias version"),
+QT_TRANSLATE_NOOP("alias-core", "ALIAS version"),
 QT_TRANSLATE_NOOP("alias-core", "Usage:"),
 QT_TRANSLATE_NOOP("alias-core", "Send command to -server or aliaswalletd"),
 QT_TRANSLATE_NOOP("alias-core", "List commands"),
 QT_TRANSLATE_NOOP("alias-core", "Get help for a command"),
-QT_TRANSLATE_NOOP("alias-core", "Alias"),
+QT_TRANSLATE_NOOP("alias-core", "ALIAS"),
 QT_TRANSLATE_NOOP("alias-core", "Options:"),
 QT_TRANSLATE_NOOP("alias-core", "This help message"),
 QT_TRANSLATE_NOOP("alias-core", "Specify configuration file (default: alias.conf)"),
@@ -141,7 +142,7 @@ QT_TRANSLATE_NOOP("alias-core", ""
 QT_TRANSLATE_NOOP("alias-core", "Invalid amount for -mininput=<amount>: '%s'"),
 QT_TRANSLATE_NOOP("alias-core", "Wallet %s resides outside data directory %s."),
 QT_TRANSLATE_NOOP("alias-core", ""
-"Cannot obtain a lock on data directory %s.  Alias is probably already "
+"Cannot obtain a lock on data directory %s.  ALIAS is probably already "
 "running."),
 QT_TRANSLATE_NOOP("alias-core", "Verifying database integrity..."),
 QT_TRANSLATE_NOOP("alias-core", ""
@@ -169,8 +170,8 @@ QT_TRANSLATE_NOOP("alias-core", "Error loading wallet.dat: Wallet corrupted"),
 QT_TRANSLATE_NOOP("alias-core", ""
 "Warning: error reading wallet.dat! All keys read correctly, but transaction "
 "data or address book entries might be missing or incorrect."),
-QT_TRANSLATE_NOOP("alias-core", "Error loading wallet.dat: Wallet requires newer version of Alias"),
-QT_TRANSLATE_NOOP("alias-core", "Wallet needed to be rewritten: restart Alias to complete"),
+QT_TRANSLATE_NOOP("alias-core", "Error loading wallet.dat: Wallet requires newer version of ALIAS"),
+QT_TRANSLATE_NOOP("alias-core", "Wallet needed to be rewritten: restart ALIAS to complete"),
 QT_TRANSLATE_NOOP("alias-core", "Error loading wallet.dat"),
 QT_TRANSLATE_NOOP("alias-core", "Cannot downgrade wallet"),
 QT_TRANSLATE_NOOP("alias-core", "Cannot initialize keypool"),
@@ -182,7 +183,7 @@ QT_TRANSLATE_NOOP("alias-core", "Loading addresses..."),
 QT_TRANSLATE_NOOP("alias-core", "Error: could not start node"),
 QT_TRANSLATE_NOOP("alias-core", "Done loading"),
 QT_TRANSLATE_NOOP("alias-core", ""
-"Unable to bind to %s on this computer. Alias is probably already running."),
+"Unable to bind to %s on this computer. ALIAS is probably already running."),
 QT_TRANSLATE_NOOP("alias-core", "Unable to bind to %s on this computer (bind returned error %d, %s)"),
 QT_TRANSLATE_NOOP("alias-core", "Error: Wallet locked, unable to create transaction  "),
 QT_TRANSLATE_NOOP("alias-core", "Error: Wallet unlocked for staking only, unable to create transaction."),
@@ -199,7 +200,7 @@ QT_TRANSLATE_NOOP("alias-core", "Invalid amount"),
 QT_TRANSLATE_NOOP("alias-core", "Insufficient funds"),
 QT_TRANSLATE_NOOP("alias-core", ""
 "Warning: Please check that your computer's date and time are correct! If "
-"your clock is wrong Alias will not work properly."),
+"your clock is wrong ALIAS will not work properly."),
 QT_TRANSLATE_NOOP("alias-core", "Warning: This version is obsolete, upgrade required!"),
 QT_TRANSLATE_NOOP("alias-core", "WARNING: syncronized checkpoint violation detected, but skipped!"),
 QT_TRANSLATE_NOOP("alias-core", "Warning: Disk space is low!"),
@@ -213,12 +214,12 @@ QT_TRANSLATE_NOOP("alias-core", "Error: The transaction was rejected. "
 "This might happen if some of the coins in your wallet were already spent, such as "
 "if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here."),
 QT_TRANSLATE_NOOP("alias-core", "Error: Unsupported argument -socks found. Setting SOCKS version isn't possible anymore, only SOCKS5 proxies are supported."),
-QT_TRANSLATE_NOOP("alias-core", "Initialization sanity check failed. Alias is shutting down."),
+QT_TRANSLATE_NOOP("alias-core", "Initialization sanity check failed. ALIAS is shutting down."),
 QT_TRANSLATE_NOOP("alias-core", "Loading block index... (%d)"),
 QT_TRANSLATE_NOOP("alias-core", "Calculating chain trust... (%d)"),
 QT_TRANSLATE_NOOP("alias-core", "Validating last %d block..."),
 QT_TRANSLATE_NOOP("alias-core", "-bip44key is not allowed if wallet.dat already exists"),
-QT_TRANSLATE_NOOP("alias-core", "Cannot obtain a lock on data directory %s.  Alias is probably already running."),
+QT_TRANSLATE_NOOP("alias-core", "Cannot obtain a lock on data directory %s.  ALIAS is probably already running."),
 QT_TRANSLATE_NOOP("alias-core", "Cannot resolve binding address: '%s'"),
 QT_TRANSLATE_NOOP("alias-core", "Error: could not start tor node"),
 QT_TRANSLATE_NOOP("alias-core", "Timed out waiting for onion hostname."),
@@ -255,7 +256,7 @@ QT_TRANSLATE_NOOP("alias-core", "conn"),
 QT_TRANSLATE_NOOP("alias-core", "Error: Wallet locked, unable to create transaction."),
 QT_TRANSLATE_NOOP("alias-core", "Error: Must be in full mode."),
 QT_TRANSLATE_NOOP("alias-core", "Error: Block chain must be fully synced first."),
-QT_TRANSLATE_NOOP("alias-core", "Error: Alias is not connected!"),
+QT_TRANSLATE_NOOP("alias-core", "Error: ALIAS is not connected!"),
 QT_TRANSLATE_NOOP("alias-core", "Update balance..."),
 QT_TRANSLATE_NOOP("alias-core", "...Start UI..."),
 QT_TRANSLATE_NOOP("alias-core", "Shutdown..."),

@@ -1,3 +1,4 @@
+// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 // SPDX-FileCopyrightText: © 2015 ShadowCoin Developers
@@ -879,7 +880,7 @@ Value extkey(const Array &params, bool fHelp)
             {
                 if (!eKey58.IsValid(CChainParams::EXT_SECRET_KEY)
                     && !eKey58.IsValid(CChainParams::EXT_PUBLIC_KEY_BTC))
-                    throw std::runtime_error("Import failed - Key must begin with Alias prefix.");
+                    throw std::runtime_error("Import failed - Key must begin with ALIAS prefix.");
             };
 
             sek.kp = eKey58.GetKey();
