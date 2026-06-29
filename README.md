@@ -23,10 +23,7 @@ the users identity by running all the network nodes as Tor hidden services.
 SPDX-License-Identifier: MIT
 
 # Social
-- Visit our website [ALIAS](https://alias.cash/) (ALIAS)
-- Please join us on our [Discord](https://discord.gg/ckkrb8m) server
-- Read the latest [News](https://alias.cash/news/)
-- Visit our thread at [BitcoinTalk](https://bitcointalk.org/index.php?topic=2103301.0)
+- Visit our [Telegram](https://t.me/StakingALIAS) group
 
 ## Key Privacy Technology
 
