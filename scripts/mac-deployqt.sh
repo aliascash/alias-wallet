@@ -42,15 +42,15 @@ else
 fi
 
 info "Cleanup previous build artifacts"
-if [[ -e Alias.dmg ]] ; then
-    rm -f Alias.dmg
+if [[ -e ALIAS.dmg ]] ; then
+    rm -f ALIAS.dmg
 fi
-if [[ -e src/bin/Alias.dmg ]] ; then
-    rm -f src/bin/Alias.dmg
+if [[ -e src/bin/ALIAS.dmg ]] ; then
+    rm -f src/bin/ALIAS.dmg
 fi
 
 info "Call macdeployqt:"
-${QT_PATH}/bin/macdeployqt src/bin/Alias.app -qmldir=src/qt/res/qml -always-overwrite -verbose=2
+${QT_PATH}/bin/macdeployqt src/bin/ALIAS.app -qmldir=src/qt/res/qml -always-overwrite -verbose=2
 rtc=$?
 if [[ ${rtc} != 0 ]] ; then
     die ${rtc} "Error during macdeployqt!"
@@ -80,10 +80,10 @@ done
 
 info "Create dmg package:"
 cd src/bin
-${QT_PATH}/bin/macdeployqt Alias.app -dmg -always-overwrite -verbose=2
+${QT_PATH}/bin/macdeployqt ALIAS.app -dmg -always-overwrite -verbose=2
 rtc=$?
 if [[ ${rtc} != 0 ]] ; then
     die ${rtc} "Error during macdeployqt!"
 fi
 cd ../..
-mv src/bin/Alias.dmg Alias.dmg
+mv src/bin/ALIAS.dmg ALIAS.dmg

@@ -628,25 +628,25 @@ if (ENABLE_GUI)
                 MACOSX_BUNDLE_BUNDLE_VERSION ${VERSION_STRING}
                 MACOSX_BUNDLE_COPYRIGHT " © 2020 The Alias developers"
                 MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_LIST_DIR}/osx/MacOSXBundleInfo.plist.in
-                OUTPUT_NAME Alias
+                OUTPUT_NAME ALIAS
                 )
             target_link_libraries(Aliaswallet "-framework AppKit")
             add_custom_command(TARGET Aliaswallet POST_BUILD
 #                    COMMAND cd ${CMAKE_BINARY_DIR} && "${MACDEPLOYQT_EXECUTABLE}"
-#                    Alias.app
+#                    ALIAS.app
 #                    -qmldir=${CMAKE_SOURCE_DIR}/src/qt/res
 #                    -always-overwrite
 #                    -verbose=1
 #                    ${DEPLOY_QT_BINARY_TYPE_OPTION}
-                    COMMAND rm -rf ${CMAKE_BINARY_DIR}/Alias.app/Contents/MacOS/Tor
-                    COMMAND unzip ${TOR_ARCHIVE} -d ${CMAKE_BINARY_DIR}/Alias.app/
-                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/Alias.app/Contents/MacOS/Tor/tor.real
-                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/Alias.app/Contents/MacOS/Tor/libevent*
-                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/Alias.app/Contents/MacOS/Tor/PluggableTransports/*
-                    COMMAND mkdir -p ${CMAKE_BINARY_DIR}/Alias.app/Contents/Resources
-                    COMMAND cp ${CMAKE_SOURCE_DIR}/src/qt/res/icons/alias-app.icns ${CMAKE_BINARY_DIR}/Alias.app/Contents/Resources/
+                    COMMAND rm -rf ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor
+                    COMMAND unzip ${TOR_ARCHIVE} -d ${CMAKE_BINARY_DIR}/ALIAS.app/
+                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/tor.real
+                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/libevent*
+                    COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/PluggableTransports/*
+                    COMMAND mkdir -p ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/Resources
+                    COMMAND cp ${CMAKE_SOURCE_DIR}/src/qt/res/icons/alias-app.icns ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/Resources/
 #                    COMMAND cd ${CMAKE_BINARY_DIR} && "${MACDEPLOYQT_EXECUTABLE}"
-#                    Alias.app
+#                    ALIAS.app
 #                    -dmg
 #                    -always-overwrite
 #                    -verbose=1
@@ -660,11 +660,11 @@ if (ENABLE_GUI)
                 ${CMAKE_CURRENT_LIST_DIR}/qt/winshutdownmonitor.cpp
                 )
             set_target_properties(Aliaswallet PROPERTIES
-                    OUTPUT_NAME Alias
+                    OUTPUT_NAME ALIAS
                     )
             target_link_libraries(Aliaswallet "Shlwapi")
             add_custom_command(TARGET Aliaswallet POST_BUILD
-                    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/delivery/Alias
+                    COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/delivery/ALIAS
                     COMMAND "${CMAKE_COMMAND}" -E
                     env PATH="${_qt_bin_dir}" "${WINDEPLOYQT_EXECUTABLE}"
                     --force
@@ -678,7 +678,7 @@ if (ENABLE_GUI)
                     "$<TARGET_FILE:Aliaswallet>"
                     COMMAND unzip -o ${VCRUNTIME_ARCHIVE} -d ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}/
                     COMMAND unzip -o ${TOR_ARCHIVE} -d ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}/
-                    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER} ${CMAKE_BINARY_DIR}/delivery/Alias
+                    COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER} ${CMAKE_BINARY_DIR}/delivery/ALIAS
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}
                     COMMENT "Running windeployqt..."
                     )

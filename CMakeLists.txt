@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 cmake_minimum_required(VERSION 3.13)
-project(Alias
+project(ALIAS
         VERSION 4.3
         LANGUAGES
         CXX

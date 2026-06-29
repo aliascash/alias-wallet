@@ -854,17 +854,17 @@ if [[ -e ${MAC_QT_DIR}/bin/macdeployqt ]] ; then
     info "Creating dmg:"
     cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into ${ALIAS_BUILD_DIR}"
     ${MAC_QT_DIR}/bin/macdeployqt \
-        Alias.app \
+        ALIAS.app \
         -qmldir="${ownLocation}"/../src/qt/res \
         -always-overwrite \
         -verbose=1 \
         "${DEPLOY_QT_BINARY_TYPE_OPTION}"
     ${MAC_QT_DIR}/bin/macdeployqt \
-        Alias.app \
+        ALIAS.app \
         -dmg \
         -always-overwrite \
         -verbose=1
-    info " -> Alias.dmg created"
+    info " -> ALIAS.dmg created"
 else
     die 23 "${MAC_QT_DIR}/bin/macdeployqt not found, unable to create dmg!"
 fi
@@ -874,15 +874,15 @@ info "Performing post build steps:"
 info "============================"
 
 cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into Alias build directory '${ALIAS_BUILD_DIR}'"
-cp Alias.dmg Alias.dmg.bak
+cp ALIAS.dmg ALIAS.dmg.bak
 
 info "Change permision of .dmg file"
-hdiutil convert "Alias.dmg" -format UDRW -o "Alias_Rw.dmg"
+hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg"
 info " -> Done"
 
 info "Mount it and save the device"
-PATH_AT_VOLUME=/Volumes/Alias
-DEVICE=$(hdiutil attach -readwrite -noverify "Alias_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
+PATH_AT_VOLUME=/Volumes/ALIAS
+DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
 info " -> Done (${DEVICE})"
 
 sleep 2
@@ -901,7 +901,7 @@ info " -> Done"
 info "Resize window, set background, change icon size, place icons in the right position, etc."
 echo '
     tell application "Finder"
-    tell disk "Alias"   ## check Path inside cd /Volume/
+    tell disk "ALIAS"   ## check Path inside cd /Volume/
         open
             set current view of container window to icon view
             set toolbar visible of container window to false
@@ -912,7 +912,7 @@ echo '
             set icon size of viewOptions to 200
             set text size of viewOptions to 16
             set background picture of viewOptions to file ".background:app-slide-arrow.png"
-            set position of item "Alias.app" of container window to {180, 200}
+            set position of item "ALIAS.app" of container window to {180, 200}
             set position of item "Applications" of container window to {620, 200}
         close
         open
@@ -930,11 +930,11 @@ hdiutil detach "${DEVICE}"
 info " -> Done"
 
 info "Cleanup and convert"
-rm -f "Alias.dmg"
-hdiutil convert "Alias_Rw.dmg" -format UDZO -o "Alias.dmg"
-rm -f "Alias_Rw.dmg"
+rm -f "ALIAS.dmg"
+hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg"
+rm -f "ALIAS_Rw.dmg"
 info " -> Done"
 
-info " -> Finished: ${ALIAS_BUILD_DIR}/Alias.dmg"
+info " -> Finished: ${ALIAS_BUILD_DIR}/ALIAS.dmg"
 
 cd "${callDir}" || die 1 "Unable to cd back to where we came from (${callDir})"

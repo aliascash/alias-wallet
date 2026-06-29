@@ -126,14 +126,14 @@ jobs:
           docker cp alias-extract:/filesToUpload/usr/local/bin/aliaswalletd /tmp/linux-raw/aliaswalletd-linux/aliaswalletd
           docker rm alias-extract
           cd /tmp/linux-raw
-          zip -r Alias.zip aliaswalletd-linux/
+          zip -r ALIAS.zip aliaswalletd-linux/
 
       - name: Upload Linux raw binary archive
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /tmp/linux-raw/Alias.zip
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Linux.zip
+          file: /tmp/linux-raw/ALIAS.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Linux.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -211,16 +211,16 @@ jobs:
 
       - name: Create MacOS dmg sha256 checksum file
         run: |
-          shasum -a 256 ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.dmg | awk '{ print $1 }' > ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.sha256
-          cat ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.sha256
+          shasum -a 256 ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.dmg | awk '{ print $1 }' > ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
+          cat ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
 
       - name: Upload MacOS Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.dmg
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.dmg
+          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.dmg
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.dmg
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -229,31 +229,31 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.sha256
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.sha256
+          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.sha256
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
       # Stage aliaswalletd and the Tor bundle for the desktop app.
       # cmake-build-mac.sh sets ALIAS_BUILD_DIR=cmake-build-cmdline-mac/aliaswallet.
       # aliaswalletd lands in that dir under src/ (OUTPUT_NAME aliaswalletd).
-      # The Tor bundle is unzipped into Alias.app/Contents/MacOS/Tor/ by the
+      # The Tor bundle is unzipped into ALIAS.app/Contents/MacOS/Tor/ by the
       # cmake POST_BUILD step (see src/CMakeLists.txt line ~624).
       # TODO(#73): confirm aliaswalletd and Tor/ output paths on macOS
       - name: Stage MacOS raw binary archive
         run: |
-          mkdir -p /tmp/mac-raw/Alias
-          cp ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/src/aliaswalletd /tmp/mac-raw/Alias/aliaswalletd
-          cp -R ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/Alias.app/Contents/MacOS/Tor /tmp/mac-raw/Alias/Tor
+          mkdir -p /tmp/mac-raw/ALIAS
+          cp ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/src/aliaswalletd /tmp/mac-raw/ALIAS/aliaswalletd
+          cp -R ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.app/Contents/MacOS/Tor /tmp/mac-raw/ALIAS/Tor
           cd /tmp/mac-raw
-          zip -r Alias.zip Alias/
+          zip -r ALIAS.zip Alias/
 
       - name: Upload MacOS raw binary archive
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: /tmp/mac-raw/Alias.zip
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.zip
+          file: /tmp/mac-raw/ALIAS.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -294,19 +294,19 @@ jobs:
 
       - name: Create zip archive and sha256 checksum
         run: |
-          powershell "Copy-Item (Get-ChildItem -Recurse build/src -Filter aliaswalletd.exe | Select-Object -First 1).FullName build/delivery/Alias/"
-          powershell Compress-Archive build/delivery/Alias Alias.zip
-          powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
-          powershell "(Get-Content Alias.sha256) | Out-File Alias.sha256 -Encoding ascii"
-          type Alias.sha256
+          powershell "Copy-Item (Get-ChildItem -Recurse build/src -Filter aliaswalletd.exe | Select-Object -First 1).FullName build/delivery/ALIAS/"
+          powershell Compress-Archive build/delivery/ALIAS ALIAS.zip
+          powershell "(Get-FileHash ALIAS.zip).Hash > ALIAS.sha256"
+          powershell "(Get-Content ALIAS.sha256) | Out-File ALIAS.sha256 -Encoding ascii"
+          type ALIAS.sha256
 
       - name: Upload Windows Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/Alias.zip
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.zip
+          file: ${{ github.workspace }}/ALIAS.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -315,8 +315,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/Alias.sha256
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.sha256
+          file: ${{ github.workspace }}/ALIAS.sha256
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.sha256
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -358,18 +358,18 @@ jobs:
 
       - name: Create zip archive and sha256 checksum
         run: |
-          powershell Compress-Archive build-x86/delivery/Alias Alias.zip
-          powershell "(Get-FileHash Alias.zip).Hash > Alias.sha256"
-          powershell "(Get-Content Alias.sha256) | Out-File Alias.sha256 -Encoding ascii"
-          type Alias.sha256
+          powershell Compress-Archive build-x86/delivery/ALIAS ALIAS.zip
+          powershell "(Get-FileHash ALIAS.zip).Hash > ALIAS.sha256"
+          powershell "(Get-Content ALIAS.sha256) | Out-File ALIAS.sha256 -Encoding ascii"
+          type ALIAS.sha256
 
       - name: Upload Windows Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/Alias.zip
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.zip
+          file: ${{ github.workspace }}/ALIAS.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -378,8 +378,8 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/Alias.sha256
-          asset_name: Alias-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.sha256
+          file: ${{ github.workspace }}/ALIAS.sha256
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.sha256
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -413,7 +413,7 @@ jobs:
           context: .
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-aliaswalletd:latest,${{ secrets.DOCKERHUB_USERNAME }}/docker-aliaswalletd:${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}
           build-args: |
-            DOWNLOAD_URL=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/download/${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}/Alias-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Ubuntu-20-04.tgz
+            DOWNLOAD_URL=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/download/${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}/ALIAS-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Ubuntu-20-04.tgz
           #arg2=value2
 
       - name: Image digest
@@ -427,6 +427,6 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ github.workspace }}/Dockerimage.sha256
-          asset_name: Alias-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Dockerimage.sha256
+          asset_name: ALIAS-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Dockerimage.sha256
           tag: ${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}
           overwrite: true

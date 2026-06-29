@@ -22,17 +22,17 @@ cd ${ownLocation}
 cd ..
 
 info "Change permision of .dmg file"
-hdiutil convert "Alias.dmg" -format UDRW -o "Alias_Rw.dmg"
+hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg"
 info " -> Done"
 
 info "Mount it and save the device"
-DEVICE=$(hdiutil attach -readwrite -noverify "Alias_Rw.dmg" |egrep '^/dev/' |sed 1q |awk '{print $1}')
+DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" |egrep '^/dev/' |sed 1q |awk '{print $1}')
 info " -> Done"
 
 sleep 2
 
 info "Create symbolic link to application folder"
-PATH_AT_VOLUME=/Volumes/Alias     ## check Path inside cd /Volume/
+PATH_AT_VOLUME=/Volumes/ALIAS     ## check Path inside cd /Volume/
 
 pushd "$PATH_AT_VOLUME"
 ln -s /Applications
@@ -47,7 +47,7 @@ info " -> Done"
 info "Resize window, set background, change icon size, place icons in the right position, etc."
 echo '
     tell application "Finder"
-    tell disk "Alias"   ## check Path inside cd /Volume/
+    tell disk "ALIAS"   ## check Path inside cd /Volume/
         open
             set current view of container window to icon view
             set toolbar visible of container window to false
@@ -57,7 +57,7 @@ echo '
             set arrangement of viewOptions to not arranged
             set icon size of viewOptions to 200
             ## set background picture of viewOptions to file ".background:backgroundImage.png"
-            set position of item "Alias.app" of container window to {180, 200}
+            set position of item "ALIAS.app" of container window to {180, 200}
             set position of item "Applications" of container window to {620, 200}
         close
         open
@@ -75,9 +75,9 @@ hdiutil detach "${DEVICE}"
 info " -> Done"
 
 info "Cleanup and convert"
-rm -f "Alias.dmg"
-hdiutil convert "Alias_Rw.dmg" -format UDZO -o "Alias.dmg"
-rm -f "Alias_Rw.dmg"
+rm -f "ALIAS.dmg"
+hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg"
+rm -f "ALIAS_Rw.dmg"
 info " -> Done"
 
 info "Finished"

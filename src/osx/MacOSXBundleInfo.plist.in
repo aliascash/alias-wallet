@@ -8,11 +8,11 @@
         <key>CFBundleName</key>
         <string>${MACOSX_BUNDLE_BUNDLE_NAME}</string>
         <key>CFBundleExecutable</key>
-        <string>Alias</string>
+        <string>ALIAS</string>
         <key>CFBundleGetInfoString</key>
         <string>${MACOSX_BUNDLE_INFO_STRING}</string>
         <key>CFBundleDisplayName</key>
-        <string>Alias</string>
+        <string>ALIAS</string>
         <key>CFBundleIconFile</key>
         <string>alias-app.icns</string>
         <key>CFBundleIdentifier</key>

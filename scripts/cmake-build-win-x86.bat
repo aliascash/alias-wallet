@@ -44,7 +44,7 @@ cd %BUILD_DIR%
 
 "%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswallet --config Release || goto :ERROR
 
-::ren "%OUT_DIR%" Alias
+::ren "%OUT_DIR%" ALIAS
 ::echo "The prepared package is in: %BUILD_DIR%\delivery"
 
 echo "Everything is OK"
