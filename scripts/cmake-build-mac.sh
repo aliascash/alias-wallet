@@ -558,7 +558,9 @@ checkTorArchive() {
     if [[ -e "${TOR_ARCHIVE_LOCATION}/tor-${TOR_BUILD_VERSION}.tar.gz" ]]; then
         info " -> Using Tor archive ${TOR_ARCHIVE_LOCATION}/tor-${TOR_BUILD_VERSION}.tar.gz"
     else
-        TOR_ARCHIVE_URL=https://github.com/torproject/tor/archive/tor-${TOR_BUILD_VERSION}.tar.gz
+        # The github.com/torproject/tor mirror is frozen (no 0.4.8.x tags); Tor
+        # moved to GitLab. Use the official signed release tarballs instead.
+        TOR_ARCHIVE_URL=https://dist.torproject.org/tor-${TOR_BUILD_VERSION}.tar.gz
         info " -> Downloading Tor archive ${TOR_ARCHIVE_URL}"
         if [[ ! -e ${TOR_ARCHIVE_LOCATION} ]]; then
             mkdir -p ${TOR_ARCHIVE_LOCATION}

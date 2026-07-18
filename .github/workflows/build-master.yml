@@ -14,17 +14,17 @@ jobs:
       github_sha_short: ${{ steps.slug.outputs.sha8 }}
       alias_release: ${{ steps.determine_release.outputs.alias_release }}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v4
       - name: Get short SHA
         id: slug
-        run: echo "::set-output name=sha8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+        run: echo "sha8=$(echo ${GITHUB_SHA} | cut -c1-8)" >> "$GITHUB_OUTPUT"
       - name: Set Alias release/tag name
         id: determine_release
         run: |
           majorVersion=$(grep CLIENT_VERSION_MAJOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
           minorVersion=$(grep CLIENT_VERSION_MINOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
           bugfixVersion=$(grep CLIENT_VERSION_REVISION ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
-          echo "::set-output name=alias_release::$(printf '%s.%s.%s' $majorVersion $minorVersion $bugfixVersion)"
+          echo "alias_release=$(printf '%s.%s.%s' $majorVersion $minorVersion $bugfixVersion)" >> "$GITHUB_OUTPUT"
 
       # First create the plain release, so the upload URL could be exported
       - name: Create release
@@ -134,7 +134,7 @@ jobs:
   # ==========================================================================
   # Build MacOS version
   buildMacOS:
-    runs-on: macos-11
+    runs-on: macos-13
     needs: prepareRelease
     steps:
       - uses: actions/checkout@v2
