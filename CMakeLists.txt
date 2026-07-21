@@ -179,9 +179,17 @@ find_package(Boost 1.72.0 REQUIRED COMPONENTS
         iostreams
         program_options
         regex
-        system
         thread
+        OPTIONAL_COMPONENTS
+        system
         )
+# Boost 1.89+ made Boost.System header-only and no longer ships a compiled
+# libboost_system, so the component may be absent. Provide the header-only
+# target so existing Boost::system link references keep working.
+if(NOT TARGET Boost::system)
+    add_library(Boost::system INTERFACE IMPORTED)
+    target_link_libraries(Boost::system INTERFACE Boost::boost)
+endif()
 message(STATUS "Boost_VERSION:      ${Boost_VERSION}")
 message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
@@ -363,6 +371,15 @@ message(STATUS "=== LevelDB ====================================================
 find_package(leveldb)
 message(STATUS "LevelDB directory: ${leveldb_DIR}")
 message(STATUS "LevelDB version: ${leveldb_VERSION}")
+
+# leveldb 1.22 adds `-Werror -Wthread-safety` as PUBLIC compile options, which
+# propagate through leveldb::leveldb to every consumer. Modern clang's
+# thread-safety analysis then errors inside Boost's thread headers. Strip the
+# propagated options from the imported target; they are warning flags only and
+# are not needed to consume leveldb. No-op where leveldb didn't set them (GCC/MSVC).
+if(TARGET leveldb::leveldb)
+    set_target_properties(leveldb::leveldb PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+endif()
 
 # ============================================================================================
 message(STATUS "")

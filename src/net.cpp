@@ -18,8 +18,13 @@
 #include <string.h>
 #include <Windows.h>
 #elif __APPLE__
-// Tor separate process via boost::process
-#include <boost/process.hpp>
+// Tor separate process via boost::process.
+// Boost 1.88+ made <boost/process.hpp> default to the incompatible v2 API and
+// stopped including the v1 headers. This code uses the v1 API
+// (group/child/start_dir): include the v1 header directly, and select version 1
+// so BOOST_PROCESS_V1_INLINE makes v1 an inline namespace (boost::process::...).
+#define BOOST_PROCESS_VERSION 1
+#include <boost/process/v1.hpp>
 boost::process::group gTor;
 #elif __linux__
 #include <sys/prctl.h>
