@@ -96,6 +96,8 @@ jobs:
           version: '5.12.9'
           setup-python: 'false'
           modules: 'qtwebengine'
+      - name: Install pkg-config (pinned vcpkg's msys2 pkg-config mirror is dead)
+        run: choco install pkgconfiglite -y --no-progress
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
@@ -106,6 +108,9 @@ jobs:
           # Old vcpkg ports (e.g. bzip2) declare cmake_minimum_required < 3.5,
           # which CMake 4.x rejects as a fatal error. Restore the old floor.
           CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+          # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
+          # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
+          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
         env:
@@ -130,6 +135,8 @@ jobs:
           setup-python: 'false'
           modules: 'qtwebengine'
           arch: 'win32_msvc2017'
+      - name: Install pkg-config (pinned vcpkg's msys2 pkg-config mirror is dead)
+        run: choco install pkgconfiglite -y --no-progress
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
@@ -140,6 +147,9 @@ jobs:
           # Old vcpkg ports (e.g. bzip2) declare cmake_minimum_required < 3.5,
           # which CMake 4.x rejects as a fatal error. Restore the old floor.
           CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+          # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
+          # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
+          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
         env:
