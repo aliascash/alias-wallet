@@ -179,9 +179,17 @@ find_package(Boost 1.72.0 REQUIRED COMPONENTS
         iostreams
         program_options
         regex
-        system
         thread
+        OPTIONAL_COMPONENTS
+        system
         )
+# Boost 1.89+ made Boost.System header-only and no longer ships a compiled
+# libboost_system, so the component may be absent. Provide the header-only
+# target so existing Boost::system link references keep working.
+if(NOT TARGET Boost::system)
+    add_library(Boost::system INTERFACE IMPORTED)
+    target_link_libraries(Boost::system INTERFACE Boost::boost)
+endif()
 message(STATUS "Boost_VERSION:      ${Boost_VERSION}")
 message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
 message(STATUS "Boost_LIBRARY_DIRS: ${Boost_LIBRARY_DIRS}")
@@ -299,7 +307,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     if (NOT TOR_ARCHIVE)
         include(DownloadFile)
         set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/Tor.libraries.MacOS.zip")
-        download_file(https://github.com/aliascash/resources/raw/master/resources/Tor.libraries.MacOS.zip ${TOR_ARCHIVE} SHA1 ${TOR_ARCHIVE_MAC_HASH})
+        download_file(https://github.com/aliascash/resources/raw/main/resources/Tor.libraries.MacOS.zip ${TOR_ARCHIVE} SHA1 ${TOR_ARCHIVE_MAC_HASH})
     endif ()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "=== Tor and VCRuntime binary archives ======================================")
@@ -318,7 +326,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         message(STATUS "Downloading Tor archive")
         include(DownloadFile)
         set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/Tor.libraries.${WINDOWS_ARCH_SUFFIX}.zip")
-        download_file(https://github.com/aliascash/resources/raw/master/resources/Tor.libraries.${WINDOWS_ARCH_SUFFIX}.zip ${TOR_ARCHIVE} SHA1 ${WINDOWS_TOR_ARCHIVE_HASH})
+        download_file(https://github.com/aliascash/resources/raw/main/resources/Tor.libraries.${WINDOWS_ARCH_SUFFIX}.zip ${TOR_ARCHIVE} SHA1 ${WINDOWS_TOR_ARCHIVE_HASH})
     else()
         message(STATUS "Using Tor archive from given path")
     endif()
@@ -326,7 +334,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         message(STATUS "Downloading VCRuntime archive")
         include(DownloadFile)
         set(VCRUNTIME_ARCHIVE "${CMAKE_BINARY_DIR}/VCRuntime.libraries.${WINDOWS_ARCH_SUFFIX}.zip")
-        download_file(https://github.com/aliascash/resources/raw/master/resources/VCRuntime.libraries.${WINDOWS_ARCH_SUFFIX}.zip ${VCRUNTIME_ARCHIVE} SHA1 ${WINDOWS_VCRUNTIME_ARCHIVE_HASH})
+        download_file(https://github.com/aliascash/resources/raw/main/resources/VCRuntime.libraries.${WINDOWS_ARCH_SUFFIX}.zip ${VCRUNTIME_ARCHIVE} SHA1 ${WINDOWS_VCRUNTIME_ARCHIVE_HASH})
     else()
         message(STATUS "Using VCRuntime archive from given path")
     endif()
@@ -363,6 +371,15 @@ message(STATUS "=== LevelDB ====================================================
 find_package(leveldb)
 message(STATUS "LevelDB directory: ${leveldb_DIR}")
 message(STATUS "LevelDB version: ${leveldb_VERSION}")
+
+# leveldb 1.22 adds `-Werror -Wthread-safety` as PUBLIC compile options, which
+# propagate through leveldb::leveldb to every consumer. Modern clang's
+# thread-safety analysis then errors inside Boost's thread headers. Strip the
+# propagated options from the imported target; they are warning flags only and
+# are not needed to consume leveldb. No-op where leveldb didn't set them (GCC/MSVC).
+if(TARGET leveldb::leveldb)
+    set_target_properties(leveldb::leveldb PROPERTIES INTERFACE_COMPILE_OPTIONS "")
+endif()
 
 # ============================================================================================
 message(STATUS "")

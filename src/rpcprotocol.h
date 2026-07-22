@@ -109,14 +109,14 @@ public:
     bool connect(const std::string& server, const std::string& port)
     {
         boost::asio::ip::tcp::resolver resolver((boost::asio::io_context&)(stream).get_executor().context());
-        boost::asio::ip::tcp::resolver::query query(server.c_str(), port.c_str());
-        boost::asio::ip::tcp::resolver::iterator endpoint_iterator = resolver.resolve(query);
-        boost::asio::ip::tcp::resolver::iterator end;
         boost::system::error_code error = boost::asio::error::host_not_found;
-        while (error && endpoint_iterator != end)
+        boost::asio::ip::tcp::resolver::results_type endpoints = resolver.resolve(server, port, error);
+        for (const auto& endpoint : endpoints)
         {
             stream.lowest_layer().close();
-            stream.lowest_layer().connect(*endpoint_iterator++, error);
+            stream.lowest_layer().connect(endpoint, error);
+            if (!error)
+                break;
         }
         if (error)
             return false;

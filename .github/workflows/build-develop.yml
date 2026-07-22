@@ -138,30 +138,45 @@ jobs:
   # ==========================================================================
   # Build MacOS version
   buildMacOS:
-    runs-on: macos-11
+    runs-on: macos-15-intel
     needs: prepareRelease
     steps:
       - uses: actions/checkout@v2
         with:
           persist-credentials: false
 
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '12.5.1'
-
       - name: Install Qt
-        uses: jurplel/install-qt-action@v2
+        uses: jurplel/install-qt-action@v4
         with:
           version: '5.12.10'
           modules: 'qtwebengine'
 
       - name: Install dependencies
         run: |
-          brew uninstall --ignore-dependencies berkeley-db
-          brew install berkeley-db@4 boost openssl
+          brew uninstall --ignore-dependencies berkeley-db || true
+          brew install boost openssl
+          # Berkeley DB 4.8 is required for wallet.dat compatibility, but Homebrew
+          # disabled the berkeley-db@4 formula. Reproduce Homebrew's proven build:
+          # its clang + Big Sur patches, plus -Wno-implicit-function-declaration so
+          # configure's pthread mutex probe passes under modern clang (otherwise it
+          # falls back to fcntl and errors on the shared latch). Single-threaded
+          # build into the /usr/local/opt/berkeley-db@4 path the build expects.
+          curl -fsSL -o /tmp/db.tar.gz https://download.oracle.com/berkeley-db/db-4.8.30.NC.tar.gz
+          echo "12edc0df75bf9abd7f82f821795bcee50f42cb2e5f76a6a281b85732798364ef  /tmp/db.tar.gz" | shasum -a 256 -c -
+          tar -xzf /tmp/db.tar.gz -C /tmp
+          curl -fsSL -o /tmp/db-clang.diff "https://raw.githubusercontent.com/Homebrew/formula-patches/4c55b1/berkeley-db%404/clang.diff"
+          curl -fsSL -o /tmp/db-bigsur.diff "https://raw.githubusercontent.com/Homebrew/formula-patches/03cf8088210822aa2c1ab544ed58ea04c897d9c4/libtool/configure-pre-0.4.2.418-big_sur.diff"
+          cd /tmp/db-4.8.30.NC
+          patch -p1 < /tmp/db-clang.diff
+          ( cd dist && patch -p1 < /tmp/db-bigsur.diff )
+          export CFLAGS="-Wno-implicit-function-declaration"
+          cd build_unix
+          ../dist/configure --enable-cxx --prefix=/usr/local/opt/berkeley-db@4
+          make
+          make install
 
       - name: Cache build dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         env:
           cache-name: cache-build-dependencies-mac-v3
         with:

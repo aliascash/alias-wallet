@@ -150,14 +150,14 @@ checkOpenSSL() {
 checkBerkeleyDB() {
     info ""
     info "BerkeleyDB:"
-    info " -> Searching required Homebrew BerkeleyDB package"
-    berkeleydbVersion=$(brew ls --versions berkeley-db@4)
-    if [ $? -eq 0 ] ; then
-        info " -> Found ${berkeleydbVersion}"
+    info " -> Searching required BerkeleyDB 4.8 at /usr/local/opt/berkeley-db@4"
+    # BerkeleyDB 4.8 (needed for wallet.dat) may come from Homebrew's keg-only
+    # berkeley-db@4 or a source build; both live under /usr/local/opt/berkeley-db@4.
+    if [[ -f /usr/local/opt/berkeley-db@4/lib/libdb_cxx-4.8.a ]] || [[ -f /usr/local/opt/berkeley-db@4/lib/libdb_cxx.a ]] ; then
+        info " -> Found BerkeleyDB 4.8 at /usr/local/opt/berkeley-db@4"
     else
         error " -> Required BerkeleyDB dependency not found!"
-        error "    You need to install homebrew and install BerkeleyDB v4:"
-        error "    brew install berkeley-db@4"
+        error "    You need to install BerkeleyDB v4.8 into /usr/local/opt/berkeley-db@4"
         error ""
         die 41 "Stopping build because of missing BerkeleyDB"
     fi
@@ -558,7 +558,9 @@ checkTorArchive() {
     if [[ -e "${TOR_ARCHIVE_LOCATION}/tor-${TOR_BUILD_VERSION}.tar.gz" ]]; then
         info " -> Using Tor archive ${TOR_ARCHIVE_LOCATION}/tor-${TOR_BUILD_VERSION}.tar.gz"
     else
-        TOR_ARCHIVE_URL=https://github.com/torproject/tor/archive/tor-${TOR_BUILD_VERSION}.tar.gz
+        # The github.com/torproject/tor mirror is frozen (no 0.4.8.x tags); Tor
+        # moved to GitLab. Use the official signed release tarballs instead.
+        TOR_ARCHIVE_URL=https://dist.torproject.org/tor-${TOR_BUILD_VERSION}.tar.gz
         info " -> Downloading Tor archive ${TOR_ARCHIVE_URL}"
         if [[ ! -e ${TOR_ARCHIVE_LOCATION} ]]; then
             mkdir -p ${TOR_ARCHIVE_LOCATION}
@@ -626,7 +628,7 @@ checkTorMacArchive() {
     if [[ -e "${TOR_ARCHIVE_LOCATION}/${TOR_RESOURCE_ARCHIVE}" ]]; then
         info " -> Using Tor archive ${TOR_ARCHIVE_LOCATION}/${TOR_RESOURCE_ARCHIVE}"
     else
-        TOR_ARCHIVE_URL=https://github.com/aliascash/resources/raw/master/resources/${TOR_RESOURCE_ARCHIVE}
+        TOR_ARCHIVE_URL=https://github.com/aliascash/resources/raw/main/resources/${TOR_RESOURCE_ARCHIVE}
         info " -> Downloading Tor archive ${TOR_RESOURCE_ARCHIVE}"
         if [[ ! -e ${TOR_ARCHIVE_LOCATION} ]]; then
             mkdir -p ${TOR_ARCHIVE_LOCATION}

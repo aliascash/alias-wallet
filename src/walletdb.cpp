@@ -761,7 +761,7 @@ bool BackupWallet(const CWallet& wallet, const string& strDest)
 
                 try {
 #if BOOST_VERSION >= 104000
-                    fs::copy_file(pathSrc, pathDest, fs::copy_option::overwrite_if_exists);
+                    fs::copy_file(pathSrc, pathDest, fs::copy_options::overwrite_existing);
 #else
                     fs::copy_file(pathSrc, pathDest);
 #endif
