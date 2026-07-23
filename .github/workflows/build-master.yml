@@ -236,7 +236,15 @@ jobs:
       - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
         # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
         # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
-        run: choco install pkgconfiglite strawberryperl nasm -y --no-progress
+        run: |
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          # choco only updates the machine PATH in the registry, which GitHub Actions
+          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
+          # against the step PATH, so without this it falls back to the dead download URL.
+          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
+          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
+            Where-Object { Test-Path $_ } |
+            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
 
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
@@ -313,7 +321,15 @@ jobs:
       - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
         # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
         # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
-        run: choco install pkgconfiglite strawberryperl nasm -y --no-progress
+        run: |
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          # choco only updates the machine PATH in the registry, which GitHub Actions
+          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
+          # against the step PATH, so without this it falls back to the dead download URL.
+          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
+          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
+            Where-Object { Test-Path $_ } |
+            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
 
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
