@@ -185,7 +185,7 @@ jobs:
       - name: Build MacOS binaries
         run: ./scripts/cmake-build-mac.sh -g
         env:
-          MAC_QT_DIR: ${{ env.Qt5_DIR }}
+          MAC_QT_DIR: ${{ env.QT_ROOT_DIR }}
 
       - name: Create MacOS dmg sha256 checksum file
         run: |
@@ -215,7 +215,7 @@ jobs:
   # ==========================================================================
   # Build Windows x64 version
   buildWindows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: prepareRelease
     outputs:
       upload_url: ${{ needs.prepareRelease.outputs.upload_url }}
@@ -233,19 +233,39 @@ jobs:
           setup-python: 'false'
           modules: 'qtwebengine'
 
+      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
+        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
+        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+        run: |
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          # choco only updates the machine PATH in the registry, which GitHub Actions
+          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
+          # against the step PATH, so without this it falls back to the dead download URL.
+          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
+          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
+            Where-Object { Test-Path $_ } |
+            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
+
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
           vcpkgArguments: 'berkeleydb boost leveldb openssl'
           vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
           vcpkgTriplet: x64-windows
+        env:
+          # Old vcpkg ports (e.g. bzip2) declare cmake_minimum_required < 3.5,
+          # which CMake 4.x rejects as a fatal error. Restore the old floor.
+          CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+          # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
+          # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
+          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows
           QTDIR: ${{ env.Qt5_Dir }}
-          VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
+          VSDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise'
           CMAKEDIR: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
 
@@ -279,7 +299,7 @@ jobs:
   # ==========================================================================
   # Build Windows x86 version
   buildWindowsX86:
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: prepareRelease
     outputs:
       upload_url: ${{ needs.prepareRelease.outputs.upload_url }}
@@ -298,19 +318,39 @@ jobs:
           modules: 'qtwebengine'
           arch: 'win32_msvc2017'
 
+      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
+        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
+        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+        run: |
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          # choco only updates the machine PATH in the registry, which GitHub Actions
+          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
+          # against the step PATH, so without this it falls back to the dead download URL.
+          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
+          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
+            Where-Object { Test-Path $_ } |
+            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
+
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
           vcpkgArguments: 'berkeleydb boost leveldb openssl'
           vcpkgGitCommitId: a037d826492039db9d58af47a1e1248037d15f40
           vcpkgTriplet: x86-windows
+        env:
+          # Old vcpkg ports (e.g. bzip2) declare cmake_minimum_required < 3.5,
+          # which CMake 4.x rejects as a fatal error. Restore the old floor.
+          CMAKE_POLICY_VERSION_MINIMUM: '3.5'
+          # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
+          # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
+          VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
         env:
           VCPKG_DEFAULT_TRIPLET: x86-windows
           QTDIR_x86: ${{ env.Qt5_Dir }}
-          VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
+          VSDIR: 'C:\Program Files\Microsoft Visual Studio\2022\Enterprise'
           CMAKEDIR_x86: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
 
