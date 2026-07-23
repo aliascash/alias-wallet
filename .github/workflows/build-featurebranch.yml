@@ -111,8 +111,10 @@ jobs:
           version: '5.12.9'
           setup-python: 'false'
           modules: 'qtwebengine'
-      - name: Install pkg-config (pinned vcpkg's msys2 pkg-config mirror is dead)
-        run: choco install pkgconfiglite -y --no-progress
+      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
+        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
+        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+        run: choco install pkgconfiglite strawberryperl nasm -y --no-progress
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
@@ -150,8 +152,10 @@ jobs:
           setup-python: 'false'
           modules: 'qtwebengine'
           arch: 'win32_msvc2017'
-      - name: Install pkg-config (pinned vcpkg's msys2 pkg-config mirror is dead)
-        run: choco install pkgconfiglite -y --no-progress
+      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
+        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
+        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+        run: choco install pkgconfiglite strawberryperl nasm -y --no-progress
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
