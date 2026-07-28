@@ -263,6 +263,9 @@ jobs:
           # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
           # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
           VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
+          # Overlay the bzip2 port so its source comes from the reliable release
+          # tarball instead of the flaky sourceware.org git endpoint (error 128).
+          VCPKG_OVERLAY_PORTS: ${{ github.workspace }}/vcpkg-overlay-ports
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
@@ -348,6 +351,9 @@ jobs:
           # Use overlay triplets that hand vcpkg a local pkg-config, so bzip2's
           # vcpkg_fixup_pkgconfig does not fetch the removed msys2 package.
           VCPKG_OVERLAY_TRIPLETS: ${{ github.workspace }}/vcpkg-overlay-triplets
+          # Overlay the bzip2 port so its source comes from the reliable release
+          # tarball instead of the flaky sourceware.org git endpoint (error 128).
+          VCPKG_OVERLAY_PORTS: ${{ github.workspace }}/vcpkg-overlay-ports
 
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
@@ -410,6 +416,13 @@ jobs:
       - name: Extract content to install
         run: 7z x -o"${{ github.workspace }}/windows/content" "${{ github.workspace }}/Alias.zip"
 
+      # NSIS is no longer pre-installed on the windows-latest image (Windows
+      # Server 2025). joncloud/makensis-action only locates makensis, it does
+      # not install NSIS, so install it here. choco puts makensis.exe in
+      # C:\Program Files (x86)\NSIS, exactly where the action looks for it.
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
+
       # Create installer
       - name: Create Windows installer
         uses: joncloud/makensis-action@v3.4
@@ -469,6 +482,13 @@ jobs:
       # ... and extract it
       - name: Extract content to install
         run: 7z x -o"${{ github.workspace }}/windows/content" "${{ github.workspace }}/Alias.zip"
+
+      # NSIS is no longer pre-installed on the windows-latest image (Windows
+      # Server 2025). joncloud/makensis-action only locates makensis, it does
+      # not install NSIS, so install it here. choco puts makensis.exe in
+      # C:\Program Files (x86)\NSIS, exactly where the action looks for it.
+      - name: Install NSIS
+        run: choco install nsis -y --no-progress
 
       # Create installer
       - name: Create Windows installer
