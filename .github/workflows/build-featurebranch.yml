@@ -111,18 +111,21 @@ jobs:
           version: '5.12.9'
           setup-python: 'false'
           modules: 'qtwebengine'
-      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
-        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
-        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+      - name: Seed vcpkg's tools with pre-installed Perl and NASM (pinned 2021 vcpkg's download URLs are dead)
+        # openssl's vcpkg_find_acquire_program pulls Perl and NASM from strawberry.perl.bot,
+        # strawberryperl.com and nasm.us, all dead/timing out, so a cold binary cache makes
+        # the openssl build hard-fail. vcpkg looks under ${VCPKG_DOWNLOADS}/tools first
+        # (NO_DEFAULT_PATH), so seed the runner's pre-installed copies there; it then never
+        # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
+        shell: pwsh
         run: |
           choco install pkgconfiglite strawberryperl nasm -y --no-progress
-          # choco only updates the machine PATH in the registry, which GitHub Actions
-          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
-          # against the step PATH, so without this it falls back to the dead download URL.
-          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
-          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
-            Where-Object { Test-Path $_ } |
-            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
+          $dl = "${{ github.workspace }}/vcpkg-downloads"
+          New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
+          New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
+          $nasm = "$dl/tools/nasm/nasm-2.15.05"
+          New-Item -ItemType Directory -Force -Path $nasm | Out-Null
+          Copy-Item "C:\Program Files\NASM\nasm.exe" -Destination "$nasm/nasm.exe" -Force
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
@@ -139,6 +142,9 @@ jobs:
           # Overlay the bzip2 port so its source comes from the reliable release
           # tarball instead of the flaky sourceware.org git endpoint (error 128).
           VCPKG_OVERLAY_PORTS: ${{ github.workspace }}/vcpkg-overlay-ports
+          # Point vcpkg's downloads/tools dir at the pre-seeded Perl and NASM above so
+          # openssl's vcpkg_find_acquire_program uses them instead of the dead URLs.
+          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg-downloads
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win.bat
         env:
@@ -163,18 +169,21 @@ jobs:
           setup-python: 'false'
           modules: 'qtwebengine'
           arch: 'win32_msvc2017'
-      - name: Provide build tools on PATH (pinned 2021 vcpkg's own download URLs are dead)
-        # bzip2 fetches msys2 pkg-config; openssl fetches Strawberry Perl and NASM.
-        # Those URLs are dead, so install the tools and let vcpkg find them on PATH.
+      - name: Seed vcpkg's tools with pre-installed Perl and NASM (pinned 2021 vcpkg's download URLs are dead)
+        # openssl's vcpkg_find_acquire_program pulls Perl and NASM from strawberry.perl.bot,
+        # strawberryperl.com and nasm.us, all dead/timing out, so a cold binary cache makes
+        # the openssl build hard-fail. vcpkg looks under ${VCPKG_DOWNLOADS}/tools first
+        # (NO_DEFAULT_PATH), so seed the runner's pre-installed copies there; it then never
+        # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
+        shell: pwsh
         run: |
           choco install pkgconfiglite strawberryperl nasm -y --no-progress
-          # choco only updates the machine PATH in the registry, which GitHub Actions
-          # does not carry into later steps. vcpkg's openssl port runs find_program(perl)
-          # against the step PATH, so without this it falls back to the dead download URL.
-          # Push Strawberry Perl's bin dirs onto GITHUB_PATH so run-vcpkg finds perl.
-          "C:\Strawberry\c\bin", "C:\Strawberry\perl\site\bin", "C:\Strawberry\perl\bin" |
-            Where-Object { Test-Path $_ } |
-            ForEach-Object { Add-Content -Path $env:GITHUB_PATH -Value $_ }
+          $dl = "${{ github.workspace }}/vcpkg-downloads"
+          New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
+          New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
+          $nasm = "$dl/tools/nasm/nasm-2.15.05"
+          New-Item -ItemType Directory -Force -Path $nasm | Out-Null
+          Copy-Item "C:\Program Files\NASM\nasm.exe" -Destination "$nasm/nasm.exe" -Force
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v6
         with:
@@ -191,6 +200,9 @@ jobs:
           # Overlay the bzip2 port so its source comes from the reliable release
           # tarball instead of the flaky sourceware.org git endpoint (error 128).
           VCPKG_OVERLAY_PORTS: ${{ github.workspace }}/vcpkg-overlay-ports
+          # Point vcpkg's downloads/tools dir at the pre-seeded Perl and NASM above so
+          # openssl's vcpkg_find_acquire_program uses them instead of the dead URLs.
+          VCPKG_DOWNLOADS: ${{ github.workspace }}/vcpkg-downloads
       - name: Build Windows binaries
         run: ./scripts/cmake-build-win-x86.bat
         env:

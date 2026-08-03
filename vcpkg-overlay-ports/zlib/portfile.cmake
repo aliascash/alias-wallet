@@ -1,15 +1,8 @@
-# Overlay port for zlib. The pinned 2021 vcpkg's stock port downloads zlib 1.2.11
-# from http://www.zlib.net/zlib-1.2.11.tar.gz, but zlib.net only keeps the current
-# release at that path, so it now serves a newer tarball -> SHA512 mismatch ->
-# hard fail (the sourceforge fallback is never reached once the first URL yields a
-# file). Fetch the identical 1.2.11 tarball from zlib.net's fossils/ archive (where
-# old releases live) with the sourceforge libpng mirror as fallback. Both were
-# verified to have the same SHA512 as the stock port. Only the URLs differ from the
-# stock port; everything below is unchanged.
 set(VERSION 1.2.11)
 
+# zlib.net dropped 1.2.11 and its fossils/ mirror is not byte-stable across regions; SourceForge serves the canonical tarball, so fetch it first.
 vcpkg_download_distfile(ARCHIVE_FILE
-    URLS "https://zlib.net/fossils/zlib-${VERSION}.tar.gz" "https://downloads.sourceforge.net/project/libpng/zlib/${VERSION}/zlib-${VERSION}.tar.gz"
+    URLS "https://downloads.sourceforge.net/project/libpng/zlib/${VERSION}/zlib-${VERSION}.tar.gz" "https://zlib.net/fossils/zlib-${VERSION}.tar.gz"
     FILENAME "zlib1211.tar.gz"
     SHA512 73fd3fff4adeccd4894084c15ddac89890cd10ef105dd5e1835e1e9bbb6a49ff229713bd197d203edfa17c2727700fce65a2a235f07568212d820dca88b528ae
 )
