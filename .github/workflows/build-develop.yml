@@ -416,20 +416,25 @@ jobs:
       - name: Extract content to install
         run: 7z x -o"${{ github.workspace }}/windows/content" "${{ github.workspace }}/Alias.zip"
 
-      # NSIS is no longer pre-installed on the windows-latest image (Windows
-      # Server 2025). joncloud/makensis-action only locates makensis, it does
-      # not install NSIS, so install it here. choco puts makensis.exe in
-      # C:\Program Files (x86)\NSIS, exactly where the action looks for it.
-      - name: Install NSIS
-        run: choco install nsis -y --no-progress
+      # The installer (aliascash/installer) is built with Inno Setup (Alias.iss +
+      # the InnoDownloadPlugin), not NSIS -- there is no Alias.nsi, which is why
+      # makensis reported "Can't open script". Install Inno Setup, drop the
+      # bundled InnoDownloadPlugin into the Inno Setup directory so Alias.iss's
+      # angle-bracket includes (<idp.iss>, <idplang\...>) and the plugin dll
+      # resolve, then compile Alias.iss. /O writes Alias-Installer.exe into
+      # windows/ where the checksum and upload steps expect it.
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
 
       # Create installer
       - name: Create Windows installer
-        uses: joncloud/makensis-action@v3.4
-        with:
-          arguments: "/V4"
-          additional-plugin-paths: "${{ github.workspace }}/windows/plugins"
-          script-file: "windows/Alias.nsi"
+        run: |
+          $inno = (Get-ChildItem "C:\Program Files (x86)\Inno Setup*" -Directory | Select-Object -First 1).FullName
+          $plugin = "${{ github.workspace }}\windows\plugins\InnoDownloadPlugin"
+          Copy-Item "$plugin\idp.iss" -Destination $inno -Force
+          Copy-Item "$plugin\unicode" -Destination "$inno\unicode" -Recurse -Force
+          Copy-Item "$plugin\unicode\idplang" -Destination "$inno\idplang" -Recurse -Force
+          & "$inno\ISCC.exe" "/O${{ github.workspace }}\windows" "${{ github.workspace }}\windows\Alias.iss"
 
       - name: Create installer checksum file
         run: |
@@ -483,20 +488,25 @@ jobs:
       - name: Extract content to install
         run: 7z x -o"${{ github.workspace }}/windows/content" "${{ github.workspace }}/Alias.zip"
 
-      # NSIS is no longer pre-installed on the windows-latest image (Windows
-      # Server 2025). joncloud/makensis-action only locates makensis, it does
-      # not install NSIS, so install it here. choco puts makensis.exe in
-      # C:\Program Files (x86)\NSIS, exactly where the action looks for it.
-      - name: Install NSIS
-        run: choco install nsis -y --no-progress
+      # The installer (aliascash/installer) is built with Inno Setup (Alias.iss +
+      # the InnoDownloadPlugin), not NSIS -- there is no Alias.nsi, which is why
+      # makensis reported "Can't open script". Install Inno Setup, drop the
+      # bundled InnoDownloadPlugin into the Inno Setup directory so Alias.iss's
+      # angle-bracket includes (<idp.iss>, <idplang\...>) and the plugin dll
+      # resolve, then compile Alias.iss. /O writes Alias-Installer.exe into
+      # windows/ where the checksum and upload steps expect it.
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
 
       # Create installer
       - name: Create Windows installer
-        uses: joncloud/makensis-action@v3.4
-        with:
-          arguments: "/V4"
-          additional-plugin-paths: "${{ github.workspace }}/windows/plugins"
-          script-file: "windows/Alias.nsi"
+        run: |
+          $inno = (Get-ChildItem "C:\Program Files (x86)\Inno Setup*" -Directory | Select-Object -First 1).FullName
+          $plugin = "${{ github.workspace }}\windows\plugins\InnoDownloadPlugin"
+          Copy-Item "$plugin\idp.iss" -Destination $inno -Force
+          Copy-Item "$plugin\unicode" -Destination "$inno\unicode" -Recurse -Force
+          Copy-Item "$plugin\unicode\idplang" -Destination "$inno\idplang" -Recurse -Force
+          & "$inno\ISCC.exe" "/O${{ github.workspace }}\windows" "${{ github.workspace }}\windows\Alias.iss"
 
       - name: Create installer checksum file
         run: |
