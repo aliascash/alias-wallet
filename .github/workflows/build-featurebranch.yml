@@ -119,7 +119,7 @@ jobs:
         # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
         shell: pwsh
         run: |
-          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress --allow-empty-checksums
           $dl = "${{ github.workspace }}/vcpkg-downloads"
           New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
           New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
@@ -177,7 +177,7 @@ jobs:
         # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
         shell: pwsh
         run: |
-          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress --allow-empty-checksums
           $dl = "${{ github.workspace }}/vcpkg-downloads"
           New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
           New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
