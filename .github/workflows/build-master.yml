@@ -24,7 +24,8 @@ jobs:
           majorVersion=$(grep CLIENT_VERSION_MAJOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
           minorVersion=$(grep CLIENT_VERSION_MINOR ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
           bugfixVersion=$(grep CLIENT_VERSION_REVISION ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
-          echo "alias_release=$(printf '%s.%s.%s' $majorVersion $minorVersion $bugfixVersion)" >> "$GITHUB_OUTPUT"
+          buildVersion=$(grep CLIENT_VERSION_BUILD ${{ github.workspace }}/CMakeLists.txt | head -n1 | cut -d ' ' -f2 | sed 's/)//g' | tr -d '\\n' | tr -d '\\r' | sed 's/ //g')
+          echo "alias_release=$(printf '%s.%s.%s.%s' $majorVersion $minorVersion $bugfixVersion $buildVersion)" >> "$GITHUB_OUTPUT"
 
       # First create the plain release, so the upload URL could be exported
       - name: Create release
@@ -241,7 +242,7 @@ jobs:
         # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
         shell: pwsh
         run: |
-          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress --allow-empty-checksums
           $dl = "${{ github.workspace }}/vcpkg-downloads"
           New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
           New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
@@ -335,7 +336,7 @@ jobs:
         # hits the network. (bzip2's msys2 pkg-config is handled by the overlay triplet.)
         shell: pwsh
         run: |
-          choco install pkgconfiglite strawberryperl nasm -y --no-progress
+          choco install pkgconfiglite strawberryperl nasm -y --no-progress --allow-empty-checksums
           $dl = "${{ github.workspace }}/vcpkg-downloads"
           New-Item -ItemType Directory -Force -Path "$dl/tools/perl/5.30.0.1" | Out-Null
           New-Item -ItemType Junction -Path "$dl/tools/perl/5.30.0.1/perl" -Target "C:\Strawberry\perl" | Out-Null
