@@ -201,7 +201,6 @@ jobs:
           path: |
             ${{ github.workspace }}/cmake-build-cmdline-mac/*
             !${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet
-            ~/Archives/Tor/Tor.libraries.MacOS.zip
           key: ${{ runner.os }}-${{ env.cache-name }}
 
       - name: Build MacOS binaries

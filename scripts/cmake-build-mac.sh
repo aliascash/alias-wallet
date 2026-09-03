@@ -58,7 +58,6 @@ LIBXZ_ARCHIVE_LOCATION=${ARCHIVES_ROOT_DIR}/XZLib
 # Location of archive will be resolved like this:
 # ${TOR_ARCHIVE_LOCATION}/tor-${TOR_BUILD_VERSION}.tar.gz
 TOR_ARCHIVE_LOCATION=${ARCHIVES_ROOT_DIR}/Tor
-TOR_RESOURCE_ARCHIVE=Tor.libraries.MacOS.zip
 
 BUILD_DIR=cmake-build-cmdline-mac
 
@@ -622,22 +621,6 @@ checkTor() {
     fi
 }
 
-checkTorMacArchive() {
-    info ""
-    info "Tor:"
-    if [[ -e "${TOR_ARCHIVE_LOCATION}/${TOR_RESOURCE_ARCHIVE}" ]]; then
-        info " -> Using Tor archive ${TOR_ARCHIVE_LOCATION}/${TOR_RESOURCE_ARCHIVE}"
-    else
-        TOR_ARCHIVE_URL=https://github.com/aliascash/resources/raw/main/resources/${TOR_RESOURCE_ARCHIVE}
-        info " -> Downloading Tor archive ${TOR_RESOURCE_ARCHIVE}"
-        if [[ ! -e ${TOR_ARCHIVE_LOCATION} ]]; then
-            mkdir -p ${TOR_ARCHIVE_LOCATION}
-        fi
-        cd ${TOR_ARCHIVE_LOCATION}
-        wget ${TOR_ARCHIVE_URL}
-        cd - >/dev/null
-    fi
-}
 # ===== End of tor functions =================================================
 
 # ============================================================================
@@ -749,8 +732,6 @@ if ${WITH_TOR}; then
     checkZStdLib
     checkEventLib
     checkTor
-else
-    checkTorMacArchive
 fi
 if ${ENABLE_GUI}; then
     checkQt
@@ -805,8 +786,6 @@ cmake \
     -DLEVELDB_INCLUDE_DIR=${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/local/include \
     \
     -DOPENSSL_ROOT_DIR=/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/lib;/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/include \
-    \
-    -DTOR_ARCHIVE=${TOR_ARCHIVE_LOCATION}/${TOR_RESOURCE_ARCHIVE}
 EOM
 
 # Insert additional parameters
