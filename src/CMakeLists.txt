@@ -639,7 +639,7 @@ if (ENABLE_GUI)
 #                    -verbose=1
 #                    ${DEPLOY_QT_BINARY_TYPE_OPTION}
                     COMMAND rm -rf ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor
-                    COMMAND unzip ${TOR_ARCHIVE} -d ${CMAKE_BINARY_DIR}/ALIAS.app/
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${TOR_STAGE_DIR} ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/
                     COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/tor.real
                     COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/libevent*
                     COMMAND chmod +x ${CMAKE_BINARY_DIR}/ALIAS.app/Contents/MacOS/Tor/PluggableTransports/*

@@ -25,15 +25,15 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 #set(ANDROID 1)
 set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/android")
 
-set(TOR_ARCHIVE_MAC_HASH "733380c234c8a4796d6bfefec536afd6469f8d7d")
-
-# Windows Tor comes from the official Tor Project expert bundle rather than the
-# prebuilt aliascash/resources zip, which was frozen at Tor 0.4.5.8 (2021).
-# tor.exe in this bundle is statically linked, so no companion DLLs are needed.
+# Tor for Windows and macOS comes from the official Tor Project expert bundle
+# rather than the prebuilt aliascash/resources zips, which were frozen at
+# Tor 0.4.5.8 (Windows, 2021) and Tor 0.4.1.5 (macOS, 2019).
 # Hashes are from https://dist.torproject.org/torbrowser/<ver>/sha256sums-unsigned-build.txt
 set(TOR_BUNDLE_VERSION "15.0.21")
 set(TOR_BUNDLE_WIN64_HASH "f22b8b17cb18c9fa775dfcf68acf6a2fe788336535fe94645204ca85158aa490")
 set(TOR_BUNDLE_WIN32_HASH "a061a801cbe4208353f38b50a579568656df396d5f025fcbbf4110948a85901e")
+set(TOR_BUNDLE_MAC_X86_64_HASH "7e21f5dab4c627e2ff8e894b2039fa49bdd78d12b025f96893d4d6238c6577e4")
+set(TOR_BUNDLE_MAC_AARCH64_HASH "83dec16412c1d97b91af603229481dd29f578e1485620ecffd9ac4aabcf6fb46")
 set(VCRUNTIME_ARCHIVE_WIN64_HASH "85cffbf41e957dcc9c5dd528af84c03474e76b8c")
 set(VCRUNTIME_ARCHIVE_WIN32_HASH "9af511350e0772bf1f543abd375304af2e616273")
 
@@ -302,10 +302,45 @@ endif ()
 message(STATUS "")
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     message(STATUS "=== Tor binary archive =====================================================")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+        set(TOR_BUNDLE_ARCH "aarch64")
+        set(TOR_BUNDLE_HASH "${TOR_BUNDLE_MAC_AARCH64_HASH}")
+    else()
+        set(TOR_BUNDLE_ARCH "x86_64")
+        set(TOR_BUNDLE_HASH "${TOR_BUNDLE_MAC_X86_64_HASH}")
+    endif()
+    set(TOR_BUNDLE_NAME "tor-expert-bundle-macos-${TOR_BUNDLE_ARCH}-${TOR_BUNDLE_VERSION}.tar.gz")
     if (NOT TOR_ARCHIVE)
+        message(STATUS "Downloading Tor expert bundle ${TOR_BUNDLE_VERSION} (${TOR_BUNDLE_ARCH})")
         include(DownloadFile)
-        set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/Tor.libraries.MacOS.zip")
-        download_file(https://github.com/aliascash/resources/raw/main/resources/Tor.libraries.MacOS.zip ${TOR_ARCHIVE} SHA1 ${TOR_ARCHIVE_MAC_HASH})
+        set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/${TOR_BUNDLE_NAME}")
+        download_file(https://dist.torproject.org/torbrowser/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
+    endif ()
+
+    # The daemon starts Tor as ./tor.real from the Tor/ folder next to the binary
+    # (src/net/net.cpp), so stage the bundle into that layout.
+    set(TOR_STAGE_DIR "${CMAKE_BINARY_DIR}/tor-stage")
+    if (NOT EXISTS "${TOR_STAGE_DIR}/Tor/tor.real")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}")
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/unpack")
+        execute_process(
+                COMMAND ${CMAKE_COMMAND} -E tar xzf ${TOR_ARCHIVE}
+                WORKING_DIRECTORY "${TOR_STAGE_DIR}/unpack"
+                RESULT_VARIABLE torUnpackResult)
+        if (NOT torUnpackResult EQUAL 0)
+            message(FATAL_ERROR "Failed to unpack Tor expert bundle ${TOR_ARCHIVE}")
+        endif ()
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/Tor")
+        file(COPY "${TOR_STAGE_DIR}/unpack/tor/" DESTINATION "${TOR_STAGE_DIR}/Tor"
+                USE_SOURCE_PERMISSIONS)
+        file(COPY "${TOR_STAGE_DIR}/unpack/data/geoip" "${TOR_STAGE_DIR}/unpack/data/geoip6"
+                DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(RENAME "${TOR_STAGE_DIR}/Tor/tor" "${TOR_STAGE_DIR}/Tor/tor.real")
+        # torrc-defaults references PluggableTransports/lyrebird
+        file(RENAME "${TOR_STAGE_DIR}/Tor/pluggable_transports" "${TOR_STAGE_DIR}/Tor/PluggableTransports")
+        # Ship ALIAS' torrc-defaults, not the Tor Browser one from the bundle
+        file(COPY "${CMAKE_SOURCE_DIR}/src/osx/torrc-defaults" DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}/unpack")
     endif ()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     message(STATUS "=== Tor and VCRuntime binary archives ======================================")
