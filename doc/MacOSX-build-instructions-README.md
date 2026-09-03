@@ -58,7 +58,7 @@ export OPENSSL_PATH=/usr/local/Cellar/openssl@1.1/1.1.1d
 cd ~
 mkdir Tor
 cd Tor
-wget https://github.com/aliascash/resources/raw/master/resources/Aliaswallet.Tor.libraries.macOS.zip
+wget https://github.com/aliascash/resources/raw/main/resources/Aliaswallet.Tor.libraries.macOS.zip
 ```
 
 ### Build using helper scripts
