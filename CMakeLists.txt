@@ -26,8 +26,14 @@ set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/android")
 
 set(TOR_ARCHIVE_MAC_HASH "733380c234c8a4796d6bfefec536afd6469f8d7d")
-set(TOR_ARCHIVE_WIN64_HASH "36ab45ca414795560a4c946fcb49848b919569bf")
-set(TOR_ARCHIVE_WIN32_HASH "66cef46b02d6e788840899baca11e2a2f9f5241a")
+
+# Windows Tor comes from the official Tor Project expert bundle rather than the
+# prebuilt aliascash/resources zip, which was frozen at Tor 0.4.5.8 (2021).
+# tor.exe in this bundle is statically linked, so no companion DLLs are needed.
+# Hashes are from https://dist.torproject.org/torbrowser/<ver>/sha256sums-unsigned-build.txt
+set(TOR_BUNDLE_VERSION "15.0.21")
+set(TOR_BUNDLE_WIN64_HASH "f22b8b17cb18c9fa775dfcf68acf6a2fe788336535fe94645204ca85158aa490")
+set(TOR_BUNDLE_WIN32_HASH "a061a801cbe4208353f38b50a579568656df396d5f025fcbbf4110948a85901e")
 set(VCRUNTIME_ARCHIVE_WIN64_HASH "85cffbf41e957dcc9c5dd528af84c03474e76b8c")
 set(VCRUNTIME_ARCHIVE_WIN32_HASH "9af511350e0772bf1f543abd375304af2e616273")
 
@@ -306,22 +312,49 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if (CMAKE_CL_64)
         message(STATUS "Using x64 archives")
         set(WINDOWS_ARCH_SUFFIX "Win64")
-        set(WINDOWS_TOR_ARCHIVE_HASH "${TOR_ARCHIVE_WIN64_HASH}")
+        set(TOR_BUNDLE_ARCH "x86_64")
+        set(TOR_BUNDLE_HASH "${TOR_BUNDLE_WIN64_HASH}")
         set(WINDOWS_VCRUNTIME_ARCHIVE_HASH "${VCRUNTIME_ARCHIVE_WIN64_HASH}")
     else()
         message(STATUS "Using x86 archives")
         set(WINDOWS_ARCH_SUFFIX "Win32")
-        set(WINDOWS_TOR_ARCHIVE_HASH "${TOR_ARCHIVE_WIN32_HASH}")
+        set(TOR_BUNDLE_ARCH "i686")
+        set(TOR_BUNDLE_HASH "${TOR_BUNDLE_WIN32_HASH}")
         set(WINDOWS_VCRUNTIME_ARCHIVE_HASH "${VCRUNTIME_ARCHIVE_WIN32_HASH}")
     endif()
+    set(TOR_BUNDLE_NAME "tor-expert-bundle-windows-${TOR_BUNDLE_ARCH}-${TOR_BUNDLE_VERSION}.tar.gz")
     if (NOT TOR_ARCHIVE)
-        message(STATUS "Downloading Tor archive")
+        message(STATUS "Downloading Tor expert bundle ${TOR_BUNDLE_VERSION} (${TOR_BUNDLE_ARCH})")
         include(DownloadFile)
-        set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/Tor.libraries.${WINDOWS_ARCH_SUFFIX}.zip")
-        download_file(https://github.com/aliascash/resources/raw/main/resources/Tor.libraries.${WINDOWS_ARCH_SUFFIX}.zip ${TOR_ARCHIVE} SHA1 ${WINDOWS_TOR_ARCHIVE_HASH})
+        set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/${TOR_BUNDLE_NAME}")
+        download_file(https://dist.torproject.org/torbrowser/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
     else()
         message(STATUS "Using Tor archive from given path")
     endif()
+
+    # The expert bundle lays out tor/ and data/, but the daemon launches Tor via
+    # CreateProcessA("Tor/tor.exe", ...), so stage it into the Tor/ layout it expects.
+    set(TOR_STAGE_DIR "${CMAKE_BINARY_DIR}/tor-stage")
+    if (NOT EXISTS "${TOR_STAGE_DIR}/Tor/tor.exe")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}")
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/unpack")
+        execute_process(
+                COMMAND ${CMAKE_COMMAND} -E tar xzf ${TOR_ARCHIVE}
+                WORKING_DIRECTORY "${TOR_STAGE_DIR}/unpack"
+                RESULT_VARIABLE torUnpackResult)
+        if (NOT torUnpackResult EQUAL 0)
+            message(FATAL_ERROR "Failed to unpack Tor expert bundle ${TOR_ARCHIVE}")
+        endif ()
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/Tor")
+        file(COPY "${TOR_STAGE_DIR}/unpack/tor/" DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(COPY "${TOR_STAGE_DIR}/unpack/data/geoip" "${TOR_STAGE_DIR}/unpack/data/geoip6"
+                DESTINATION "${TOR_STAGE_DIR}/Tor")
+        # torrc-defaults references PluggableTransports\lyrebird.exe
+        file(RENAME "${TOR_STAGE_DIR}/Tor/pluggable_transports" "${TOR_STAGE_DIR}/Tor/PluggableTransports")
+        # Ship ALIAS' torrc-defaults, not the Tor Browser one from the bundle
+        file(COPY "${CMAKE_SOURCE_DIR}/src/win/torrc-defaults" DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}/unpack")
+    endif ()
     if (NOT VCRUNTIME_ARCHIVE)
         message(STATUS "Downloading VCRuntime archive")
         include(DownloadFile)

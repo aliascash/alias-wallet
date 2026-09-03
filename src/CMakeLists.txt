@@ -677,7 +677,7 @@ if (ENABLE_GUI)
                     --webengine
                     "$<TARGET_FILE:Aliaswallet>"
                     COMMAND unzip -o ${VCRUNTIME_ARCHIVE} -d ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}/
-                    COMMAND unzip -o ${TOR_ARCHIVE} -d ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}/
+                    COMMAND ${CMAKE_COMMAND} -E copy_directory ${TOR_STAGE_DIR} ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}/
                     COMMAND ${CMAKE_COMMAND} -E rename ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER} ${CMAKE_BINARY_DIR}/delivery/ALIAS
                     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/delivery/${WINDEPLOYQT_TARGET_FOLDER}
                     COMMENT "Running windeployqt..."
