@@ -41,6 +41,15 @@ target_link_libraries(aliaswallet_lib
         Boost::thread
         )
 
+# src/ must be on the include path for the subsystem layout (net/, kernel/,
+# wallet/ ...) to resolve its own headers. The Qt block sets
+# CMAKE_INCLUDE_CURRENT_DIR, which covered this for GUI builds only, so a
+# daemon-only build (no -g) failed to compile. Set it here for both.
+target_include_directories(aliaswallet_lib
+        PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR}
+        )
+
 target_include_directories(aliaswallet_lib
         SYSTEM BEFORE PUBLIC
         ${PROJECT_BINARY_DIR}/usr/local/include

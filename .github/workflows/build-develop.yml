@@ -245,7 +245,7 @@ jobs:
           cp ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/src/aliaswalletd /tmp/mac-raw/ALIAS/aliaswalletd
           cp -R ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.app/Contents/MacOS/Tor /tmp/mac-raw/ALIAS/Tor
           cd /tmp/mac-raw
-          zip -r ALIAS.zip Alias/
+          zip -r ALIAS.zip ALIAS/
 
       - name: Upload MacOS raw binary archive
         uses: svenstaro/upload-release-action@v2
