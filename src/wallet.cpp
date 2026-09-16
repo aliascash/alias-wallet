@@ -877,7 +877,7 @@ static int GetBlockHeightFromHash(const uint256& blockHash)
 // Add a transaction to the wallet, or update it.
 // pblock is optional, but should be provided if the transaction is known to be in a block.
 // If fUpdate is true, existing transactions will be updated.
-bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const uint256& hash, const void* pblock, bool fUpdate, bool fFindBlock)
+bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const uint256& hash, const void* pblock, bool fUpdate, bool fFindBlock, bool* pfAnonFailed)
 {
     //LogPrintf("AddToWalletIfInvolvingMe() %s\n", hash.ToString().c_str()); // happens often
 
@@ -916,6 +916,8 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransaction& tx, const uint256& ha
                 LogPrintf("ProcessAnonTransaction failed %s\n", hash.ToString().c_str());
                 walletdb.TxnAbort();
                 txdb.TxnAbort();
+                if (pfAnonFailed)
+                    *pfAnonFailed = true;
                 return false;
             } else
             {
@@ -3336,6 +3338,19 @@ bool CWallet::ProcessAnonTransaction(CWalletDB *pwdb, CTxDB *ptxdb, const CTrans
                     LogPrintf("found matching spent key image - txn has been processed before -> reprocess vin[%d].\n", i);
             }
             else {
+                // The key image is claimed by a different transaction. If that one
+                // only lives in the mempool it lost the race to this block txn (a
+                // wallet re-created the spend under a new hash), so evict it and
+                // carry on. Failing here would leave this txn's outputs out of the
+                // anon index while the block is still accepted, and every later
+                // ring that references them would be rejected on this node only.
+                CTransaction txConflict;
+                if (blockHash != 0 && mempool.lookup(spentKeyImage.txnHash, txConflict))
+                {
+                    LogPrintf("%s: Input %d keyimage %s held by mempool txn %s, evicting it for block txn %s.\n",
+                        __func__, i, HexStr(vchImage).c_str(), spentKeyImage.txnHash.ToString().c_str(), txnHash.ToString().c_str());
+                    mempool.remove(txConflict, true);
+                } else
                 if (TxnHashInSystem(ptxdb, spentKeyImage.txnHash))
                 {
                     return error("%s: Error input %d keyimage %s already spent.", __func__, i, HexStr(vchImage).c_str());
