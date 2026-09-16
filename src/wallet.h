@@ -254,7 +254,10 @@ public:
 
     void MarkDirty();
     bool AddToWallet(const CWalletTx& wtxIn, const uint256& hashIn);
-    bool AddToWalletIfInvolvingMe(const CTransaction& tx, const uint256& hash, const void* pblock, bool fUpdate = false, bool fFindBlock = false);
+    // pfAnonFailed is set when an anon txn could not be processed, which leaves the
+    // anon index incomplete; the return value alone cannot tell that apart from
+    // "not involving me".
+    bool AddToWalletIfInvolvingMe(const CTransaction& tx, const uint256& hash, const void* pblock, bool fUpdate = false, bool fFindBlock = false, bool* pfAnonFailed = NULL);
 
     bool EraseFromWallet(uint256 hash);
     void WalletUpdateSpent(const CTransaction& prevout, bool fBlock = false);

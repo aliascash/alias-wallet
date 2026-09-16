@@ -1,3 +1,24 @@
+## Alias 4.4.1.2
+
+Fixes wallets that stop syncing at one block while still connected to peers.
+
+Some nodes ended up with an incomplete anonymous-output index: a block was
+accepted while its anon outputs were not recorded. Every later block that spends
+one of those outputs then failed on that node only, with
+`CheckAnonInputsAB(): ... AnonOutput ... not found` in debug.log and a growing
+orphan count. Fresh installs never saw it, which is why a bootstrap "worked".
+
+- A block is no longer accepted when its anon transactions could not be indexed.
+- A block transaction that reuses a key image held only by an unconfirmed
+  mempool transaction now evicts that mempool transaction instead of failing.
+- On the first start after this update the wallet checks its anon index once
+  (a few minutes). If it is incomplete the wallet asks to be started again and
+  rebuilds the index from the local block files. No bootstrap or resync needed.
+- If a hole is found later at runtime the same rebuild is scheduled for the
+  next start and the wallet shows a warning.
+
+Coins and wallet.dat are not touched by any of this.
+
 ## Alias V4
 
 > By downloading and using this software, you agree that 1/6 of the staking

@@ -870,6 +870,30 @@ bool AppInit2(boost::thread_group& threadGroup)
 
     LogPrintf(" block index %15dms\n", GetTimeMillis() - nStart);
 
+    // One-time check that the anon output index is complete. An incomplete one
+    // makes valid blocks fail on this node only, and older versions could leave
+    // it that way silently. Runs once per index; the marker is wiped with it.
+    if (!mapArgs.count("-reindex") && nNodeMode == NT_FULL)
+    {
+        CTxDB txdb("r+");
+        int nVerified = 0;
+        if (!txdb.ReadAnonIndexVerified(nVerified) || nVerified != DATABASE_VERSION)
+        {
+            uiInterface.InitMessage(_("Verifying anon index..."));
+            nStart = GetTimeMillis();
+            int nMissing = 0;
+            bool fOk = VerifyAnonIndex(txdb, nMissing);
+            LogPrintf(" anon index check %10dms\n", GetTimeMillis() - nStart);
+            if (fOk)
+                txdb.WriteAnonIndexVerified(DATABASE_VERSION);
+            else
+            {
+                txdb.WriteVersion(0);
+                return InitError(_("The anon output index is incomplete. Start the wallet again and it will be rebuilt from the block files, which takes a while."));
+            }
+        }
+    }
+
     if (GetBoolArg("-printblockindex") || GetBoolArg("-printblocktree"))
     {
         PrintBlockTree();
