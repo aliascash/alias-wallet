@@ -3113,6 +3113,8 @@ bool CBlock::SetBestChainInner(CTxDB& txdb, CBlockIndex *pindexNew)
     if (!txdb.TxnCommit())
         return error("SetBestChain() : TxnCommit failed");
 
+    nTimeLastMblkRecv = GetTime(); // sync watchdog: chain advanced
+
     // Add to current best branch
     pindexNew->pprev->pnext = pindexNew;
 
@@ -5960,7 +5962,9 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         };
 
         LogPrintf("Received mblk %d\n", nBlocks);
-        nTimeLastMblkRecv = GetTime();
+        // nTimeLastMblkRecv is advanced in SetBestChainInner, when a block actually
+        // extends the chain. Relayed tip blocks arrive here constantly as orphans
+        // while syncing and must not keep the sync watchdog quiet.
 
         {
             for (uint32_t i = 0; i < nBlocks; ++i)
@@ -6883,15 +6887,20 @@ bool SendMessages(CNode* pto, std::vector<CNode*> &vNodesCopy, bool fSendTrickle
     if (!vGetData.empty())
         pto->PushMessage("getdata", vGetData);
 
-    // - If syncing and !get mblk in MBLK_RECEIVE_TIMEOUT send another getblocks to random peer
+    // - If a peer is well ahead and the chain has not advanced for
+    //   MBLK_RECEIVE_TIMEOUT, ask that peer for blocks again. The dedup inside
+    //   PushGetBlocks is cleared first: it would otherwise drop the request,
+    //   since a stalled node asks from the same height every time.
+    if (nTimeLastMblkRecv == 0)
+        nTimeLastMblkRecv = nTimeNow;
     if (nNodeMode == NT_FULL
-        && nTimeLastMblkRecv > 0
         && pto->nChainHeight - nBestHeight > 256
         && nTimeNow - nTimeLastMblkRecv > MBLK_RECEIVE_TIMEOUT)
     {
+        pto->pindexLastGetBlocksBegin = NULL;
+        pto->hashLastGetBlocksEnd = 0;
         pto->PushGetBlocks(pindexBest, uint256(0));
-        if (fDebug)
-            LogPrintf("Sync timeout, getblocks to %s, from %d\n", pto->addr.ToString().c_str(), pindexBest->nHeight);
+        LogPrintf("Sync stalled at %d, getblocks to %s\n", pindexBest->nHeight, pto->addr.ToString().c_str());
         nTimeLastMblkRecv = nTimeNow; // reset timeout
     }
 

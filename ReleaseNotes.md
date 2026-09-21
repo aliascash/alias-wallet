@@ -1,3 +1,18 @@
+## Alias 4.4.1.3
+
+Fixes wallets that stop downloading blocks while connected to peers and only
+continue after a restart.
+
+The sync watchdog counted any received block, including tip blocks relayed by
+peers, as progress, so it never re-requested the blocks a stalled wallet was
+actually missing. And when it did fire, its request was dropped as a duplicate.
+The watchdog now measures whether the chain advanced, and its re-request is
+always sent. The log line `Sync stalled at <height>, getblocks to <peer>` shows
+it working.
+
+A sixth seed node is added to the built-in list so that new installs can find
+the network while the original seeds are being restored.
+
 ## Alias 4.4.1.2
 
 Fixes wallets that stop syncing at one block while still connected to peers.
