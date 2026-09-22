@@ -1117,6 +1117,7 @@ static const char *strMainNetOnionSeed[][1] = {
     {"34mek66nmcgc4hb4u55zq3pjay5fz3qqmmopqqw6vaqlfxbqtuudkhad.onion"},
 
     // other stable nodes that are monitored by the project
+    {"7lmbampnxigfxeffjtvk4kkeagequowcjyachgqxnxxpj4hbbzz37zid.onion"},
     {NULL}
 };
 

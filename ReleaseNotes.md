@@ -1,3 +1,16 @@
+## Alias 5.1.0
+
+The daemon behind the new desktop wallet. Includes the fixes shipped in the
+4.4.1.x line:
+
+- Wallets that stopped syncing at one block with peers connected: the anon
+  output index is verified once at start and rebuilt from the block files if
+  incomplete, and a block whose anon transactions cannot be indexed is no
+  longer accepted.
+- Wallets that stopped downloading blocks and only continued after a restart:
+  the sync watchdog now re-requests blocks whenever the chain stops advancing.
+- A sixth seed node in the built-in list.
+
 ## ALIAS V4
 
 > By downloading and using this software, you agree that 1/6 of the staking

@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: © 2025 ALIAS Developer
 // SPDX-FileCopyrightText: © 2020 Alias Developers
 // SPDX-FileCopyrightText: © 2016 SpectreCoin Developers
 //
@@ -8,17 +7,15 @@
 #define CLIENTVERSION_H
 
 //
-// Client versioning. Hand-maintained for the autotools build path; the
-// upstream `clientversion.h.in` template was orphaned when ALIAS switched
-// to CMake. When configure.ac is rewired to consume the .in template,
-// delete this file.
+// client versioning
 //
 
+// These need to be macros, as version.cpp's and alias-qt.rc's voodoo requires it
 #define CLIENT_VERSION_MAJOR       5
 #define CLIENT_VERSION_MINOR       1
 #define CLIENT_VERSION_REVISION    0
 #define CLIENT_VERSION_BUILD       0
-#define GIT_HASH                   "modernized-main"
+#define GIT_HASH                   "98fa435cfdb03c02aded66d6379856a2a9c87412"
 
 // Converts the parameter X to a string after macro replacement on X has been performed.
 // Don't merge these into one macro!

@@ -156,7 +156,10 @@ class CTxIndex;
 
 void RegisterWallet(CWallet* pwalletIn);
 void UnregisterWallet(CWallet* pwalletIn);
-void SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
+bool VerifyAnonIndex(CTxDB& txdb, int& nMissing);
+bool ScheduleAnonIndexRebuild(const uint256& hashBlock);
+// Returns false only when an anon txn could not be indexed.
+bool SyncWithWallets(const CTransaction& tx, const CBlock* pblock = NULL, bool fUpdate = false, bool fConnect = true);
 bool ProcessBlock(CNode* pfrom, CBlock* pblock, uint256& hash);
 bool CheckDiskSpace(uint64_t nAdditionalBytes=0);
 // Mark a block hash (and any chain descendants) as invalid. If the block is

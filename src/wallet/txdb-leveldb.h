@@ -226,6 +226,18 @@ public:
         return Write(std::string("version"), nVersion);
     }
 
+    // DATABASE_VERSION once VerifyAnonIndex() has passed on this index
+    bool ReadAnonIndexVerified(int& nVersion)
+    {
+        nVersion = 0;
+        return Read(std::string("anonindexverified"), nVersion);
+    }
+
+    bool WriteAnonIndexVerified(int nVersion)
+    {
+        return Write(std::string("anonindexverified"), nVersion);
+    }
+
     static leveldb::ReadOptions GetReadOptions()
     {
         leveldb::ReadOptions readOptions;

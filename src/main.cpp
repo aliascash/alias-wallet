@@ -9,6 +9,7 @@
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
+#include <fstream>
 #include <functional>
 
 #include "alert.h"
@@ -147,7 +148,92 @@ bool static GetTransaction(const uint256& hashTx, CWalletTx& wtx)
 //}
 
 // make sure all wallets know about the given transaction, in the given block
-void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate, bool fConnect)
+// Walk the main chain and confirm every anon output and every spent key image
+// is present in txdb. Reads blocks from disk without validating them, so it is
+// minutes where a reindex is hours. Stops early once the answer is clear.
+bool VerifyAnonIndex(CTxDB& txdb, int& nMissing)
+{
+    nMissing = 0;
+    int nBlocks = 0;
+    for (CBlockIndex* pindex = pindexGenesisBlock; pindex; pindex = pindex->pnext)
+    {
+        CBlock block;
+        if (!block.ReadFromDisk(pindex, true))
+            return error("VerifyAnonIndex() : ReadFromDisk failed at height %d", pindex->nHeight);
+
+        BOOST_FOREACH(const CTransaction& tx, block.vtx)
+        {
+            if (tx.nVersion != ANON_TXN_VERSION)
+                continue;
+
+            BOOST_FOREACH(const CTxOut& txout, tx.vout)
+            {
+                if (!txout.IsAnonOutput())
+                    continue;
+                CPubKey pkCoin(&txout.scriptPubKey[2+1], EC_COMPRESSED_SIZE);
+                CAnonOutput ao;
+                if (!txdb.ReadAnonOutput(pkCoin, ao))
+                {
+                    LogPrintf("VerifyAnonIndex() : anon output %s of txn %s at height %d is not indexed\n",
+                        HexStr(pkCoin).c_str(), tx.GetHash().ToString().substr(0,20).c_str(), pindex->nHeight);
+                    nMissing++;
+                }
+            }
+
+            BOOST_FOREACH(const CTxIn& txin, tx.vin)
+            {
+                if (!txin.IsAnonInput())
+                    continue;
+                ec_point vchImage;
+                txin.ExtractKeyImage(vchImage);
+                CKeyImageSpent kis;
+                if (!txdb.ReadKeyImage(vchImage, kis))
+                {
+                    LogPrintf("VerifyAnonIndex() : key image %s of txn %s at height %d is not indexed\n",
+                        HexStr(vchImage).c_str(), tx.GetHash().ToString().substr(0,20).c_str(), pindex->nHeight);
+                    nMissing++;
+                }
+            }
+        }
+
+        if (++nBlocks % 200000 == 0)
+            LogPrintf("VerifyAnonIndex() : %d blocks checked, %d entries missing\n", nBlocks, nMissing);
+        if (nMissing >= 10)
+            break;
+    }
+    LogPrintf("VerifyAnonIndex() : done, %d blocks checked, %d entries missing\n", nBlocks, nMissing);
+    return nMissing == 0;
+}
+
+// Make the next start rebuild txdb from the block files (CTxDB::CheckVersion
+// does the wipe when the stored version is behind). The block that triggered
+// the rebuild is noted in a file the wipe does not touch, so a failure the
+// rebuild cannot cure does not loop forever. Returns false if this block has
+// already had its rebuild.
+bool ScheduleAnonIndexRebuild(const uint256& hashBlock)
+{
+    boost::filesystem::path pathFlag = GetDataDir() / "anonrebuild.txt";
+    std::string strLast;
+    {
+        std::ifstream fileFlag(pathFlag.string().c_str());
+        if (fileFlag)
+            std::getline(fileFlag, strLast);
+    }
+    if (strLast == hashBlock.ToString())
+        return false;
+
+    std::ofstream fileFlag(pathFlag.string().c_str(), std::ios::trunc);
+    fileFlag << hashBlock.ToString() << std::endl;
+
+    // a fresh handle, the caller's txdb may be inside a batch that gets aborted
+    CTxDB txdbFlag("r+");
+    txdbFlag.WriteVersion(0);
+    strMiscWarning = _("Warning: anon index incomplete, restart the wallet to rebuild it");
+    LogPrintf("ScheduleAnonIndexRebuild() : rebuild scheduled for next start, triggered by block %s\n", hashBlock.ToString().c_str());
+    return true;
+}
+
+bool SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate, bool fConnect)
 {
     if (!fConnect)
     {
@@ -165,12 +251,14 @@ void SyncWithWallets(const CTransaction& tx, const CBlock* pblock, bool fUpdate,
                     pwallet->DisableTransaction(tx);
             };
         }
-        return;
+        return true;
     };
 
     uint256 hash = tx.GetHash();
+    bool fAnonFailed = false;
     BOOST_FOREACH(CWallet* pwallet, setpwalletRegistered)
-        pwallet->AddToWalletIfInvolvingMe(tx, hash, pblock, fUpdate);
+        pwallet->AddToWalletIfInvolvingMe(tx, hash, pblock, fUpdate, false, &fAnonFailed);
+    return !fAnonFailed;
 }
 
 void SyncWithWalletsThin(const CTransaction& tx, const uint256& blockhash, bool fUpdate, bool fConnect)
@@ -2588,7 +2676,21 @@ bool CTransaction::ConnectInputs(CTxDB& txdb, MapPrevTx inputs, map<uint256, CTx
             if (!CheckAnonInputs(txdb, nSumAnon, fInvalid, true))
             {
                 if (fInvalid)
+                {
+                    // A ring member missing from our own index fails exactly like
+                    // an invalid txn. On the block path, check the index once per
+                    // run; if it has holes the block is fine and this node is what
+                    // needs fixing.
+                    static bool fIndexChecked = false;
+                    if (fBlock && !fIndexChecked && !fReindexing)
+                    {
+                        fIndexChecked = true;
+                        int nMissing = 0;
+                        if (!VerifyAnonIndex(txdb, nMissing) && pindexBest)
+                            ScheduleAnonIndexRebuild(pindexBest->GetBlockHash());
+                    }
                     return DoS(100, error("ConnectInputs() : CheckAnonInputs found invalid tx %s", GetHash().ToString().substr(0,10).c_str()));
+                }
                 return false;
             };
 
@@ -2878,9 +2980,18 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
             return error("ConnectBlock() : WriteBlockIndex failed");
     }
 
-    // Watch for transactions paying to me
+    // Watch for transactions paying to me. For anon txns this also writes the
+    // anon outputs into txdb, which later ring signatures are checked against,
+    // so a failure must reject the block rather than leave the index incomplete.
     BOOST_FOREACH(CTransaction& tx, vtx)
-        SyncWithWallets(tx, this, true); // calls ProcessAnonTransaction() which persists anons also in txDB
+    {
+        if (!SyncWithWallets(tx, this, true))
+        {
+            if (!ScheduleAnonIndexRebuild(GetHash()))
+                strMiscWarning = _("Warning: anon txn cannot be indexed even after rebuild, see debug.log");
+            return error("ConnectBlock() : anon txn %s could not be indexed", tx.GetHash().ToString().substr(0,20).c_str());
+        }
+    }
 
     // Update anon cache with stats of connected block (added in ProcessAnonTransaction())
     if (!pwalletMain->UpdateAnonStats(txdb, pindex->nHeight))
@@ -6903,45 +7014,14 @@ bool SendMessages(CNode* pto, std::vector<CNode*> &vNodesCopy, bool fSendTrickle
         && pto->nChainHeight - nBestHeight > 256
         && (fMblkSilent || fAcceptStalled))
     {
+        // The dedup inside PushGetBlocks would drop this request: a stalled
+        // node asks from the same height every time. Clear it first.
+        pto->pindexLastGetBlocksBegin = NULL;
+        pto->hashLastGetBlocksEnd = 0;
         pto->PushGetBlocks(pindexBest, uint256(0));
-        LogPrintf("Sync %s, getblocks to %s, from %d\n",
-                  fAcceptStalled ? "stall (orphans accumulating)" : "timeout",
-                  pto->addr.ToString().c_str(), pindexBest->nHeight);
+        LogPrintf("Sync stalled at %d, getblocks to %s\n", pindexBest->nHeight, pto->addr.ToString().c_str());
         nTimeLastMblkRecv     = nTimeNow; // reset both watchdogs
         nTimeLastBlockAccepted = nTimeNow;
-
-        // Auto-reorg: if the "orphans accumulating" watchdog has fired
-        // AUTOREORG_STALL_FIRINGS times in a row without our chain advancing
-        // a single block, the orphans are almost certainly the canonical
-        // chain that orphan-resolution can't walk back through (>500-block
-        // walk limit). Mark our current tip BLOCK_FAILED_VALID so the
-        // retreat-to-parent + parent-is-invalid check forces peers to feed
-        // us the alternate fork. Conservative gating below avoids triggering
-        // on healthy nodes that just hit a brief network hiccup.
-        static int     nAutoReorgFirings = 0;
-        static int     nLastBestAtFiring = -1;
-        if (fAcceptStalled)
-        {
-            if (nBestHeight == nLastBestAtFiring) {
-                nAutoReorgFirings++;
-            } else {
-                nAutoReorgFirings = 1;
-                nLastBestAtFiring = nBestHeight;
-            }
-            if (nAutoReorgFirings >= AUTOREORG_STALL_FIRINGS
-                && mapOrphanBlocks.size() >= AUTOREORG_MIN_ORPHANS
-                && pindexBest && pindexBest->pprev)
-            {
-                uint256 stuckHash = pindexBest->GetBlockHash();
-                LogPrintf("Auto-reorg: tip %s height=%d stalled across %d watchdog firings "
-                          "with %d orphans; invalidating to force alternate-chain pull.\n",
-                          stuckHash.ToString(), nBestHeight,
-                          nAutoReorgFirings, (int)mapOrphanBlocks.size());
-                InvalidateBlock(stuckHash);
-                nAutoReorgFirings = 0;
-                nLastBestAtFiring = -1;
-            }
-        }
     }
 
     return true;

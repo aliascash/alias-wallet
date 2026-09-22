@@ -13,8 +13,8 @@ project(ALIAS
 message(STATUS "")
 message(STATUS "=== Setting defaults =======================================================")
 # The version number.
-set(CLIENT_VERSION_MAJOR 4)
-set(CLIENT_VERSION_MINOR 4)
+set(CLIENT_VERSION_MAJOR 5)
+set(CLIENT_VERSION_MINOR 1)
 set(CLIENT_VERSION_REVISION 0)
 set(CLIENT_VERSION_BUILD 0)
 set(CLIENT_VERSION_GIT_SHA1 "---")

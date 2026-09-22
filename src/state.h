@@ -43,14 +43,6 @@ enum eBlockFlags
     BLOCK_FAILED_VALID   = (1 << 3),
 };
 
-// Auto-recovery: if the IBD stall watchdog fires this many times in a row
-// (BLOCK_ACCEPT_STALL_TIMEOUT each), with no chain advance and a large
-// orphan backlog, treat it as evidence we are on a wrong fork that orphan
-// resolution cannot reach back through, and auto-invalidate the current tip.
-static const int AUTOREORG_STALL_FIRINGS = 3;
-// Minimum orphan count required before auto-invalidate fires. Cheap blocks
-// drop in steadily during normal operation; we only act on a real pile-up.
-static const size_t AUTOREORG_MIN_ORPHANS = 200;
 
 
 /*  nServices flags
@@ -79,7 +71,7 @@ static const int64_t MBLK_RECEIVE_TIMEOUT = 60; // seconds
 // getblocks. Without this, the daemon can sit in a "orphans keep
 // arriving so MBLK_RECEIVE_TIMEOUT never fires, but nothing connects"
 // loop indefinitely.
-static const int64_t BLOCK_ACCEPT_STALL_TIMEOUT = 5 * 60; // seconds
+static const int64_t BLOCK_ACCEPT_STALL_TIMEOUT = 60; // seconds
 
 static const int UNSPENT_ANON_BALANCE_MIN = 100;
 static const int UNSPENT_ANON_BALANCE_MAX = 200;
