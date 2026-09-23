@@ -253,18 +253,23 @@ jobs:
       # TODO(#73): confirm aliaswalletd and Tor/ output paths on macOS
       - name: Stage MacOS raw binary archive
         run: |
-          # On macOS with the GUI enabled, CMAKE_RUNTIME_OUTPUT_DIRECTORY is the
-          # build root, so the daemon is there rather than under src/.
+          # Where CMake puts the daemon depends on the platform and on whether
+          # the GUI is enabled, so locate it instead of hardcoding a path.
           build_dir=${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet
-          daemon=$build_dir/aliaswalletd
+          daemon=$(find "$build_dir" -type f -name aliaswalletd -perm -u+x | head -1)
           tor_dir=$build_dir/ALIAS.app/Contents/MacOS/Tor
-          for p in "$daemon" "$tor_dir"; do
-            if [ ! -e "$p" ]; then
-              echo "ERROR: expected build output missing: $p"
-              ls -la "$build_dir" || true
-              exit 1
-            fi
-          done
+          if [ -z "$daemon" ]; then
+            echo "ERROR: aliaswalletd was not produced by the build."
+            echo "--- executables under $build_dir ---"
+            find "$build_dir" -type f -perm -u+x -not -path '*/CMakeFiles/*' | head -40
+            exit 1
+          fi
+          if [ ! -d "$tor_dir" ]; then
+            echo "ERROR: Tor directory missing: $tor_dir"
+            ls -la "$build_dir/ALIAS.app/Contents/MacOS" || true
+            exit 1
+          fi
+          echo "Using daemon: $daemon"
           mkdir -p /tmp/mac-raw/ALIAS
           cp "$daemon" /tmp/mac-raw/ALIAS/aliaswalletd
           cp -R "$tor_dir" /tmp/mac-raw/ALIAS/Tor
