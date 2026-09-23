@@ -830,6 +830,19 @@ fi
 #DEPLOY_QT_BINARY_TYPE_OPTION="-use-debug-libs"
 DEPLOY_QT_BINARY_TYPE_OPTION=''
 
+# hdiutil (also used inside macdeployqt -dmg) fails intermittently with
+# "Resource busy" on the GitHub macOS 15 runners. Retry a few times before
+# giving up, and give up loudly: a silently missing dmg only surfaces at upload.
+retry() {
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        "$@" && return 0
+        info " -> attempt ${attempt} of 5 failed: $*"
+        sleep 5
+    done
+    return 1
+}
+
 if [[ -e ${MAC_QT_DIR}/bin/macdeployqt ]] ; then
     info ""
     info "Creating dmg:"
@@ -840,11 +853,13 @@ if [[ -e ${MAC_QT_DIR}/bin/macdeployqt ]] ; then
         -always-overwrite \
         -verbose=1 \
         "${DEPLOY_QT_BINARY_TYPE_OPTION}"
-    ${MAC_QT_DIR}/bin/macdeployqt \
+    retry ${MAC_QT_DIR}/bin/macdeployqt \
         ALIAS.app \
         -dmg \
         -always-overwrite \
-        -verbose=1
+        -verbose=1 \
+        || die 24 "macdeployqt -dmg failed"
+    [[ -f ALIAS.dmg ]] || die 25 "macdeployqt reported success but ALIAS.dmg is missing"
     info " -> ALIAS.dmg created"
 else
     die 23 "${MAC_QT_DIR}/bin/macdeployqt not found, unable to create dmg!"
@@ -858,12 +873,19 @@ cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into Alias build directory '${ALI
 cp ALIAS.dmg ALIAS.dmg.bak
 
 info "Change permision of .dmg file"
-hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg"
+retry hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg" || die 26 "hdiutil convert to UDRW failed"
 info " -> Done"
 
 info "Mount it and save the device"
 PATH_AT_VOLUME=/Volumes/ALIAS
-DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
+DEVICE=''
+for attempt in 1 2 3 4 5; do
+    DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
+    [[ -n "${DEVICE}" ]] && break
+    info " -> attach attempt ${attempt} of 5 failed"
+    sleep 5
+done
+[[ -n "${DEVICE}" ]] || die 27 "hdiutil attach failed, no device for ${PATH_AT_VOLUME}"
 info " -> Done (${DEVICE})"
 
 sleep 2
@@ -907,12 +929,13 @@ info " -> Done"
 sync
 
 info "Unmount"
-hdiutil detach "${DEVICE}"
+retry hdiutil detach "${DEVICE}" || die 28 "hdiutil detach failed"
 info " -> Done"
 
 info "Cleanup and convert"
 rm -f "ALIAS.dmg"
-hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg"
+retry hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg" || die 29 "hdiutil convert to UDZO failed"
+[[ -f ALIAS.dmg ]] || die 30 "final ALIAS.dmg is missing"
 rm -f "ALIAS_Rw.dmg"
 info " -> Done"
 
