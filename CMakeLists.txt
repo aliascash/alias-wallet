@@ -153,8 +153,13 @@ message(STATUS "Building in '${CMAKE_BUILD_TYPE}' mode")
 # Env var BOOST_ROOT should point to local Boost installation
 message(STATUS "")
 message(STATUS "=== Boost ==================================================================")
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND ENABLE_GUI)
     message(STATUS "Using dynamic Boost libs on Mac")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    # Daemon-only build: link Boost statically so the binary the desktop app
+    # ships does not depend on the Homebrew prefix of the build machine.
+    message(STATUS "Using static Boost libs for the Mac daemon")
+    set(Boost_USE_STATIC_LIBS ON)
 else()
     set(Boost_USE_STATIC_LIBS ON)
     set(Boost_USE_STATIC_RUNTIME ON)

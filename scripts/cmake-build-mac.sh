@@ -850,102 +850,106 @@ retry() {
     return 1
 }
 
-if [[ -e ${MAC_QT_DIR}/bin/macdeployqt ]] ; then
+# Packaging the Qt app into a dmg only applies to a GUI build. A daemon-only
+# build (no -g) produces just aliaswalletd and stops here.
+if ${ENABLE_GUI}; then
+    if [[ -e ${MAC_QT_DIR}/bin/macdeployqt ]] ; then
+        info ""
+        info "Creating dmg:"
+        cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into ${ALIAS_BUILD_DIR}"
+        ${MAC_QT_DIR}/bin/macdeployqt \
+            ALIAS.app \
+            -qmldir="${ownLocation}"/../src/qt/res \
+            -always-overwrite \
+            -verbose=1 \
+            "${DEPLOY_QT_BINARY_TYPE_OPTION}"
+        retry ${MAC_QT_DIR}/bin/macdeployqt \
+            ALIAS.app \
+            -dmg \
+            -always-overwrite \
+            -verbose=1 \
+            || die 24 "macdeployqt -dmg failed"
+        [[ -f ALIAS.dmg ]] || die 25 "macdeployqt reported success but ALIAS.dmg is missing"
+        info " -> ALIAS.dmg created"
+    else
+        die 23 "${MAC_QT_DIR}/bin/macdeployqt not found, unable to create dmg!"
+    fi
+
     info ""
-    info "Creating dmg:"
-    cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into ${ALIAS_BUILD_DIR}"
-    ${MAC_QT_DIR}/bin/macdeployqt \
-        ALIAS.app \
-        -qmldir="${ownLocation}"/../src/qt/res \
-        -always-overwrite \
-        -verbose=1 \
-        "${DEPLOY_QT_BINARY_TYPE_OPTION}"
-    retry ${MAC_QT_DIR}/bin/macdeployqt \
-        ALIAS.app \
-        -dmg \
-        -always-overwrite \
-        -verbose=1 \
-        || die 24 "macdeployqt -dmg failed"
-    [[ -f ALIAS.dmg ]] || die 25 "macdeployqt reported success but ALIAS.dmg is missing"
-    info " -> ALIAS.dmg created"
-else
-    die 23 "${MAC_QT_DIR}/bin/macdeployqt not found, unable to create dmg!"
+    info "Performing post build steps:"
+    info "============================"
+
+    cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into Alias build directory '${ALIAS_BUILD_DIR}'"
+    cp ALIAS.dmg ALIAS.dmg.bak
+
+    info "Change permision of .dmg file"
+    retry hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg" || die 26 "hdiutil convert to UDRW failed"
+    info " -> Done"
+
+    info "Mount it and save the device"
+    PATH_AT_VOLUME=/Volumes/ALIAS
+    DEVICE=''
+    for attempt in 1 2 3 4 5; do
+        DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
+        [[ -n "${DEVICE}" ]] && break
+        info " -> attach attempt ${attempt} of 5 failed"
+        sleep 5
+    done
+    [[ -n "${DEVICE}" ]] || die 27 "hdiutil attach failed, no device for ${PATH_AT_VOLUME}"
+    info " -> Done (${DEVICE})"
+
+    sleep 2
+
+    info "Create symbolic link to application folder"
+    pushd "$PATH_AT_VOLUME"
+    ln -s /Applications
+    popd
+    info " -> Done"
+
+    info "Copy background image in to package"
+    mkdir "$PATH_AT_VOLUME"/.background
+    cp "${ownLocation}"/../src/osx/app-slide-arrow.png "$PATH_AT_VOLUME"/.background/
+    info " -> Done"
+
+    info "Resize window, set background, change icon size, place icons in the right position, etc."
+    echo '
+        tell application "Finder"
+        tell disk "ALIAS"   ## check Path inside cd /Volume/
+            open
+                set current view of container window to icon view
+                set toolbar visible of container window to false
+                set statusbar visible of container window to false
+                set the bounds of container window to {400, 100, 1200, 520}
+                set viewOptions to the icon view options of container window
+                set arrangement of viewOptions to not arranged
+                set icon size of viewOptions to 200
+                set text size of viewOptions to 16
+                set background picture of viewOptions to file ".background:app-slide-arrow.png"
+                set position of item "ALIAS.app" of container window to {180, 200}
+                set position of item "Applications" of container window to {620, 200}
+            close
+            open
+            update without registering applications
+            delay 2
+        end tell
+        end tell
+    ' | osascript
+    info " -> Done"
+
+    sync
+
+    info "Unmount"
+    retry hdiutil detach "${DEVICE}" || die 28 "hdiutil detach failed"
+    info " -> Done"
+
+    info "Cleanup and convert"
+    rm -f "ALIAS.dmg"
+    retry hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg" || die 29 "hdiutil convert to UDZO failed"
+    [[ -f ALIAS.dmg ]] || die 30 "final ALIAS.dmg is missing"
+    rm -f "ALIAS_Rw.dmg"
+    info " -> Done"
+
+    info " -> Finished: ${ALIAS_BUILD_DIR}/ALIAS.dmg"
 fi
-
-info ""
-info "Performing post build steps:"
-info "============================"
-
-cd "${ALIAS_BUILD_DIR}" || die 1 "Unable to cd into Alias build directory '${ALIAS_BUILD_DIR}'"
-cp ALIAS.dmg ALIAS.dmg.bak
-
-info "Change permision of .dmg file"
-retry hdiutil convert "ALIAS.dmg" -format UDRW -o "ALIAS_Rw.dmg" || die 26 "hdiutil convert to UDRW failed"
-info " -> Done"
-
-info "Mount it and save the device"
-PATH_AT_VOLUME=/Volumes/ALIAS
-DEVICE=''
-for attempt in 1 2 3 4 5; do
-    DEVICE=$(hdiutil attach -readwrite -noverify "ALIAS_Rw.dmg" | grep ${PATH_AT_VOLUME} | awk '{print $1}')
-    [[ -n "${DEVICE}" ]] && break
-    info " -> attach attempt ${attempt} of 5 failed"
-    sleep 5
-done
-[[ -n "${DEVICE}" ]] || die 27 "hdiutil attach failed, no device for ${PATH_AT_VOLUME}"
-info " -> Done (${DEVICE})"
-
-sleep 2
-
-info "Create symbolic link to application folder"
-pushd "$PATH_AT_VOLUME"
-ln -s /Applications
-popd
-info " -> Done"
-
-info "Copy background image in to package"
-mkdir "$PATH_AT_VOLUME"/.background
-cp "${ownLocation}"/../src/osx/app-slide-arrow.png "$PATH_AT_VOLUME"/.background/
-info " -> Done"
-
-info "Resize window, set background, change icon size, place icons in the right position, etc."
-echo '
-    tell application "Finder"
-    tell disk "ALIAS"   ## check Path inside cd /Volume/
-        open
-            set current view of container window to icon view
-            set toolbar visible of container window to false
-            set statusbar visible of container window to false
-            set the bounds of container window to {400, 100, 1200, 520}
-            set viewOptions to the icon view options of container window
-            set arrangement of viewOptions to not arranged
-            set icon size of viewOptions to 200
-            set text size of viewOptions to 16
-            set background picture of viewOptions to file ".background:app-slide-arrow.png"
-            set position of item "ALIAS.app" of container window to {180, 200}
-            set position of item "Applications" of container window to {620, 200}
-        close
-        open
-        update without registering applications
-        delay 2
-    end tell
-    end tell
-' | osascript
-info " -> Done"
-
-sync
-
-info "Unmount"
-retry hdiutil detach "${DEVICE}" || die 28 "hdiutil detach failed"
-info " -> Done"
-
-info "Cleanup and convert"
-rm -f "ALIAS.dmg"
-retry hdiutil convert "ALIAS_Rw.dmg" -format UDZO -o "ALIAS.dmg" || die 29 "hdiutil convert to UDZO failed"
-[[ -f ALIAS.dmg ]] || die 30 "final ALIAS.dmg is missing"
-rm -f "ALIAS_Rw.dmg"
-info " -> Done"
-
-info " -> Finished: ${ALIAS_BUILD_DIR}/ALIAS.dmg"
 
 cd "${callDir}" || die 1 "Unable to cd back to where we came from (${callDir})"

@@ -61,36 +61,6 @@ jobs:
   buildLinux:
     runs-on: ubuntu-latest
     needs: prepareRelease
-    strategy:
-      matrix:
-        distro: [ CentOS/Dockerfile, Debian/Dockerfile_Buster, Debian/Dockerfile_Stretch, Fedora/Dockerfile, OpenSUSE/Dockerfile, Ubuntu/Dockerfile_18_04 ]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Build binaries
-        run: >
-          docker build
-          -t local
-          -f Docker/${{ matrix.distro }}
-          --build-arg BUILD_THREADS=2
-          --build-arg GITHUB_CI_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
-          --build-arg ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}
-          --build-arg REPLACE_EXISTING_ARCHIVE=--replace
-          --build-arg ALIAS_USER=${{ github.repository_owner }}
-          --build-arg ALIAS_REPOSITORY=${{ github.event.repository.name }}
-          .
-        env:
-          GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ==========================================================================
-  # Build Ubuntu 20.04 version, which is also base for Alias Docker image.
-  # After the Docker build, extract aliaswalletd + Tor/ from the image and
-  # upload a raw binary zip for the desktop app to consume.
-  buildLinuxBinariesAlsoForDockerImage:
-    runs-on: ubuntu-latest
-    needs: prepareRelease
     outputs:
       github_sha_short: ${{ needs.prepareRelease.outputs.github_sha_short }}
       alias_release: ${{ needs.prepareRelease.outputs.alias_release }}
@@ -139,37 +109,6 @@ jobs:
 
   # ==========================================================================
   # Build aarch64 version (Raspberry PI ARMv8)
-  buildARM:
-    runs-on: ubuntu-latest
-    needs: prepareRelease
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: tonistiigi/binfmt:latest
-          platforms: arm64
-      - name: Build binaries
-        run: >
-          docker build
-          -t local
-          -f Docker/RaspberryPi/Dockerfile_Buster
-          --build-arg BUILD_THREADS=2
-          --build-arg GITHUB_CI_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
-          --build-arg ALIAS_RELEASE=${{ needs.prepareRelease.outputs.alias_release }}
-          --build-arg REPLACE_EXISTING_ARCHIVE=--replace
-          --build-arg ALIAS_USER=${{ github.repository_owner }}
-          --build-arg ALIAS_REPOSITORY=${{ github.event.repository.name }}
-          .
-        env:
-          GITHUB_CI_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # ==========================================================================
-  # Build MacOS version
   buildMacOS:
     runs-on: macos-15-intel
     needs: prepareRelease
@@ -177,12 +116,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '5.12.10'
-          modules: 'qtwebengine'
 
       - name: Install dependencies
         run: |
@@ -219,60 +152,27 @@ jobs:
           key: ${{ runner.os }}-${{ env.cache-name }}
 
       - name: Build MacOS binaries
-        run: ./scripts/cmake-build-mac.sh -g
+        run: ./scripts/cmake-build-mac.sh
         env:
           MAC_QT_DIR: ${{ env.QT_ROOT_DIR }}
 
-      - name: Create MacOS dmg sha256 checksum file
+      - name: Stage MacOS daemon archive
         run: |
-          shasum -a 256 ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.dmg | awk '{ print $1 }' > ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
-          cat ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
-
-      - name: Upload MacOS Build
-        id: upload-release-asset
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.dmg
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.dmg
-          tag: ${{ needs.prepareRelease.outputs.alias_release }}
-          overwrite: true
-
-      - name: Upload MacOS checksum file
-        id: upload-release-checksum
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet/ALIAS.sha256
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.sha256
-          tag: ${{ needs.prepareRelease.outputs.alias_release }}
-          overwrite: true
-
-      # Stage aliaswalletd and the Tor bundle for the desktop app.
-      # cmake-build-mac.sh sets ALIAS_BUILD_DIR=cmake-build-cmdline-mac/aliaswallet.
-      # aliaswalletd lands in that dir under src/ (OUTPUT_NAME aliaswalletd).
-      # The Tor bundle is unzipped into ALIAS.app/Contents/MacOS/Tor/ by the
-      # cmake POST_BUILD step (see src/CMakeLists.txt line ~624).
-      # TODO(#73): confirm aliaswalletd and Tor/ output paths on macOS
-      - name: Stage MacOS raw binary archive
-        run: |
-          # Where CMake puts the daemon depends on the platform and on whether
-          # the GUI is enabled, so locate it instead of hardcoding a path.
           build_dir=${{ github.workspace }}/cmake-build-cmdline-mac/aliaswallet
           daemon=$(find "$build_dir" -type f -name aliaswalletd -perm -u+x | head -1)
-          tor_dir=$build_dir/ALIAS.app/Contents/MacOS/Tor
           if [ -z "$daemon" ]; then
             echo "ERROR: aliaswalletd was not produced by the build."
-            echo "--- executables under $build_dir ---"
             find "$build_dir" -type f -perm -u+x -not -path '*/CMakeFiles/*' | head -40
             exit 1
           fi
+          tor_dir=$(dirname "$daemon")/Tor
           if [ ! -d "$tor_dir" ]; then
-            echo "ERROR: Tor directory missing: $tor_dir"
-            ls -la "$build_dir/ALIAS.app/Contents/MacOS" || true
+            echo "ERROR: Tor was not staged next to the daemon: $tor_dir"
+            ls -la "$(dirname "$daemon")"
             exit 1
           fi
-          echo "Using daemon: $daemon"
+          echo "daemon: $daemon"
+          otool -L "$daemon" || true
           mkdir -p /tmp/mac-raw/ALIAS
           cp "$daemon" /tmp/mac-raw/ALIAS/aliaswalletd
           cp -R "$tor_dir" /tmp/mac-raw/ALIAS/Tor
@@ -290,6 +190,7 @@ jobs:
 
   # ==========================================================================
   # Build Windows x64 version
+
   buildWindows:
     runs-on: windows-latest
     needs: prepareRelease
@@ -302,20 +203,13 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '5.12.9'
-          setup-python: 'false'
-          modules: 'qtwebengine'
-
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v11
         with:
           vcpkgGitCommitId: e8709ee8703328fe121eab33cda73a406a7626b7
 
       - name: Build Windows binaries
-        run: ./scripts/cmake-build-win.bat
+        run: ./scripts/cmake-build-win.bat daemon
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows
           QTDIR: ${{ env.QT_ROOT_DIR }}
@@ -323,14 +217,28 @@ jobs:
           CMAKEDIR: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
 
-      - name: Create zip archive and sha256 checksum
+      - name: Stage Windows daemon archive
+        shell: bash
         run: |
-          powershell "Copy-Item (Get-ChildItem -Recurse build/src -Filter aliaswalletd.exe | Select-Object -First 1).FullName build/delivery/ALIAS/"
-          powershell Compress-Archive build/delivery/ALIAS ALIAS.zip
-          powershell "(Get-FileHash ALIAS.zip).Hash > ALIAS.sha256"
-          powershell "(Get-Content ALIAS.sha256) | Out-File ALIAS.sha256 -Encoding ascii"
-          type ALIAS.sha256
-
+          daemon=$(find build -type f -name aliaswalletd.exe | head -1)
+          if [ -z "$daemon" ]; then
+            echo "ERROR: aliaswalletd.exe was not produced by the build."
+            find build -type f -name '*.exe' | head -40
+            exit 1
+          fi
+          dir=$(dirname "$daemon")
+          if [ ! -d "$dir/Tor" ]; then
+            echo "ERROR: Tor was not staged next to the daemon: $dir/Tor"
+            ls -la "$dir"
+            exit 1
+          fi
+          echo "daemon: $daemon"
+          mkdir -p /tmp/win-raw/ALIAS
+          cp "$dir"/*.dll /tmp/win-raw/ALIAS/ 2>/dev/null || true
+          cp "$daemon" /tmp/win-raw/ALIAS/aliaswalletd.exe
+          cp -R "$dir/Tor" /tmp/win-raw/ALIAS/Tor
+          ls -la /tmp/win-raw/ALIAS
+          cd /tmp/win-raw && 7z a -tzip ALIAS.zip ALIAS/
       - name: Upload Windows Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
@@ -341,123 +249,6 @@ jobs:
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
-      - name: Upload Windows checksum file
-        id: upload-release-checksum
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/ALIAS.sha256
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.sha256
-          tag: ${{ needs.prepareRelease.outputs.alias_release }}
-          overwrite: true
 
   # ==========================================================================
   # Build Windows x86 version
-  buildWindowsX86:
-    runs-on: windows-latest
-    needs: prepareRelease
-    outputs:
-      upload_url: ${{ needs.prepareRelease.outputs.upload_url }}
-      github_sha_short: ${{ needs.prepareRelease.outputs.github_sha_short }}
-      alias_release: ${{ needs.prepareRelease.outputs.alias_release }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Install Qt
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '5.12.9'
-          setup-python: 'false'
-          modules: 'qtwebengine'
-          arch: 'win32_msvc2017'
-
-      - name: Install vcpkg and packages with cache
-        uses: lukka/run-vcpkg@v11
-        with:
-          vcpkgGitCommitId: e8709ee8703328fe121eab33cda73a406a7626b7
-
-      - name: Build Windows binaries
-        run: ./scripts/cmake-build-win-x86.bat
-        env:
-          VCPKG_DEFAULT_TRIPLET: x86-windows
-          QTDIR_x86: ${{ env.QT_ROOT_DIR }}
-          VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
-          CMAKEDIR_x86: 'C:\Program Files\CMake\bin'
-          VCPKGDIR: ${{ github.workspace }}/vcpkg
-
-      - name: Create zip archive and sha256 checksum
-        run: |
-          powershell Compress-Archive build-x86/delivery/ALIAS ALIAS.zip
-          powershell "(Get-FileHash ALIAS.zip).Hash > ALIAS.sha256"
-          powershell "(Get-Content ALIAS.sha256) | Out-File ALIAS.sha256 -Encoding ascii"
-          type ALIAS.sha256
-
-      - name: Upload Windows Build
-        id: upload-release-asset
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/ALIAS.zip
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.zip
-          tag: ${{ needs.prepareRelease.outputs.alias_release }}
-          overwrite: true
-
-      - name: Upload Windows checksum file
-        id: upload-release-checksum
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/ALIAS.sha256
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.sha256
-          tag: ${{ needs.prepareRelease.outputs.alias_release }}
-          overwrite: true
-
-  # ==========================================================================
-  # Build Alias Docker image
-  # Based on the docker-aliaswalletd installer repo content
-  buildDockerImage:
-    runs-on: ubuntu-latest
-    needs: buildLinuxBinariesAlsoForDockerImage
-    steps:
-      # Get installer repo content
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          repository: ${{ github.repository_owner }}/docker-aliaswalletd
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }} #use username, not email
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        id: docker_build
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          context: .
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/docker-aliaswalletd:latest,${{ secrets.DOCKERHUB_USERNAME }}/docker-aliaswalletd:${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}
-          build-args: |
-            DOWNLOAD_URL=https://github.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/releases/download/${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}/ALIAS-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Ubuntu-20-04.tgz
-          #arg2=value2
-
-      - name: Image digest
-        run: |
-          echo ${{ steps.docker_build.outputs.digest }}
-          echo ${{ steps.docker_build.outputs.digest }} > ${{ github.workspace }}/Dockerimage.sha256
-
-      # Upload the installer to Github
-      - name: Store docker image digest at Github release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/Dockerimage.sha256
-          asset_name: ALIAS-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}-${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.github_sha_short }}-Dockerimage.sha256
-          tag: ${{ needs.buildLinuxBinariesAlsoForDockerImage.outputs.alias_release }}
-          overwrite: true

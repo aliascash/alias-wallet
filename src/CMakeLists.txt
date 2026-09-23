@@ -185,7 +185,21 @@ endif ()
 
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    message(STATUS "No daemon build on Mac")
+    # Headless daemon (aliaswalletd) - required by the Electron desktop app.
+    # No -static here: macOS ships no static libSystem, so only the third-party
+    # dependencies are linked statically (CMake picks the .a files Homebrew
+    # installs alongside the dylibs) and the system libraries stay dynamic.
+    add_executable(Aliaswalletd ${CMAKE_CURRENT_LIST_DIR}/spectrecoind.cpp)
+    target_link_libraries(Aliaswalletd
+            OpenSSL::SSL
+            OpenSSL::Crypto
+            Oracle::BerkeleyDB
+            leveldb::leveldb
+            aliaswallet_lib
+            )
+    set_target_properties(Aliaswalletd PROPERTIES
+            OUTPUT_NAME aliaswalletd
+            )
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Headless daemon (aliaswalletd.exe) — required by the Electron desktop app.
     # aliaswallet_lib already compiles on Windows (the GUI links it) and
@@ -221,6 +235,34 @@ else()
     set_target_properties(Aliaswalletd PROPERTIES
             OUTPUT_NAME aliaswalletd
             )
+endif()
+
+# The daemon launches Tor from a Tor/ folder next to its own binary
+# (CreateProcessA("Tor/tor.exe") on Windows, ./tor.real on macOS). The GUI builds
+# stage that folder into the app bundle or the delivery directory; a daemon-only
+# build has neither, so stage it next to the daemon itself. Linux is excluded on
+# purpose: there the daemon runs the system tor via execvp.
+if (NOT ENABLE_GUI AND (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+    add_custom_command(TARGET Aliaswalletd POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                    ${TOR_STAGE_DIR} $<TARGET_FILE_DIR:Aliaswalletd>
+            COMMENT "Stage Tor next to the daemon"
+            )
+endif()
+
+# Without the GUI there is no windeployqt to collect the runtime DLLs the daemon
+# needs (MSVC runtime, Boost, OpenSSL, BerkeleyDB), so copy them next to it.
+if (NOT ENABLE_GUI AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
+        add_custom_command(TARGET Aliaswalletd POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy -t $<TARGET_FILE_DIR:Aliaswalletd>
+                        $<TARGET_RUNTIME_DLLS:Aliaswalletd>
+                COMMAND_EXPAND_LISTS
+                COMMENT "Stage the daemon's runtime DLLs"
+                )
+    else()
+        message(FATAL_ERROR "A daemon-only Windows build needs CMake 3.21 or newer to collect runtime DLLs")
+    endif()
 endif()
 
 if (ENABLE_GUI)
