@@ -242,6 +242,9 @@ checkEventLibArchive() {
 
 checkEventLibClone() {
     local currentDir=$(pwd)
+    # external/ is not tracked on this branch, so a fresh checkout does not have
+    # it; without this the cd fails and the clone lands in the wrong directory.
+    mkdir -p ${ownLocation}/../external
     cd ${ownLocation}/../external
     if [[ -d libevent ]]; then
         info " -> Updating libevent clone"
@@ -314,6 +317,9 @@ checkEventLib() {
 # ===== Start of leveldb functions ===========================================
 checkLevelDBClone() {
     local currentDir=$(pwd)
+    # external/ is not tracked on this branch, so a fresh checkout does not have
+    # it; without this the cd fails and the clone lands in the wrong directory.
+    mkdir -p ${ownLocation}/../external
     cd ${ownLocation}/../external
     if [[ -d leveldb ]]; then
         info " -> Updating LevelDB clone"
@@ -415,6 +421,7 @@ checkZStdLibArchive() {
         wget ${LIBZ_ARCHIVE_URL}
         cd - >/dev/null
     fi
+    mkdir -p ${ownLocation}/../external
     cd ${ownLocation}/../external
     if [[ -d libzstd ]]; then
         info " -> Directory external/libzstd already existing. Remove it to extract it again"
