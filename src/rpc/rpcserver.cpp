@@ -21,6 +21,7 @@
 #include <boost/asio.hpp>
 #include <boost/asio/ip/v6_only.hpp>
 #include <boost/asio/ssl.hpp>
+#include <boost/asio/steady_timer.hpp>
 #include <boost/bind/bind.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
@@ -40,8 +41,8 @@ namespace ba = boost::asio;
 static std::string strRPCUserColonPass;
 
 // These are created by StartRPCThreads, destroyed in StopRPCThreads
-static asio::io_service* rpc_io_service = NULL;
-static map<string, boost::shared_ptr<deadline_timer> > deadlineTimers;
+static asio::io_context* rpc_io_service = NULL;
+static map<string, boost::shared_ptr<boost::asio::steady_timer> > deadlineTimers;
 static ssl::context* rpc_ssl_context = NULL;
 static boost::thread_group* rpc_worker_group = NULL;
 
@@ -426,17 +427,18 @@ void ErrorReply(std::ostream& stream, const Object& objError, const Value& id)
 
 bool ClientAllowed(const boost::asio::ip::address& address)
 {
-    // Make sure that IPv4-compatible and IPv4-mapped IPv6 addresses are treated as IPv4 addresses
-    if (address.is_v6()
-     && (address.to_v6().is_v4_compatible()
-      || address.to_v6().is_v4_mapped()))
-        return ClientAllowed(address.to_v6().to_v4());
+    // Make sure that IPv4-mapped IPv6 addresses are treated as IPv4 addresses.
+    // The deprecated IPv4-compatible form (::a.b.c.d) is no longer handled;
+    // Boost removed is_v4_compatible()/address_v6::to_v4() and such addresses
+    // are obsolete per RFC 4291.
+    if (address.is_v6() && address.to_v6().is_v4_mapped())
+        return ClientAllowed(asio::ip::make_address_v4(asio::ip::v4_mapped, address.to_v6()));
 
     if (address == asio::ip::address_v4::loopback()
      || address == asio::ip::address_v6::loopback()
      || (address.is_v4()
          // Check whether IPv4 addresses match 127.0.0.0/8 (loopback subnet)
-      && (address.to_v4().to_ulong() & 0xff000000) == 0x7f000000))
+      && address.to_v4().to_bytes()[0] == 0x7f))
         return true;
 
     const string strAddress = address.to_string();
@@ -462,7 +464,7 @@ class AcceptedConnectionImpl : public AcceptedConnection
 {
 public:
     AcceptedConnectionImpl(
-            asio::io_service& io_service,
+            asio::io_context& io_service,
             ssl::context &context,
             bool fUseSSL) :
         sslStream(io_service, context),
@@ -617,7 +619,7 @@ void StartRPCThreads()
     }
 
     assert(rpc_io_service == NULL);
-    rpc_io_service = new asio::io_service();
+    rpc_io_service = new asio::io_context();
     rpc_ssl_context = new ssl::context(
 #if BOOST_VERSION <= 104800
         *rpc_io_service,
@@ -663,7 +665,7 @@ void StartRPCThreads()
         acceptor->set_option(boost::asio::ip::v6_only(loopback), v6_only_error);
 
         acceptor->bind(endpoint);
-        acceptor->listen(socket_base::max_connections);
+        acceptor->listen(socket_base::max_listen_connections);
 
         RPCListen(acceptor, *rpc_ssl_context, fUseSSL);
 
@@ -685,7 +687,7 @@ void StartRPCThreads()
             acceptor->open(endpoint.protocol());
             acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
             acceptor->bind(endpoint);
-            acceptor->listen(socket_base::max_connections);
+            acceptor->listen(socket_base::max_listen_connections);
 
             RPCListen(acceptor, *rpc_ssl_context, fUseSSL);
 
@@ -705,7 +707,7 @@ void StartRPCThreads()
 
     rpc_worker_group = new boost::thread_group();
     for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
-        rpc_worker_group->create_thread(boost::bind(&asio::io_service::run, rpc_io_service));
+        rpc_worker_group->create_thread(boost::bind(&asio::io_context::run, rpc_io_service));
 }
 
 void StopRPCThreads()
@@ -738,20 +740,18 @@ void RPCRunLater(const std::string& name, boost::function<void(void)> func, int6
     if (deadlineTimers.count(name) == 0)
     {
         deadlineTimers.insert(make_pair(name,
-                                        boost::shared_ptr<deadline_timer>(new deadline_timer(*rpc_io_service))));
+                                        boost::shared_ptr<boost::asio::steady_timer>(new boost::asio::steady_timer(*rpc_io_service))));
     }
-    deadlineTimers[name]->expires_from_now(posix_time::seconds(nSeconds));
+    deadlineTimers[name]->expires_after(boost::asio::chrono::seconds(nSeconds));
     deadlineTimers[name]->async_wait(boost::bind(RPCRunHandler, boost::placeholders::_1, func));
 }
 
 CNetAddr BoostAsioToCNetAddr(boost::asio::ip::address address)
 {
     CNetAddr netaddr;
-    // Make sure that IPv4-compatible and IPv4-mapped IPv6 addresses are treated as IPv4 addresses
-    if (address.is_v6()
-        && (address.to_v6().is_v4_compatible()
-            || address.to_v6().is_v4_mapped()))
-        address = address.to_v6().to_v4();
+    // Make sure that IPv4-mapped IPv6 addresses are treated as IPv4 addresses
+    if (address.is_v6() && address.to_v6().is_v4_mapped())
+        address = asio::ip::make_address_v4(asio::ip::v4_mapped, address.to_v6());
 
     if (address.is_v4())
     {
