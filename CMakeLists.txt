@@ -29,11 +29,15 @@ set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/android")
 # rather than the prebuilt aliascash/resources zips, which were frozen at
 # Tor 0.4.5.8 (Windows, 2021) and Tor 0.4.1.5 (macOS, 2019).
 # Hashes are from https://dist.torproject.org/torbrowser/<ver>/sha256sums-unsigned-build.txt
-set(TOR_BUNDLE_VERSION "15.0.21")
-set(TOR_BUNDLE_WIN64_HASH "f22b8b17cb18c9fa775dfcf68acf6a2fe788336535fe94645204ca85158aa490")
-set(TOR_BUNDLE_WIN32_HASH "a061a801cbe4208353f38b50a579568656df396d5f025fcbbf4110948a85901e")
-set(TOR_BUNDLE_MAC_X86_64_HASH "7e21f5dab4c627e2ff8e894b2039fa49bdd78d12b025f96893d4d6238c6577e4")
-set(TOR_BUNDLE_MAC_AARCH64_HASH "83dec16412c1d97b91af603229481dd29f578e1485620ecffd9ac4aabcf6fb46")
+set(TOR_BUNDLE_VERSION "15.0.23")
+set(TOR_BUNDLE_WIN64_HASH "231dad6b9cb401a54c260db7046965ef04e4f72ff071b140d423fb5da281ab1e")
+set(TOR_BUNDLE_WIN32_HASH "1e4de9a4f1d99b8f40b5e0c75f3dcc3ea51b0aeab040d48fd23881e9fa94979a")
+set(TOR_BUNDLE_MAC_X86_64_HASH "be1be1cb13cd093713f02a0beade0d2471b61119011bfeb0efc08353eadf2e4e")
+set(TOR_BUNDLE_MAC_AARCH64_HASH "e8ea3f667c83309abad34280f0f9e1cfae52843da6b8db111ca15d6221051db5")
+# dist.torproject.org serves only current releases and deletes superseded ones,
+# which breaks a pinned version as soon as Tor Browser updates. The archive
+# keeps every release, so pin against that instead.
+set(TOR_BUNDLE_BASE_URL "https://archive.torproject.org/tor-package-archive/torbrowser")
 set(VCRUNTIME_ARCHIVE_WIN64_HASH "85cffbf41e957dcc9c5dd528af84c03474e76b8c")
 set(VCRUNTIME_ARCHIVE_WIN32_HASH "9af511350e0772bf1f543abd375304af2e616273")
 
@@ -314,7 +318,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         message(STATUS "Downloading Tor expert bundle ${TOR_BUNDLE_VERSION} (${TOR_BUNDLE_ARCH})")
         include(DownloadFile)
         set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/${TOR_BUNDLE_NAME}")
-        download_file(https://dist.torproject.org/torbrowser/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
+        download_file(${TOR_BUNDLE_BASE_URL}/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
     endif ()
 
     # The daemon starts Tor as ./tor.real from the Tor/ folder next to the binary
@@ -362,7 +366,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         message(STATUS "Downloading Tor expert bundle ${TOR_BUNDLE_VERSION} (${TOR_BUNDLE_ARCH})")
         include(DownloadFile)
         set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/${TOR_BUNDLE_NAME}")
-        download_file(https://dist.torproject.org/torbrowser/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
+        download_file(${TOR_BUNDLE_BASE_URL}/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_HASH})
     else()
         message(STATUS "Using Tor archive from given path")
     endif()
