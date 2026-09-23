@@ -792,7 +792,7 @@ cmake \
     -Dleveldb_DIR=${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/local/lib/cmake/leveldb \
     -DLEVELDB_INCLUDE_DIR=${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/local/include \
     \
-    -DOPENSSL_ROOT_DIR=/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/lib;/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/include \
+    -DOPENSSL_ROOT_DIR=/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/lib;/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/include
 EOM
 
 # Insert additional parameters
