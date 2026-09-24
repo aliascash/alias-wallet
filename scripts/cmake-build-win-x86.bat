@@ -10,6 +10,14 @@
 ::
 :: ===========================================================================
 
+::
+:: Pass "daemon" as the first argument to build only aliaswalletd.exe without
+:: the Qt GUI. The 5.1.0 desktop app ships the daemon plus Electron, so the
+:: Qt wallet is not built for it.
+SET DAEMON_ONLY=0
+IF /I "%~1" == "daemon" SET DAEMON_ONLY=1
+
+IF "%DAEMON_ONLY%" == "1" GOTO YESQT
 IF "%QTDIR_x86%" == "" GOTO NOQT
 :YESQT
 
@@ -40,9 +48,14 @@ rmdir /S /Q "%BUILD_DIR%\delivery"
 mkdir "%BUILD_DIR%"
 cd %BUILD_DIR%
 
-"%CMAKEDIR_x86%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH=%QTDIR_x86%\lib\cmake -D CMAKE_BUILD_TYPE=Release -A Win32 .. || goto :ERROR
-
-"%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswallet --config Release || goto :ERROR
+IF "%DAEMON_ONLY%" == "1" (
+    "%CMAKEDIR_x86%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=OFF -D CMAKE_BUILD_TYPE=Release -A Win32 .. || goto :ERROR
+    "%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswalletd --config Release || goto :ERROR
+) ELSE (
+    "%CMAKEDIR_x86%\cmake.exe" -D CMAKE_TOOLCHAIN_FILE=%VCPKGDIR%\scripts\buildsystems\vcpkg.cmake -D CMAKE_FIND_ROOT_PATH_MODE_LIBRARY=NEVER -D CMAKE_FIND_ROOT_PATH_MODE_INCLUDE=NEVER -D ENABLE_GUI=ON -D QT_CMAKE_MODULE_PATH=%QTDIR_x86%\lib\cmake -D CMAKE_BUILD_TYPE=Release -A Win32 .. || goto :ERROR
+    "%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswalletd --config Release || goto :ERROR
+    "%CMAKEDIR_x86%\cmake.exe" --build . --target Aliaswallet --config Release || goto :ERROR
+)
 
 ::ren "%OUT_DIR%" ALIAS
 ::echo "The prepared package is in: %BUILD_DIR%\delivery"

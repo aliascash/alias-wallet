@@ -72,7 +72,7 @@ jobs:
         run: >
           docker build
           -t local
-          -f Docker/Ubuntu/Dockerfile_20_04
+          -f Docker/Ubuntu/Dockerfile_20_04_noUpload
           --build-arg BUILD_THREADS=2
           --build-arg GITHUB_CI_TOKEN=${{ secrets.GITHUB_TOKEN }}
           --build-arg GIT_COMMIT=${{ needs.prepareRelease.outputs.github_sha_short }}
@@ -110,8 +110,20 @@ jobs:
   # ==========================================================================
   # Build aarch64 version (Raspberry PI ARMv8)
   buildMacOS:
-    runs-on: macos-15-intel
+    runs-on: ${{ matrix.runner }}
     needs: prepareRelease
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Qt is gone from this branch, so the daemon can be built natively on
+          # Apple Silicon as well as Intel.
+          - runner: macos-15-intel
+            arch: x86_64
+            asset_suffix: Mac
+          - runner: macos-15
+            arch: arm64
+            asset_suffix: Mac-arm64
     steps:
       - uses: actions/checkout@v4
         with:
@@ -137,14 +149,14 @@ jobs:
           ( cd dist && patch -p1 < /tmp/db-bigsur.diff )
           export CFLAGS="-Wno-implicit-function-declaration"
           cd build_unix
-          ../dist/configure --enable-cxx --prefix=/usr/local/opt/berkeley-db@4
+          ../dist/configure --enable-cxx --prefix="$(brew --prefix)/opt/berkeley-db@4"
           make
           make install
 
       - name: Cache build dependencies
         uses: actions/cache@v4
         env:
-          cache-name: cache-build-dependencies-mac-v3
+          cache-name: cache-build-dependencies-mac-${{ matrix.arch }}-v4
         with:
           path: |
             ${{ github.workspace }}/cmake-build-cmdline-mac/*
@@ -153,8 +165,6 @@ jobs:
 
       - name: Build MacOS binaries
         run: ./scripts/cmake-build-mac.sh
-        env:
-          MAC_QT_DIR: ${{ env.QT_ROOT_DIR }}
 
       - name: Stage MacOS daemon archive
         run: |
@@ -184,7 +194,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: /tmp/mac-raw/ALIAS.zip
-          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Mac.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-${{ matrix.asset_suffix }}.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
 
@@ -212,7 +222,6 @@ jobs:
         run: ./scripts/cmake-build-win.bat daemon
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows
-          QTDIR: ${{ env.QT_ROOT_DIR }}
           VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
           CMAKEDIR: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
@@ -233,18 +242,19 @@ jobs:
             exit 1
           fi
           echo "daemon: $daemon"
-          mkdir -p ${{ github.workspace }}/win-raw/ALIAS
-          cp "$dir"/*.dll ${{ github.workspace }}/win-raw/ALIAS/ 2>/dev/null || true
-          cp "$daemon" ${{ github.workspace }}/win-raw/ALIAS/aliaswalletd.exe
-          cp -R "$dir/Tor" ${{ github.workspace }}/win-raw/ALIAS/Tor
-          ls -la ${{ github.workspace }}/win-raw/ALIAS
-          cd ${{ github.workspace }}/win-raw && 7z a -tzip ALIAS.zip ALIAS/
+          mkdir -p win-raw/ALIAS
+          cp "$dir"/*.dll win-raw/ALIAS/ 2>/dev/null || true
+          cp "$daemon" win-raw/ALIAS/aliaswalletd.exe
+          cp -R "$dir/Tor" win-raw/ALIAS/Tor
+          ls -la win-raw/ALIAS
+          ( cd win-raw && 7z a -tzip ALIAS.zip ALIAS/ )
+          test -f win-raw/ALIAS.zip || { echo "ERROR: win-raw/ALIAS.zip was not created."; exit 1; }
       - name: Upload Windows Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/win-raw/ALIAS.zip
+          file: win-raw/ALIAS.zip
           asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
@@ -252,3 +262,56 @@ jobs:
 
   # ==========================================================================
   # Build Windows x86 version
+  buildWindowsX86:
+    runs-on: windows-latest
+    needs: prepareRelease
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install vcpkg and packages with cache
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: e8709ee8703328fe121eab33cda73a406a7626b7
+
+      - name: Build Windows binaries
+        run: ./scripts/cmake-build-win-x86.bat daemon
+        env:
+          VCPKG_DEFAULT_TRIPLET: x86-windows
+          VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
+          CMAKEDIR_x86: 'C:\Program Files\CMake\bin'
+          VCPKGDIR: ${{ github.workspace }}/vcpkg
+
+      - name: Stage Windows daemon archive
+        shell: bash
+        run: |
+          daemon=$(find build-x86 -type f -name aliaswalletd.exe | head -1)
+          if [ -z "$daemon" ]; then
+            echo "ERROR: aliaswalletd.exe was not produced by the build."
+            find build-x86 -type f -name '*.exe' | head -40
+            exit 1
+          fi
+          dir=$(dirname "$daemon")
+          if [ ! -d "$dir/Tor" ]; then
+            echo "ERROR: Tor was not staged next to the daemon: $dir/Tor"
+            ls -la "$dir"
+            exit 1
+          fi
+          echo "daemon: $daemon"
+          mkdir -p win32-raw/ALIAS
+          cp "$dir"/*.dll win32-raw/ALIAS/ 2>/dev/null || true
+          cp "$daemon" win32-raw/ALIAS/aliaswalletd.exe
+          cp -R "$dir/Tor" win32-raw/ALIAS/Tor
+          ls -la win32-raw/ALIAS
+          ( cd win32-raw && 7z a -tzip ALIAS.zip ALIAS/ )
+          test -f win32-raw/ALIAS.zip || { echo "ERROR: win32-raw/ALIAS.zip was not created."; exit 1; }
+
+      - name: Upload Windows Build
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: win32-raw/ALIAS.zip
+          asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win32.zip
+          tag: ${{ needs.prepareRelease.outputs.alias_release }}
+          overwrite: true

@@ -111,6 +111,9 @@ checkHomebrew() {
     if homebrewVersion=$(brew --version 2>/dev/null) ; then
         # Show only the first line of the version output
         info " -> Found ${homebrewVersion/$'\n'*/}"
+        # /usr/local on Intel, /opt/homebrew on Apple Silicon
+        BREW_PREFIX=$(brew --prefix)
+        info " -> Homebrew prefix: ${BREW_PREFIX}"
     else
         error " -> Homebrew not found!"
         error "    You need to install homebrew and after that BerkeleyDB v4, Boost and OpenSSL:"
@@ -149,14 +152,14 @@ checkOpenSSL() {
 checkBerkeleyDB() {
     info ""
     info "BerkeleyDB:"
-    info " -> Searching required BerkeleyDB 4.8 at /usr/local/opt/berkeley-db@4"
+    info " -> Searching required BerkeleyDB 4.8 at ${BREW_PREFIX}/opt/berkeley-db@4"
     # BerkeleyDB 4.8 (needed for wallet.dat) may come from Homebrew's keg-only
-    # berkeley-db@4 or a source build; both live under /usr/local/opt/berkeley-db@4.
-    if [[ -f /usr/local/opt/berkeley-db@4/lib/libdb_cxx-4.8.a ]] || [[ -f /usr/local/opt/berkeley-db@4/lib/libdb_cxx.a ]] ; then
-        info " -> Found BerkeleyDB 4.8 at /usr/local/opt/berkeley-db@4"
+    # berkeley-db@4 or a source build; both live under ${BREW_PREFIX}/opt/berkeley-db@4.
+    if [[ -f ${BREW_PREFIX}/opt/berkeley-db@4/lib/libdb_cxx-4.8.a ]] || [[ -f ${BREW_PREFIX}/opt/berkeley-db@4/lib/libdb_cxx.a ]] ; then
+        info " -> Found BerkeleyDB 4.8 at ${BREW_PREFIX}/opt/berkeley-db@4"
     else
         error " -> Required BerkeleyDB dependency not found!"
-        error "    You need to install BerkeleyDB v4.8 into /usr/local/opt/berkeley-db@4"
+        error "    You need to install BerkeleyDB v4.8 into ${BREW_PREFIX}/opt/berkeley-db@4"
         error ""
         die 41 "Stopping build because of missing BerkeleyDB"
     fi
@@ -184,8 +187,8 @@ checkBoost() {
         error ""
         die 42 "Stopping build because of missing Boost"
     fi
-    BOOST_INCLUDEDIR=/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/include
-    BOOST_LIBRARYDIR=/usr/local/Cellar/boost/${BOOST_VERSION_MAC}/lib
+    BOOST_INCLUDEDIR=${BREW_PREFIX}/Cellar/boost/${BOOST_VERSION_MAC}/include
+    BOOST_LIBRARYDIR=${BREW_PREFIX}/Cellar/boost/${BOOST_VERSION_MAC}/lib
 }
 # ===== End of boost functions ===============================================
 
@@ -786,13 +789,13 @@ cmake \
     -DBOOST_INCLUDEDIR=${BOOST_INCLUDEDIR} \
     -DBOOST_LIBRARYDIR=${BOOST_LIBRARYDIR} \
     \
-    -DBerkeleyDB_ROOT_DIR=/usr/local/opt/berkeley-db@4 \
-    -DBERKELEYDB_INCLUDE_DIR=/usr/local/opt/berkeley-db@4/include \
+    -DBerkeleyDB_ROOT_DIR=${BREW_PREFIX}/opt/berkeley-db@4 \
+    -DBERKELEYDB_INCLUDE_DIR=${BREW_PREFIX}/opt/berkeley-db@4/include \
     \
     -Dleveldb_DIR=${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/local/lib/cmake/leveldb \
     -DLEVELDB_INCLUDE_DIR=${DEPENDENCIES_BUILD_DIR}/${BUILD_DIR}/local/include \
     \
-    -DOPENSSL_ROOT_DIR=/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/lib;/usr/local/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/include
+    -DOPENSSL_ROOT_DIR=${BREW_PREFIX}/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/lib;${BREW_PREFIX}/Cellar/${OPENSSL_FOLDERNAME}/${OPENSSL_VERSION_MAC}/include
 EOM
 
 # Insert additional parameters
