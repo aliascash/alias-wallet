@@ -32,6 +32,7 @@ boost::process::group gTor;
 #include <signal.h>     // signals
 #include <unistd.h>     // fork()
 #include <sys/wait.h>   // waitpid()
+extern char **environ;  // not declared by unistd.h unless _GNU_SOURCE is set
 pid_t tor_process_pid = 0;
 #endif
 
@@ -1826,6 +1827,33 @@ static void run_tor() {
     for (auto const& s : argv) { strCommandLine += s + " "; }
     LogPrintf("Start tor as separate process (fork,execvp) with: %s\n", strCommandLine);
 
+    // Prefer the Tor bundled next to the daemon over whatever is in PATH, so a
+    // clean machine needs no system tor package installed.
+    fs::path pathBundledTorDir = dll::program_location().parent_path() / "Tor";
+    std::string strBundledTor = (pathBundledTorDir / "tor.real").string();
+    bool fBundledTor = fs::exists(strBundledTor);
+
+    // The bundled tor has no RUNPATH but ships its own libssl/libcrypto/libevent
+    // beside it. Without this it silently loads the system ones, and fails
+    // outright on a distro where those are missing -- which is the whole point
+    // of bundling. Build the child's environment before forking.
+    std::string strLdPath = "LD_LIBRARY_PATH=" + pathBundledTorDir.string();
+    std::vector<char *> envp_c;
+    if (fBundledTor) {
+        const char *pszExisting = getenv("LD_LIBRARY_PATH");
+        if (pszExisting != nullptr && pszExisting[0] != '\0')
+            strLdPath += std::string(":") + pszExisting;
+        for (char **e = environ; *e != nullptr; ++e) {
+            if (strncmp(*e, "LD_LIBRARY_PATH=", 16) != 0)
+                envp_c.push_back(*e);
+        }
+        envp_c.push_back(const_cast<char *>(strLdPath.c_str()));
+        envp_c.push_back(nullptr);
+        LogPrintf("Using bundled tor at %s\n", strBundledTor);
+    } else {
+        LogPrintf("No bundled tor at %s, falling back to tor from PATH\n", strBundledTor);
+    }
+
     std::string torResult;
     pid_t ppid_before_fork = getpid();
     tor_process_pid = fork();
@@ -1851,10 +1879,14 @@ static void run_tor() {
         std::transform(argv.begin(), argv.end(), std::back_inserter(argv_c), convert_str);
         argv_c.push_back(nullptr);
 
-        if (execvp("tor", &argv_c[0]) < 0) {
+        if (fBundledTor) {
+            execve(strBundledTor.c_str(), &argv_c[0], &envp_c[0]);
+            perror("execve(bundled tor) failed");
+        } else {
+            execvp("tor", &argv_c[0]);
             perror("execvp(\"tor\", ...) failed");
-            _exit(127);
         }
+        _exit(127);
     } else {
         // Continue parent execution...
         // Block this thread until the process exits (to have same behavior as tor_main call for static tor integration)
@@ -1866,7 +1898,7 @@ static void run_tor() {
                 torResult = "Tor shutdown during wallet stop\n";
             } else if (WIFEXITED(status) && WEXITSTATUS(status)) {
                 if (WEXITSTATUS(status) == 127) {
-                    torResult = "Terminating - Error: Could not start tor. Is tor installed and available in PATH?\n";
+                    torResult = "Terminating - Error: Could not start tor. No bundled Tor next to the daemon and none in PATH.\n";
                 } else {
                     torResult = "Terminating - Error: Tor did exit with status " + std::to_string(WEXITSTATUS(status)) +
                                 "\n";

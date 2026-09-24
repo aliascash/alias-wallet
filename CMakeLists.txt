@@ -34,6 +34,7 @@ set(TOR_BUNDLE_WIN64_HASH "231dad6b9cb401a54c260db7046965ef04e4f72ff071b140d423f
 set(TOR_BUNDLE_WIN32_HASH "1e4de9a4f1d99b8f40b5e0c75f3dcc3ea51b0aeab040d48fd23881e9fa94979a")
 set(TOR_BUNDLE_MAC_X86_64_HASH "be1be1cb13cd093713f02a0beade0d2471b61119011bfeb0efc08353eadf2e4e")
 set(TOR_BUNDLE_MAC_AARCH64_HASH "e8ea3f667c83309abad34280f0f9e1cfae52843da6b8db111ca15d6221051db5")
+set(TOR_BUNDLE_LINUX_X86_64_HASH "08d49de27f542b8f73e2014e064d8320562b5d20019c03d4725c5a5249d97985")
 # dist.torproject.org serves only current releases and deletes superseded ones,
 # which breaks a pinned version as soon as Tor Browser updates. The archive
 # keeps every release, so pin against that instead.
@@ -357,6 +358,40 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         file(RENAME "${TOR_STAGE_DIR}/Tor/pluggable_transports" "${TOR_STAGE_DIR}/Tor/PluggableTransports")
         # Ship ALIAS' torrc-defaults, not the Tor Browser one from the bundle
         file(COPY "${CMAKE_SOURCE_DIR}/src/osx/torrc-defaults" DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}/unpack")
+    endif ()
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    message(STATUS "=== Tor binary archive =====================================================")
+    set(TOR_BUNDLE_NAME "tor-expert-bundle-linux-x86_64-${TOR_BUNDLE_VERSION}.tar.gz")
+    if (NOT TOR_ARCHIVE)
+        message(STATUS "Downloading Tor expert bundle ${TOR_BUNDLE_VERSION} (x86_64)")
+        include(DownloadFile)
+        set(TOR_ARCHIVE "${CMAKE_BINARY_DIR}/${TOR_BUNDLE_NAME}")
+        download_file(${TOR_BUNDLE_BASE_URL}/${TOR_BUNDLE_VERSION}/${TOR_BUNDLE_NAME} ${TOR_ARCHIVE} SHA256 ${TOR_BUNDLE_LINUX_X86_64_HASH})
+    endif ()
+
+    # Same Tor/tor.real layout as macOS, so run_tor() has one path to look for.
+    # Linux writes its own torrc-defaults into the data dir at runtime, so the
+    # one from the bundle is not shipped.
+    set(TOR_STAGE_DIR "${CMAKE_BINARY_DIR}/tor-stage")
+    if (NOT EXISTS "${TOR_STAGE_DIR}/Tor/tor.real")
+        file(REMOVE_RECURSE "${TOR_STAGE_DIR}")
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/unpack")
+        execute_process(
+                COMMAND ${CMAKE_COMMAND} -E tar xzf ${TOR_ARCHIVE}
+                WORKING_DIRECTORY "${TOR_STAGE_DIR}/unpack"
+                RESULT_VARIABLE torUnpackResult)
+        if (NOT torUnpackResult EQUAL 0)
+            message(FATAL_ERROR "Failed to unpack Tor expert bundle ${TOR_ARCHIVE}")
+        endif ()
+        file(MAKE_DIRECTORY "${TOR_STAGE_DIR}/Tor")
+        # tor ships its own libssl/libcrypto/libevent beside the binary; keep the
+        # executable bits so they stay loadable.
+        file(COPY "${TOR_STAGE_DIR}/unpack/tor/" DESTINATION "${TOR_STAGE_DIR}/Tor"
+                USE_SOURCE_PERMISSIONS)
+        file(COPY "${TOR_STAGE_DIR}/unpack/data/geoip" "${TOR_STAGE_DIR}/unpack/data/geoip6"
+                DESTINATION "${TOR_STAGE_DIR}/Tor")
+        file(RENAME "${TOR_STAGE_DIR}/Tor/tor" "${TOR_STAGE_DIR}/Tor/tor.real")
         file(REMOVE_RECURSE "${TOR_STAGE_DIR}/unpack")
     endif ()
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")

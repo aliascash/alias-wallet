@@ -87,22 +87,27 @@ jobs:
       # Stage aliaswalletd from the built image. Dockerfile_20_04_noUpload is a
       # single-stage build, so the binary sits where the build script put it.
       # (/filesToUpload only exists in the upload variant, which we do not use
-      # because it publishes its own Ubuntu-20-04.tgz asset.) Tor is not bundled
-      # separately on Linux (the daemon loads system Tor); only the daemon binary
-      # is needed by the desktop app.
+      # because it publishes its own Ubuntu-20-04.tgz asset.) Tor is bundled next
+      # to the daemon, same as on Windows and macOS, so a clean machine needs no
+      # system tor package.
       - name: Stage Linux raw binary archive
         run: |
-          mkdir -p /tmp/linux-raw/aliaswalletd-linux
+          mkdir -p /tmp/linux-raw/ALIAS
           docker create --name alias-extract local
           trap 'docker rm -f alias-extract >/dev/null 2>&1 || true' EXIT
-          if ! docker cp alias-extract:/alias-wallet/cmake-build-cmdline/aliaswallet/src/aliaswalletd \
-                         /tmp/linux-raw/aliaswalletd-linux/aliaswalletd; then
+          src=/alias-wallet/cmake-build-cmdline/aliaswallet/src
+          if ! docker cp "alias-extract:$src/aliaswalletd" /tmp/linux-raw/ALIAS/aliaswalletd; then
             echo "ERROR: aliaswalletd not at the expected path in the image."
             docker run --rm --entrypoint sh local -c 'find / -name aliaswalletd -type f 2>/dev/null | head -20'
             exit 1
           fi
+          if ! docker cp "alias-extract:$src/Tor" /tmp/linux-raw/ALIAS/Tor; then
+            echo "ERROR: Tor was not staged next to the daemon in the image."
+            exit 1
+          fi
+          test -x /tmp/linux-raw/ALIAS/Tor/tor.real || { echo "ERROR: Tor/tor.real missing or not executable."; exit 1; }
           cd /tmp/linux-raw
-          zip -r ALIAS.zip aliaswalletd-linux/
+          zip -ry ALIAS.zip ALIAS/
           test -f ALIAS.zip || { echo "ERROR: ALIAS.zip was not created."; exit 1; }
 
       - name: Upload Linux raw binary archive

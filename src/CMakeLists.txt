@@ -240,9 +240,10 @@ endif()
 # The daemon launches Tor from a Tor/ folder next to its own binary
 # (CreateProcessA("Tor/tor.exe") on Windows, ./tor.real on macOS). The GUI builds
 # stage that folder into the app bundle or the delivery directory; a daemon-only
-# build has neither, so stage it next to the daemon itself. Linux is excluded on
-# purpose: there the daemon runs the system tor via execvp.
-if (NOT ENABLE_GUI AND (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Windows"))
+# build has neither, so stage it next to the daemon itself. Linux is included:
+# run_tor() prefers this bundled copy over a system tor from PATH.
+if (NOT ENABLE_GUI AND (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME STREQUAL "Windows"
+        OR CMAKE_SYSTEM_NAME STREQUAL "Linux"))
     add_custom_command(TARGET Aliaswalletd POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_directory
                     ${TOR_STAGE_DIR} $<TARGET_FILE_DIR:Aliaswalletd>
@@ -251,7 +252,7 @@ if (NOT ENABLE_GUI AND (CMAKE_SYSTEM_NAME STREQUAL "Darwin" OR CMAKE_SYSTEM_NAME
 endif()
 
 # Without the GUI there is no windeployqt to collect the runtime DLLs the daemon
-# needs (MSVC runtime, Boost, OpenSSL, BerkeleyDB), so copy them next to it.
+# needs (Boost, OpenSSL, BerkeleyDB), so copy them next to it.
 if (NOT ENABLE_GUI AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if (CMAKE_VERSION VERSION_GREATER_EQUAL 3.21)
         add_custom_command(TARGET Aliaswalletd POST_BUILD
@@ -262,6 +263,23 @@ if (NOT ENABLE_GUI AND CMAKE_SYSTEM_NAME STREQUAL "Windows")
                 )
     else()
         message(FATAL_ERROR "A daemon-only Windows build needs CMake 3.21 or newer to collect runtime DLLs")
+    endif()
+
+    # TARGET_RUNTIME_DLLS skips anything in a system directory, so the MSVC
+    # runtime (msvcp140.dll, vcruntime140*.dll) is not among them. Without it the
+    # daemon fails to start on a machine that has no VC++ redistributable.
+    # _SKIP keeps the install() rules out; the variable is still filled in.
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+    include(InstallRequiredSystemLibraries)
+    if (CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)
+        add_custom_command(TARGET Aliaswalletd POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} $<TARGET_FILE_DIR:Aliaswalletd>
+                COMMAND_EXPAND_LISTS
+                COMMENT "Stage the MSVC runtime next to the daemon"
+                )
+    else()
+        message(FATAL_ERROR "MSVC runtime DLLs not found; the daemon would not start without them")
     endif()
 endif()
 
