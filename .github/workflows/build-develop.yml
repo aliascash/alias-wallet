@@ -233,18 +233,18 @@ jobs:
             exit 1
           fi
           echo "daemon: $daemon"
-          mkdir -p /tmp/win-raw/ALIAS
-          cp "$dir"/*.dll /tmp/win-raw/ALIAS/ 2>/dev/null || true
-          cp "$daemon" /tmp/win-raw/ALIAS/aliaswalletd.exe
-          cp -R "$dir/Tor" /tmp/win-raw/ALIAS/Tor
-          ls -la /tmp/win-raw/ALIAS
-          cd /tmp/win-raw && 7z a -tzip ALIAS.zip ALIAS/
+          mkdir -p ${{ github.workspace }}/win-raw/ALIAS
+          cp "$dir"/*.dll ${{ github.workspace }}/win-raw/ALIAS/ 2>/dev/null || true
+          cp "$daemon" ${{ github.workspace }}/win-raw/ALIAS/aliaswalletd.exe
+          cp -R "$dir/Tor" ${{ github.workspace }}/win-raw/ALIAS/Tor
+          ls -la ${{ github.workspace }}/win-raw/ALIAS
+          cd ${{ github.workspace }}/win-raw && 7z a -tzip ALIAS.zip ALIAS/
       - name: Upload Windows Build
         id: upload-release-asset
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ github.workspace }}/ALIAS.zip
+          file: ${{ github.workspace }}/win-raw/ALIAS.zip
           asset_name: ALIAS-${{ needs.prepareRelease.outputs.alias_release }}-${{ needs.prepareRelease.outputs.github_sha_short }}-Win64.zip
           tag: ${{ needs.prepareRelease.outputs.alias_release }}
           overwrite: true
