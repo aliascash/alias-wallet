@@ -840,6 +840,24 @@ bool AppInit2(boost::thread_group& threadGroup)
     };
 
     switch (LoadBlockIndex(true, [] (const unsigned mode, const uint32_t& nBlock) -> void {
+                           // The Qt GUI got these counts in-process through
+                           // uiInterface. The Electron shell runs the daemon
+                           // as a separate process and can only read
+                           // debug.log, so mirror them there too -- otherwise
+                           // its splash has nothing to show while a
+                           // bootstrap-sized index loads for minutes.
+                           // Throttled: this fires per block, and the index
+                           // holds millions of them.
+                           static unsigned nLoggedMode = 99;
+                           static uint32_t nLoggedBlock = 0;
+                           if (mode != nLoggedMode || nBlock < nLoggedBlock
+                                                   || nBlock - nLoggedBlock >= 50000)
+                           {
+                               nLoggedMode = mode;
+                               nLoggedBlock = nBlock;
+                               LogPrintf("Init progress: mode=%u count=%u\n", mode, nBlock);
+                           };
+
                            if (mode == 0)
                                 uiInterface.InitMessage(strprintf(_("Loading block index... (%d)"), nBlock));
                            else if (mode == 1)
