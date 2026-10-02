@@ -1,3 +1,16 @@
+## Alias 4.4.1.4
+
+Rebuilds the Windows installer without the "Bootstrap Blockchain Data" option.
+
+The installer offered a component page where the blockchain bootstrap could be
+downloaded during setup. That option is gone and the component page with it, so
+setup now only installs the wallet. The wallet syncs from the network on first
+run as before.
+
+The daemon itself is unchanged from 4.4.1.3. This release exists because the
+installer is compiled from the separate aliascash/installer repository during
+the release build, so a new build is what picks the change up.
+
 ## Alias 4.4.1.3
 
 Fixes wallets that stop downloading blocks while connected to peers and only
