@@ -1024,6 +1024,19 @@ bool AppInit2(boost::thread_group& threadGroup)
                 LOCK2(cs_main, pwalletMain->cs_wallet);
                 pwalletMain->MarkDirty();
                 pwalletMain->ScanForWalletTransactions(pindexRescan, true, [] (const int& nCurrentHeight, const int& nBestHeight, const int& foundOwned) -> bool {
+                    // InitMessage has no handler in headless mode (noui.cpp
+                    // connects only the message box and the fee prompt), so
+                    // the Electron UI cannot see it. Mirror it to the log the
+                    // same way the block-index progress above does, or its
+                    // splash sits on "Rescanning last N blocks..." for the
+                    // whole scan with nothing moving.
+                    static int nLoggedHeight = 0;
+                    if (nCurrentHeight < nLoggedHeight || nCurrentHeight - nLoggedHeight >= 10000)
+                    {
+                        nLoggedHeight = nCurrentHeight;
+                        LogPrintf("Rescan progress: %d / %d (%d txns)\n", nCurrentHeight, nBestHeight, foundOwned);
+                    };
+
                     uiInterface.InitMessage(strprintf("Rescanning... %d / %d (%d txns)", nCurrentHeight, nBestHeight, foundOwned));
                     return true;
                 },100);
