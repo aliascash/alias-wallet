@@ -16,6 +16,20 @@
 # and source helper content from there
 callDir=$(pwd)
 ownLocation="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# berkeleydb-cmake, libxz-cmake and tor-cmake were moved to
+# external.deprecated/ by 9511998c, but the call sites below kept pointing at
+# external/, so a fresh checkout died with "source directory
+# .../external/berkeleydb-cmake does not exist". Both layouts have to keep
+# working: the Docker builder image still ships them under external/, and
+# .dockerignore keeps external.deprecated out of the image entirely.
+depsDir() {
+    if [[ -d "${ownLocation}/../external/$1" ]]; then
+        echo "${ownLocation}/../external/$1"
+    else
+        echo "${ownLocation}/../external.deprecated/$1"
+    fi
+}
 cd "${ownLocation}" || die 1 "Unable to cd into own location ${ownLocation}"
 . ./include/helpers_console.sh
 _init
@@ -246,7 +260,8 @@ checkOpenSSLArchive() {
 # with some slight modifications for Alias
 checkOpenSSLClone() {
     local currentDir=$(pwd)
-    cd ${ownLocation}/../external
+    mkdir -p ${ownLocation}/../external
+    cd ${ownLocation}/../external || die 1 "Unable to cd into ${ownLocation}/../external"
     if [[ -d openssl-cmake ]]; then
         info " -> Updating openssl-cmake clone"
         cd openssl-cmake
@@ -342,7 +357,7 @@ cmake \
     -DBERKELEYDB_BUILD_VERSION_SHORT=${BERKELEYDB_BUILD_VERSION%.*} \
     -DBERKELEYDB_ARCHIVE_HASH=${BERKELEYDB_ARCHIVE_HASH} \
     -DCMAKE_INSTALL_PREFIX=/libdb-install \
-    ${ownLocation}/../external/berkeleydb-cmake
+    $(depsDir berkeleydb-cmake)
 EOM
 
     echo "=============================================================================="
@@ -507,7 +522,8 @@ checkEventLibArchive() {
 
 checkEventLibClone() {
     local currentDir=$(pwd)
-    cd ${ownLocation}/../external
+    mkdir -p ${ownLocation}/../external
+    cd ${ownLocation}/../external || die 1 "Unable to cd into ${ownLocation}/../external"
     if [[ -d libevent ]]; then
         info " -> Updating libevent clone"
         cd libevent
@@ -579,7 +595,8 @@ checkEventLib() {
 # ===== Start of leveldb functions ===========================================
 checkLevelDBClone() {
     local currentDir=$(pwd)
-    cd ${ownLocation}/../external
+    mkdir -p ${ownLocation}/../external
+    cd ${ownLocation}/../external || die 1 "Unable to cd into ${ownLocation}/../external"
     if [[ -d leveldb ]]; then
         info " -> Updating LevelDB clone"
         cd leveldb
@@ -675,7 +692,8 @@ checkZStdLibArchive() {
         wget ${LIBZ_ARCHIVE_URL}
         cd - >/dev/null
     fi
-    cd ${ownLocation}/../external
+    mkdir -p ${ownLocation}/../external
+    cd ${ownLocation}/../external || die 1 "Unable to cd into ${ownLocation}/../external"
     if [[ -d libzstd ]]; then
         info " -> Directory external/libzstd already existing. Remove it to extract it again"
     else
@@ -769,7 +787,7 @@ cmake \
     -DLIBXZ_BUILD_VERSION=${LIBXZ_BUILD_VERSION} \
     -DLIBXZ_BUILD_VERSION_SHORT=${LIBXZ_BUILD_VERSION%.*} \
     -DLIBXZ_ARCHIVE_HASH=${LIBXZ_ARCHIVE_HASH} \
-    ${ownLocation}/../external/libxz-cmake
+    $(depsDir libxz-cmake)
 EOM
 
     echo "=============================================================================="
@@ -841,7 +859,7 @@ cmake \
     -DTOR_BUILD_VERSION=${TOR_BUILD_VERSION} \
     -DTOR_BUILD_VERSION_SHORT=${TOR_BUILD_VERSION%.*} \
     -DTOR_ARCHIVE_HASH=${TOR_ARCHIVE_HASH} \
-    ${ownLocation}/../external/tor-cmake
+    $(depsDir tor-cmake)
 EOM
 
     echo "=============================================================================="
