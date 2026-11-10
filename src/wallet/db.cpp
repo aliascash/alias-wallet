@@ -16,6 +16,8 @@
 
 #ifndef WIN32
 #include "sys/stat.h"
+#else
+#include <windows.h>
 #endif
 
 using namespace std;
@@ -30,6 +32,24 @@ unsigned int nWalletDBUpdated;
 //
 
 CDBEnv bitdb;
+
+// The Windows Berkeley DB (vcpkg) is built with _UNICODE and reads every path
+// as UTF-8, but path::string() is in the ANSI code page. A user name like
+// "Configüraçión" then made the wallet environment fail to open.
+static std::string BdbPath(const boost::filesystem::path& p)
+{
+#ifdef WIN32
+    const std::wstring w = p.wstring();
+    const int n = WideCharToMultiByte(CP_UTF8, 0, w.c_str(), -1, NULL, 0, NULL, NULL);
+    if (n <= 1)
+        return std::string();
+    std::string s(n - 1, '\0');
+    WideCharToMultiByte(CP_UTF8, 0, w.c_str(), -1, &s[0], n, NULL, NULL);
+    return s;
+#else
+    return p.string();
+#endif
+}
 
 void CDBEnv::EnvShutdown()
 {
@@ -69,7 +89,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
 
     pathEnv = pathEnv_;
     boost::filesystem::path pathDataDir = pathEnv;
-    strPath = pathDataDir.string();
+    strPath = BdbPath(pathDataDir);
     boost::filesystem::path pathLogDir = pathDataDir / "database";
     boost::filesystem::create_directory(pathLogDir);
     boost::filesystem::path pathErrorFile = pathDataDir / "db.log";
@@ -81,7 +101,7 @@ bool CDBEnv::Open(boost::filesystem::path pathEnv_)
         nEnvFlags |= DB_PRIVATE;
 
     int nDbCache = GetArg("-dbcache", 25);
-    dbenv.set_lg_dir(pathLogDir.string().c_str());
+    dbenv.set_lg_dir(BdbPath(pathLogDir).c_str());
     dbenv.set_cachesize(nDbCache / 1024, (nDbCache % 1024)*1048576, 1);
     dbenv.set_lg_bsize(1048576);
     dbenv.set_lg_max(10485760);
