@@ -2050,7 +2050,8 @@ Value listprivateaddresses(const Array& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw std::runtime_error(
             "listprivateaddresses [show_secrets=0]\n"
-            "List owned stealth addresses.");
+            "List owned stealth addresses.\n"
+            "\"addresses\" repeats them as an array: the other keys repeat, which JSON clients cannot read.");
 
     bool fShowSecrets = false;
 
@@ -2068,6 +2069,14 @@ Value listprivateaddresses(const Array& params, bool fHelp)
         EnsureWalletIsUnlocked();
 
     Object result;
+    Array addresses;
+    auto addAddress = [&](const std::string &sAddress, const std::string &sLabel)
+    {
+        Object o;
+        o.push_back(Pair("address", sAddress));
+        o.push_back(Pair("label", sLabel));
+        addresses.push_back(o);
+    };
 
     ExtKeyAccountMap::const_iterator mi;
     for (mi = pwalletMain->mapExtAccounts.begin(); mi != pwalletMain->mapExtAccounts.end(); ++mi)
@@ -2082,6 +2091,7 @@ Value listprivateaddresses(const Array& params, bool fHelp)
         for (it = ea->mapStealthKeys.begin(); it != ea->mapStealthKeys.end(); ++it)
         {
             const CEKAStealthKey &aks = it->second;
+            addAddress(aks.ToStealthAddress(), aks.sLabel);
             if (fShowSecrets)
             {
                 Object objA;
@@ -2120,6 +2130,7 @@ Value listprivateaddresses(const Array& params, bool fHelp)
         if (it->scan_secret.size() < 1)
             continue; // stealth address is not owned
 
+        addAddress(it->Encoded(), it->label);
         if (fShowSecrets)
         {
             Object objA;
@@ -2134,6 +2145,7 @@ Value listprivateaddresses(const Array& params, bool fHelp)
         };
     };
 
+    result.push_back(Pair("addresses", addresses));
     return result;
 }
 
@@ -2735,6 +2747,54 @@ Value privateinfo(const Array& params, bool fHelp)
     result.push_back(Pair("total stake value", ValueFromAmount(nTotalStakes)));
     result.push_back(Pair("total compromised outputs", nOutputsCompromised));
     result.push_back(Pair("total compromised value", ValueFromAmount(nTotalCompromised)));
+
+    return result;
+}
+
+// The 4.4.x Chain Data page read these counts from the Qt bridge
+// (SpectreBridge::listAnonOutputs). With the GUI split off, the UI needs
+// them over RPC; privateinfo and privateoutputs pack the numbers into
+// JSON keys and leave out the mature counts.
+Value listanonoutputs(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() > 0)
+        throw std::runtime_error(
+            "listanonoutputs\n"
+            "Per coin value: owned and system-wide private output counts.");
+
+    if (nNodeMode != NT_FULL)
+        throw std::runtime_error("Must be in full mode.");
+
+    std::map<int64_t, int> mOwnedOutputCounts;
+    std::map<int64_t, int> mMatureOutputCounts;
+    Object result;
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    if (pwalletMain->CountOwnedAnonOutputs(mOwnedOutputCounts, CWallet::MaturityFilter::NONE) != 0
+        || pwalletMain->CountOwnedAnonOutputs(mMatureOutputCounts, CWallet::MaturityFilter::FOR_SPENDING) != 0)
+        throw std::runtime_error("CountOwnedAnonOutputs() failed.");
+
+    for (auto & [nValue, aoc] : mapAnonOutputStats)
+    {
+        Object anonOutput;
+        anonOutput.push_back(Pair("owned_mature",          mMatureOutputCounts[nValue]));
+        anonOutput.push_back(Pair("owned_outputs",         mOwnedOutputCounts[nValue]));
+        anonOutput.push_back(Pair("system_mature",         aoc.nMature));
+        anonOutput.push_back(Pair("system_compromised",    aoc.nCompromised));
+        anonOutput.push_back(Pair("system_outputs",        aoc.nExists));
+        anonOutput.push_back(Pair("system_spends",         aoc.nSpends));
+        anonOutput.push_back(Pair("system_unspent",        aoc.nExists - aoc.nSpends));
+        anonOutput.push_back(Pair("system_unspent_mature", aoc.numOfMatureUnspends()));
+        anonOutput.push_back(Pair("system_mixins",         aoc.nExists - aoc.nCompromised));
+        anonOutput.push_back(Pair("system_mixins_mature",  aoc.nMixins));
+        anonOutput.push_back(Pair("system_mixins_staking", aoc.nMixinsStaking));
+        if (aoc.nLastHeight == 0)
+            anonOutput.push_back(Pair("least_depth", "-"));
+        else
+            anonOutput.push_back(Pair("least_depth", nBestHeight - aoc.nLastHeight + 1));
+        result.push_back(Pair(std::to_string(nValue), anonOutput));
+    }
 
     return result;
 }

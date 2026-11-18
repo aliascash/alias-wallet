@@ -229,6 +229,7 @@ extern json_spirit::Value sendprivatetopublic(const json_spirit::Array& params, 
 extern json_spirit::Value estimateprivatefee(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value privateoutputs(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value privateinfo(const json_spirit::Array& params, bool fHelp);
+extern json_spirit::Value listanonoutputs(const json_spirit::Array& params, bool fHelp);
 
 extern json_spirit::Value txnreport(const json_spirit::Array& params, bool fHelp);
 

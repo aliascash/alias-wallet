@@ -202,7 +202,8 @@ string CRPCTable::help(string strCommand) const
                 && strMethod != "sendprivatetopublic"
                 && strMethod != "estimateprivatefee"
                 && strMethod != "privateoutputs"
-                && strMethod != "privateinfo")
+                && strMethod != "privateinfo"
+                && strMethod != "listanonoutputs")
             continue;
         } else
         if (strCommand != "" && strMethod != strCommand)
@@ -371,6 +372,7 @@ static const CRPCCommand vRPCCommands[] =
     { "estimateprivatefee",     &estimateprivatefee,    false,     false,     false },
     { "privateoutputs",         &privateoutputs,         false,     false,     false },
     { "privateinfo",            &privateinfo,            false,     false,     false },
+    { "listanonoutputs",        &listanonoutputs,        false,     false,     false },
 
     { "txnreport",              &txnreport,              false,     false,     false },
 
