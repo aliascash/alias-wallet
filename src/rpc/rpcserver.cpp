@@ -275,9 +275,11 @@ static const CRPCCommand vRPCCommands[] =
     { "help",                   &help,                   true,      true,      false },
     { "stop",                   &stop,                   true,      true,      false },
     { "getbestblockhash",       &getbestblockhash,       true,      false,     false },
-    { "getblockcount",          &getblockcount,          true,      false,     false },
-    { "getconnectioncount",     &getconnectioncount,     true,      false,     false },
-    { "getpeerinfo",            &getpeerinfo,            true,      false,     false },
+    // Thread-safe so the wallet's sync display answers while a sync holds
+    // cs_main: they read one int, or take only cs_vNodes.
+    { "getblockcount",          &getblockcount,          true,      true,      false },
+    { "getconnectioncount",     &getconnectioncount,     true,      true,      false },
+    { "getpeerinfo",            &getpeerinfo,            true,      true,      false },
     { "addnode",                &addnode,                true,      true,      false },
     { "getaddednodeinfo",       &getaddednodeinfo,       true,      true,      false },
     { "ping",                   &ping,                   true,      false,     false },
