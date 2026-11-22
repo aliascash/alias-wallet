@@ -225,6 +225,21 @@ jobs:
         with:
           persist-credentials: false
 
+      # windows-latest moved to CMake 4.5, which fails boost-locale 1.86 at
+      # source_group(TREE). Pin the last version that builds it, ahead of PATH,
+      # so vcpkg's port builds use it too.
+      - name: Pin CMake 4.4.5
+        shell: pwsh
+        run: |
+          $v = '4.4.5'
+          $zip = "$env:RUNNER_TEMP\cmake.zip"
+          Invoke-WebRequest "https://github.com/Kitware/CMake/releases/download/v$v/cmake-$v-windows-x86_64.zip" -OutFile $zip
+          Expand-Archive $zip "$env:RUNNER_TEMP"
+          $bin = "$env:RUNNER_TEMP\cmake-$v-windows-x86_64\bin"
+          & "$bin\cmake.exe" --version
+          $bin | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          "CMAKEDIR=$bin" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v11
         with:
@@ -235,7 +250,6 @@ jobs:
         env:
           VCPKG_DEFAULT_TRIPLET: x64-windows
           VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
-          CMAKEDIR: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
 
       - name: Stage Windows daemon archive
@@ -282,6 +296,21 @@ jobs:
         with:
           persist-credentials: false
 
+      # windows-latest moved to CMake 4.5, which fails boost-locale 1.86 at
+      # source_group(TREE). Pin the last version that builds it, ahead of PATH,
+      # so vcpkg's port builds use it too.
+      - name: Pin CMake 4.4.5
+        shell: pwsh
+        run: |
+          $v = '4.4.5'
+          $zip = "$env:RUNNER_TEMP\cmake.zip"
+          Invoke-WebRequest "https://github.com/Kitware/CMake/releases/download/v$v/cmake-$v-windows-x86_64.zip" -OutFile $zip
+          Expand-Archive $zip "$env:RUNNER_TEMP"
+          $bin = "$env:RUNNER_TEMP\cmake-$v-windows-x86_64\bin"
+          & "$bin\cmake.exe" --version
+          $bin | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+          "CMAKEDIR_x86=$bin" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+
       - name: Install vcpkg and packages with cache
         uses: lukka/run-vcpkg@v11
         with:
@@ -292,7 +321,6 @@ jobs:
         env:
           VCPKG_DEFAULT_TRIPLET: x86-windows
           VSDIR: 'C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise'
-          CMAKEDIR_x86: 'C:\Program Files\CMake\bin'
           VCPKGDIR: ${{ github.workspace }}/vcpkg
 
       - name: Stage Windows daemon archive
