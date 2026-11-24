@@ -1259,8 +1259,15 @@ void ListTransactions(const CWalletTx& wtx, const std::string& strAccount, int n
         };
     };
 
+    // An orphaned stake is in neither the chain nor the mempool, so its depth
+    // is -1, not 0 as in Bitcoin. Count it as 0, or it is never listed and
+    // the "orphan" category below is unreachable.
+    int nDepth = wtx.GetDepthInMainChain();
+    if (nDepth < 0 && (wtx.IsCoinBase() || wtx.IsCoinStake()))
+        nDepth = 0;
+
     // Received
-    if (listReceived.size() > 0 && wtx.GetDepthInMainChain() >= nMinDepth)
+    if (listReceived.size() > 0 && nDepth >= nMinDepth)
     {
         bool stop = false;
         for(const auto & destination : listReceived)
